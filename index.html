@@ -334,6 +334,33 @@ async function genMCQ(q, a) {
 
 
 const COLORS = ["#F5631A","#FF8A3D","#F59E0B","#D97706","#F43F5E","#DC2626","#C2410C","#92400E"];
+const EMOJI_PRESETS = ["📚","📖","🧠","🔬","💼","🎨","💻","⚽","🎵","🌍","🏥","⚖️","🧮","📐","🎯","✨","🔥","🚀","💡","📊"];
+const isEmojiMark = m => !!m && typeof m === "string" && !m.startsWith("#");
+// Safely resize an image file to a max dimension, return JPEG data URL.
+const resizeImageDataUrl = (file, maxSize=220, quality=0.82) => new Promise((resolve, reject) => {
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const img = new Image();
+    img.onload = () => {
+      const scale = Math.min(maxSize/img.width, maxSize/img.height, 1);
+      const w = Math.max(1, Math.round(img.width*scale));
+      const h = Math.max(1, Math.round(img.height*scale));
+      const cv = document.createElement("canvas");
+      cv.width = w; cv.height = h;
+      cv.getContext("2d").drawImage(img, 0, 0, w, h);
+      resolve(cv.toDataURL("image/jpeg", quality));
+    };
+    img.onerror = reject;
+    img.src = ev.target.result;
+  };
+  reader.onerror = reject;
+  reader.readAsDataURL(file);
+});
+// MCQ rating progression: correct → promote (null→Ok, Ok→Gut, Gut→Super, Super→Super); wrong → Schwer.
+const mcqProgressRating = (correct, current) => {
+  if (correct) return current == null ? 1 : Math.min(3, current + 1);
+  return 0;
+};
 const RATINGS = [{emoji:"\ud83d\ude30",label:"Schwer",c:"#DC2626"},{emoji:"\ud83d\ude10",label:"Ok",c:"#F59E0B"},{emoji:"\ud83d\ude42",label:"Gut",c:"#F5631A"},{emoji:"\ud83d\ude0e",label:"Super!",c:"#22C55E"}];
 
 // ─── SMART SAMPLING ────────────────────────────────────────────────────
@@ -381,7 +408,22 @@ function cardWeight(c) {
 // Suggested default session size: 30, capped at total
 const suggestedCount = total => Math.min(30, Math.max(5, total));
 
-// \u2500\u2500\u2500 ICONS \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+// \u2500\u2500\u2500 ICONS & SHARED UI \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+// Folder marker — renders either a color chip (hex) or an emoji.
+function FolderMark({mark,size=22,style={}}){
+  if(isEmojiMark(mark)){
+    return <span style={{fontSize:Math.round(size*0.95),lineHeight:1,display:"inline-flex",alignItems:"center",justifyContent:"center",width:size,height:size,filter:"drop-shadow(0 2px 3px rgba(0,0,0,.12))",...style}}>{mark}</span>;
+  }
+  return <span style={{display:"inline-flex",width:size,height:size,borderRadius:Math.round(size*0.36),background:mark,boxShadow:`0 4px 10px ${mark}66,inset 0 1px 0 rgba(255,255,255,.35)`,flexShrink:0,...style}}/>;
+}
+// Avatar — image if url present, fallback to gradient-initial circle.
+function Avatar({url,name,size=30,style={}}){
+  const common={width:size,height:size,borderRadius:"50%",flexShrink:0,boxShadow:"0 2px 6px rgba(245,99,26,.18)",...style};
+  if(url){
+    return <img src={url} alt="" style={{...common,objectFit:"cover",border:"1.5px solid rgba(255,255,255,.8)"}}/>;
+  }
+  return <div style={{...common,background:"var(--grad)",display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontWeight:700,fontSize:Math.max(10,Math.round(size*0.42))}}>{(name||"?").charAt(0).toUpperCase()}</div>;
+}
 function ProgressCircle({pct,size=54,stroke=5}){
   const r=(size-stroke*2)/2,circ=2*Math.PI*r,off=circ-(pct/100)*circ;
   const col=pct>=80?"#22C55E":pct>=30?"#F5631A":"#D1CFC8";
@@ -512,6 +554,7 @@ function AuthScreen() {
 function Dashboard({session, onLogout}) {
   const user = session.user;
   const userName = user.user_metadata?.display_name || user.email.split("@")[0];
+  const avatarUrl = user.user_metadata?.avatar_url || null;
   const [data, setData] = useState({folders:[], sets:[], cards:[], shares:[]});
   const [loading, setLoading] = useState(true);
   const [sel, setSel] = useState({folderId:null, setId:null});
@@ -519,10 +562,36 @@ function Dashboard({session, onLogout}) {
   const [studyMode, setStudyMode] = useState(null);
   const [modal, setModal] = useState(null);
   const [editCard, setEditCard] = useState(null);
+  const [editFolder, setEditFolder] = useState(null);
   const [profileOpen, setProfileOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const mobile=useMobile();
   const [menuOpen,setMenuOpen]=useState(false);
+  // Shared-folder visibility preference (persisted in localStorage).
+  const [hideShared, setHideSharedState] = useState(() => {
+    try { return localStorage.getItem("heribert.hideShared") === "1"; } catch { return false; }
+  });
+  const setHideShared = v => {
+    setHideSharedState(v);
+    try { localStorage.setItem("heribert.hideShared", v ? "1" : "0"); } catch {}
+  };
+  // Close the mobile menu AND return to the home screen from anywhere —
+  // confirms first if a learn session is running.
+  const goHome = () => {
+    if (studyMode) {
+      if (!window.confirm("Lernsession noch nicht abgeschlossen — wirklich abbrechen und zur Übersicht zurück?")) return;
+      setStudyMode(null);
+    }
+    setStudyConfig(null);
+    setSel({folderId:null, setId:null});
+    setModal(null);
+    setMenuOpen(false);
+  };
+  // Navigate to a folder AND close the sidebar (mobile) in one action.
+  const openFolder = fid => {
+    setSel({folderId:fid, setId:null});
+    setMenuOpen(false);
+  };
 
   useEffect(() => { loadAll(); }, []);
   const loadAll = async () => {
@@ -560,6 +629,7 @@ function Dashboard({session, onLogout}) {
   const createFolder = async (name,color) => { const id=uid(); await sb.from("folders").insert({id,user_id:user.id,name,color,parent_id:null}); setData(d=>({...d,folders:[...d.folders,{id,name,color,parentId:null}]})); setModal(null); };
   const removeFolder = async (fid) => { await sb.from("folders").delete().eq("id",fid); setData(d=>{const sids=d.sets.filter(s=>s.folderId===fid).map(s=>s.id);return{folders:d.folders.filter(f=>f.id!==fid),sets:d.sets.filter(s=>s.folderId!==fid),cards:d.cards.filter(c=>!sids.includes(c.setId))};});if(sel.folderId===fid)setSel({folderId:null,setId:null}); };
   const renameFolder = async (fid,name) => { await sb.from("folders").update({name}).eq("id",fid); setData(d=>({...d,folders:d.folders.map(f=>f.id===fid?{...f,name}:f)})); };
+  const updateFolder = async (fid,name,color) => { await sb.from("folders").update({name,color}).eq("id",fid); setData(d=>({...d,folders:d.folders.map(f=>f.id===fid?{...f,name,color}:f)})); setModal(null); };
   const createSet = async (name,desc) => {
     const id=uid(); const now=new Date().toISOString();
     await sb.from("sets").insert({id,user_id:user.id,folder_id:sel.folderId,name,description:desc,created_at:now});
@@ -653,6 +723,17 @@ function Dashboard({session, onLogout}) {
     setModal({type:"pdfDone", count:rows.length});
   };
 
+  // Remove my own access to every set someone has shared with me.
+  // Deletes all set_shares rows where I am the invited email. RLS on the
+  // server should allow invitees to delete their own share rows.
+  const removeAllSharedAccess = async () => {
+    const myEmail = (user.email || "").toLowerCase();
+    const {error} = await sb.from("set_shares").delete().eq("invited_email", myEmail);
+    if (error) { alert("Konnte nicht entfernen: " + error.message); return; }
+    setSel({folderId:null, setId:null});
+    loadAll();
+  };
+
   const SHARED_FOLDER_ID = "__shared__";
   const sharedSets = data.sets.filter(s => s.isSharedWithMe);
   const ownedSets = data.sets.filter(s => !s.isSharedWithMe);
@@ -667,7 +748,7 @@ function Dashboard({session, onLogout}) {
     const fs=ownedSets.filter(s=>s.folderId===f.id); const fc=data.cards.filter(c=>fs.some(s=>s.id===c.setId));
     return {...f, setCount:fs.length, cardCount:fc.length, progress:calcProgress(fc)};
   });
-  if (sharedSets.length > 0) {
+  if (sharedSets.length > 0 && !hideShared) {
     const sc = data.cards.filter(c => sharedSets.some(s => s.id === c.setId));
     rootFolders.push({id:SHARED_FOLDER_ID, name:"Geteilt mit mir", color:"#C2410C", parentId:null, isVirtualShared:true, setCount:sharedSets.length, cardCount:sc.length, progress:calcProgress(sc)});
   }
@@ -675,8 +756,8 @@ function Dashboard({session, onLogout}) {
   if (studyMode) {
     const Exit=()=>setStudyMode(null);
     const sessionInfo = {name: studyMode.sourceName};
-    if (studyMode.mode==="flash") return <FlashMode set={sessionInfo} cards={studyMode.cards} onExit={Exit} onRate={updateCardRating}/>;
-    return <MCQMode set={sessionInfo} cards={studyMode.cards} onExit={Exit} onRate={updateCardRating} onCacheMCQ={cacheCardMCQ}/>;
+    if (studyMode.mode==="flash") return <FlashMode set={sessionInfo} cards={studyMode.cards} onExit={Exit} onGoHome={goHome} onRate={updateCardRating}/>;
+    return <MCQMode set={sessionInfo} cards={studyMode.cards} onExit={Exit} onGoHome={goHome} onRate={updateCardRating} onCacheMCQ={cacheCardMCQ}/>;
   }
 
   return (
@@ -684,22 +765,22 @@ function Dashboard({session, onLogout}) {
       {mobile&&menuOpen&&<div className="mob-overlay" onClick={()=>setMenuOpen(false)}></div>}
       <aside className={"hb-aside"+(mobile&&menuOpen?" open":"")} style={{width:"var(--sw)",minWidth:"var(--sw)",height:"100vh",background:"rgba(255,250,243,.78)",backdropFilter:"blur(26px) saturate(150%)",WebkitBackdropFilter:"blur(26px) saturate(150%)",borderRight:"1px solid rgba(245,99,26,.12)",display:"flex",flexDirection:"column",overflow:"hidden",boxShadow:"inset -1px 0 0 rgba(255,255,255,.6)"}}>
         <div style={{padding:"20px 18px 16px",borderBottom:"1px solid rgba(245,99,26,.12)",background:"linear-gradient(160deg,rgba(255,245,238,.7),rgba(255,250,247,.4))"}}>
-          <div style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:22,background:"var(--grad)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",letterSpacing:"-.3px"}}>Heribert ✦</div>
+          <button onClick={goHome} title="Zur Übersicht" style={{display:"block",border:"none",background:"none",padding:0,cursor:"pointer",fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:22,letterSpacing:"-.3px",textAlign:"left",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",backgroundImage:"var(--grad)"}}>Heribert ✦</button>
           <div style={{fontSize:13,color:"var(--muted)",marginTop:4}}>Hallo, <b style={{color:"var(--text)"}}>{userName.split(" ")[0]}</b> 👋</div>
         </div>
         <div style={{flex:1,overflowY:"auto",padding:"10px 8px"}}>
           <div style={{fontSize:11,fontWeight:600,color:"var(--muted2)",padding:"8px 10px 6px",letterSpacing:".08em",textTransform:"uppercase"}}>Lernbereiche</div>
           {loading ? <div style={{padding:"12px 10px",color:"var(--muted2)",fontSize:13,display:"flex",alignItems:"center",gap:8}}><ISpin c="var(--muted2)" s={16}/> Lädt…</div>
             : rootFolders.length===0 ? <div style={{padding:"8px 10px",fontSize:13,color:"var(--muted2)"}}>Noch keine Ordner</div>
-            : rootFolders.map(f => <SidebarFolder key={f.id} folder={f} isActive={sel.folderId===f.id} onClick={()=>setSel({folderId:f.id,setId:null})} onDelete={()=>{if(confirm(`"${f.name}" l\u00f6schen?`))removeFolder(f.id);}} onRename={name=>renameFolder(f.id,name)}/>)
+            : rootFolders.map(f => <SidebarFolder key={f.id} folder={f} isActive={sel.folderId===f.id} onClick={()=>openFolder(f.id)} onDelete={()=>{if(confirm(`"${f.name}" l\u00f6schen?`))removeFolder(f.id);}} onEdit={()=>{setEditFolder(f);setModal({type:"folder"});setMenuOpen(false);}}/>)
           }
-          <button className="folder-row" onClick={()=>setModal({type:"folder"})} style={{border:"1.5px dashed var(--border)",color:"var(--muted)",fontSize:13,marginTop:6}}>
+          <button className="folder-row" onClick={()=>{setEditFolder(null);setModal({type:"folder"});setMenuOpen(false);}} style={{border:"1.5px dashed rgba(245,99,26,.3)",color:"var(--muted)",fontSize:13,marginTop:6}}>
             <IPlus/> Neuer Ordner
           </button>
         </div>
         <div className="hb-sidebar-footer">
           <button className="folder-row" onClick={()=>setProfileOpen(true)} style={{width:"100%",justifyContent:"flex-start"}}>
-            <div style={{width:30,height:30,borderRadius:"50%",background:"var(--grad)",display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontWeight:700,fontSize:12,flexShrink:0}}>{userName.charAt(0).toUpperCase()}</div>
+            <Avatar url={avatarUrl} name={userName} size={32}/>
             <div style={{flex:1,overflow:"hidden"}}>
               <div style={{fontSize:13,fontWeight:600,color:"var(--text)",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{userName}</div>
               <div style={{fontSize:11,color:"var(--muted2)",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{user.email}</div>
@@ -709,10 +790,10 @@ function Dashboard({session, onLogout}) {
         </div>
       </aside>
       <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden"}}>
-      <div className="mob-topbar"><button onClick={()=>setMenuOpen(true)} style={{background:"none",border:"none",cursor:"pointer",color:"var(--text)",padding:4,display:"flex"}}><IMenu/></button><div style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:18,background:"var(--grad)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",flex:1}}>Heribert ✦</div><div onClick={()=>setProfileOpen(true)} style={{width:30,height:30,borderRadius:"50%",background:"var(--grad)",display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontWeight:700,fontSize:12,cursor:"pointer"}}>{userName.charAt(0).toUpperCase()}</div></div>
+      <div className="mob-topbar"><button onClick={()=>setMenuOpen(true)} style={{background:"none",border:"none",cursor:"pointer",color:"var(--text)",padding:4,display:"flex"}}><IMenu/></button><button onClick={goHome} style={{border:"none",background:"none",padding:0,cursor:"pointer",fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:18,flex:1,textAlign:"left",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",backgroundImage:"var(--grad)"}}>Heribert ✦</button><div onClick={()=>setProfileOpen(true)} style={{cursor:"pointer"}}><Avatar url={avatarUrl} name={userName} size={32}/></div></div>
         <main className="hb-main" style={{flex:1,overflowY:"auto",padding:"40px 48px",background:"var(--grad-bg)"}}>
         {loading ? <div style={{display:"flex",alignItems:"center",justifyContent:"center",height:"60vh",gap:12,color:"var(--muted)"}}><ISpin/><span style={{fontSize:15}}>Daten werden geladen…</span></div> : <>
-          {!sel.folderId && <HomeView userName={userName} data={data} onSelectFolder={fid=>setSel({folderId:fid,setId:null})}/>}
+          {!sel.folderId && <HomeView userName={userName} data={data} rootFolders={rootFolders} onSelectFolder={openFolder}/>}
           {sel.folderId && !sel.setId && (
             <FolderView folder={folder} sets={folderSets} data={data}
               onBack={()=>setSel({folderId:null,setId:null})} onNewSet={()=>setModal({type:"set"})}
@@ -744,8 +825,16 @@ function Dashboard({session, onLogout}) {
         setStudyConfig(null);
         setStudyMode({sourceName:studyConfig.sourceName, cards:picked, mode:cfg.mode});
       }} onClose={()=>setStudyConfig(null)}/>}
-      {profileOpen && <ProfileModal user={user} userName={userName} onLogout={onLogout} onClose={()=>setProfileOpen(false)}/>}
-      {modal?.type==="folder" && <FolderModal onSave={createFolder} onClose={()=>setModal(null)}/>}
+      {profileOpen && <ProfileModal
+        user={user}
+        userName={userName}
+        onLogout={onLogout}
+        onClose={()=>setProfileOpen(false)}
+        hideShared={hideShared}
+        setHideShared={setHideShared}
+        hasSharedFolders={sharedSets.length > 0}
+        onRemoveAllShared={removeAllSharedAccess}/>}
+      {modal?.type==="folder" && <FolderModal initial={editFolder} onSave={(name,color)=>{editFolder?updateFolder(editFolder.id,name,color):createFolder(name,color);setEditFolder(null);}} onClose={()=>{setModal(null);setEditFolder(null);}}/>}
       {modal?.type==="set" && <SetModal onSave={createSet} onClose={()=>setModal(null)}/>}
       {modal?.type==="card" && <CardModal card={editCard} saving={saving} onSave={c=>{saveCard(c);setEditCard(null);}} onClose={()=>{setModal(null);setEditCard(null);}}/>}
       {modal?.type==="folderShare" && <FolderShareModal
@@ -785,7 +874,7 @@ function FolderView({folder,sets,data,onBack,onNewSet,onSelectSet,onLearnSet,onL
       <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",marginBottom:24,flexWrap:"wrap",gap:16}}>
         <div style={{flex:1,minWidth:260}}>
           <button style={{display:"flex",alignItems:"center",gap:6,border:"none",background:"none",color:"var(--muted)",fontSize:14,cursor:"pointer",fontFamily:"inherit",marginBottom:12,padding:"4px 0"}} onClick={onBack}><IBack/> Übersicht</button>
-          <h1 style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:30,display:"flex",alignItems:"center",gap:10,letterSpacing:"-.5px"}}>{isShared ? <span>👥</span> : <span style={{display:"inline-flex",width:34,height:34,borderRadius:10,background:folder?.color,boxShadow:`0 4px 12px ${folder?.color}55`}}/>}{folder?.name}</h1>
+          <h1 style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:30,display:"flex",alignItems:"center",gap:12,letterSpacing:"-.5px"}}>{isShared ? <span style={{fontSize:30,lineHeight:1}}>👥</span> : <FolderMark mark={folder?.color} size={34}/>}{folder?.name}</h1>
           <div style={{color:"var(--muted)",fontSize:14,marginTop:6}}>{sets.length} Sets · {folderCards.length} Karten{folderCards.length>0 && <> · <span style={{color:"var(--rose)",fontWeight:600}}>{folderProg}% gelernt</span></>}</div>
           {isShared && <div style={{marginTop:10,fontSize:12,color:"var(--shared-fg)",background:"var(--shared-bg)",backdropFilter:"blur(10px)",WebkitBackdropFilter:"blur(10px)",border:"1px solid var(--shared-border)",borderRadius:10,padding:"7px 11px",display:"inline-block",fontWeight:500,boxShadow:"0 2px 8px rgba(194,65,12,.08)"}}>🔗 Geteilter Ordner · nur lesen & lernen</div>}
         </div>
@@ -837,19 +926,16 @@ function SetView({set,folder,cards,onBack,onNewCard,onEditCard,onDeleteCard,onLe
 }
 
 // \u2500\u2500\u2500 SUB-COMPONENTS \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
-function SidebarFolder({folder,isActive,onClick,onDelete,onRename}) {
-  const [editing,setEditing]=useState(false); const [name,setName]=useState(folder.name); const ref=useRef();
-  const commit=()=>{setEditing(false);if(name.trim()&&name.trim()!==folder.name)onRename(name.trim());};
-  useEffect(()=>{if(editing)ref.current?.focus();},[editing]);
+function SidebarFolder({folder,isActive,onClick,onDelete,onEdit}) {
   const virtualShared = folder.isVirtualShared;
   return (<div className={`folder-row${isActive?" active":""}`} onClick={onClick}>
-    {virtualShared ? <span style={{fontSize:15,lineHeight:1}}>👥</span> : <IFolder c={folder.color} s={15}/>}
+    {virtualShared ? <span style={{fontSize:16,lineHeight:1,width:18,display:"inline-flex",justifyContent:"center"}}>👥</span> : <FolderMark mark={folder.color} size={18}/>}
     <div style={{flex:1,overflow:"hidden"}}>
-      {editing && !virtualShared ? <input className="inline-edit" ref={ref} value={name} onChange={e=>setName(e.target.value)} onBlur={commit} onKeyDown={e=>{if(e.key==="Enter")commit();if(e.key==="Escape")setEditing(false);}} onClick={e=>e.stopPropagation()} style={{fontSize:13,fontWeight:500,width:"100%"}}/>
-        : <div style={{fontSize:13,fontWeight:500,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}} onDoubleClick={virtualShared?undefined:(e=>{e.stopPropagation();setEditing(true);})}>{folder.name}</div>}
+      <div style={{fontSize:13,fontWeight:500,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{folder.name}</div>
       <div style={{fontSize:11,color:"var(--muted2)",marginTop:1}}>{folder.setCount} Sets · {folder.cardCount} Karten{folder.cardCount>0&&<span style={{marginLeft:4,color:folder.progress>=80?"var(--green)":"var(--orange)"}}>· {folder.progress}%</span>}</div>
     </div>
-    {!virtualShared && <button className="icon-btn" onClick={e=>{e.stopPropagation();onDelete();}}><ITrash/></button>}
+    {!virtualShared && onEdit && <button className="icon-btn edit" title="Bearbeiten" onClick={e=>{e.stopPropagation();onEdit();}}><IEdit/></button>}
+    {!virtualShared && <button className="icon-btn" title="Löschen" onClick={e=>{e.stopPropagation();onDelete();}}><ITrash/></button>}
   </div>);
 }
 
@@ -896,9 +982,8 @@ function CardRow({card,onEdit,onDelete,readOnly}) {
   </div>);
 }
 
-function HomeView({userName,data,onSelectFolder}){
+function HomeView({userName,data,rootFolders,onSelectFolder}){
   const overallProg=calcProgress(data.cards); const superCards=data.cards.filter(c=>c.lastRating===3).length;
-  const rootFolders=data.folders.filter(f=>!f.parentId);
   // Each tile gets a clear-center + strong bottom-right glow + soft side + near-none top
   const stats = [
     {label:"Lernbereiche",val:data.folders.length,icon:"📁",c:"#F5631A",rgb:"245,99,26"},
@@ -926,38 +1011,48 @@ function HomeView({userName,data,onSelectFolder}){
       ))}
       <div className="hb-prog-span" style={{
         gridColumn:"span 2",
-        background:"radial-gradient(ellipse 130% 100% at 50% 125%,#7F1D1D 0%,transparent 55%),radial-gradient(ellipse 110% 120% at 50% 55%,#F5631A 0%,transparent 75%),linear-gradient(180deg,#FFA558,#F5631A 55%,#DC2626)",
-        border:"1px solid rgba(255,180,140,.35)",
+        background:"radial-gradient(ellipse 110% 85% at 50% 130%,rgba(245,99,26,.35) 0%,transparent 55%),linear-gradient(180deg,#FFFAF2 0%,#FFECD2 55%,#FFD6AA 100%)",
+        border:"1px solid rgba(245,99,26,.22)",
         borderRadius:"var(--r-hero)",
         padding:"18px 20px",
-        boxShadow:"var(--sh-hero),inset 0 1px 0 rgba(255,255,255,.28)",
+        boxShadow:"0 14px 40px rgba(245,99,26,.14),0 4px 14px rgba(0,0,0,.04),inset 0 1px 0 rgba(255,255,255,.85)",
         display:"flex",alignItems:"center",gap:14,
-        position:"relative",overflow:"hidden",color:"#fff",isolation:"isolate"
+        position:"relative",overflow:"hidden",color:"var(--text)",isolation:"isolate"
       }}>
         <div style={{position:"relative",zIndex:1,display:"flex",alignItems:"center",gap:14,width:"100%"}}>
-          <div style={{width:60,height:60,borderRadius:"50%",background:"rgba(255,255,255,.22)",border:"2px solid rgba(255,255,255,.5)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,backdropFilter:"blur(6px)",WebkitBackdropFilter:"blur(6px)",boxShadow:"0 4px 12px rgba(0,0,0,.15),inset 0 1px 0 rgba(255,255,255,.4)"}}>
-            <span style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:18,color:"#fff",letterSpacing:"-.3px"}}>{overallProg}%</span>
+          <div style={{width:60,height:60,borderRadius:"50%",background:"rgba(255,255,255,.75)",border:"2px solid rgba(255,255,255,.9)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,backdropFilter:"blur(6px)",WebkitBackdropFilter:"blur(6px)",boxShadow:"0 4px 12px rgba(245,99,26,.18),inset 0 1px 0 rgba(255,255,255,.95)"}}>
+            <span style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:18,background:"var(--grad)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",letterSpacing:"-.3px"}}>{overallProg}%</span>
           </div>
           <div style={{flex:1,minWidth:0}}>
-            <div style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:18,color:"#fff",letterSpacing:"-.2px",textShadow:"0 1px 3px rgba(0,0,0,.15)"}}>Gesamt-Fortschritt</div>
-            <div style={{fontSize:12,color:"rgba(255,255,255,.88)",marginTop:3,fontWeight:500}}>{data.cards.length} Karten · {superCards} gemeistert</div>
+            <div style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:18,color:"var(--text)",letterSpacing:"-.2px"}}>Gesamt-Fortschritt</div>
+            <div style={{fontSize:12,color:"var(--muted)",marginTop:3,fontWeight:500}}>{data.cards.length} Karten · {superCards} gemeistert</div>
           </div>
-          <div style={{fontSize:30,opacity:.95,filter:"drop-shadow(0 2px 4px rgba(0,0,0,.25))"}}>🎯</div>
+          <div style={{fontSize:30,opacity:.95,filter:"drop-shadow(0 2px 4px rgba(245,99,26,.25))"}}>🎯</div>
         </div>
       </div>
     </div>
     {rootFolders.length>0 && <>
       <h2 style={{fontFamily:"Outfit,sans-serif",fontWeight:600,fontSize:20,marginBottom:14,letterSpacing:"-.2px"}}>Lernbereiche</h2>
       <div className="hb-g-folders" style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(220px,1fr))",gap:14}}>
-        {rootFolders.map(f=>{const fs=data.sets.filter(s=>s.folderId===f.id);const fc=data.cards.filter(c=>fs.some(s=>s.id===c.setId));const prog=calcProgress(fc);return(
-          <div key={f.id} className="card-hover glass-card" style={{background:`radial-gradient(ellipse 125% 95% at 100% 115%,${f.color}32 0%,${f.color}10 40%,transparent 65%),rgba(255,255,255,.6)`,border:`1px solid ${f.color}22`,borderRadius:"var(--r-md)",padding:"18px",cursor:"pointer"}} onClick={()=>onSelectFolder(f.id)}>
+        {rootFolders.map(f=>{
+          const shared = f.isVirtualShared;
+          const sc = shared
+            ? data.cards.filter(c=>data.sets.some(s=>s.isSharedWithMe && s.id===c.setId))
+            : data.cards.filter(c=>data.sets.some(s=>!s.isSharedWithMe && s.folderId===f.id && s.id===c.setId));
+          const sc2 = shared
+            ? data.sets.filter(s=>s.isSharedWithMe)
+            : data.sets.filter(s=>!s.isSharedWithMe && s.folderId===f.id);
+          const prog = calcProgress(sc);
+          const tintColor = isEmojiMark(f.color) ? "#F5631A" : f.color;
+          return (
+          <div key={f.id} className="card-hover glass-card" style={{background:`radial-gradient(ellipse 125% 95% at 100% 115%,${tintColor}32 0%,${tintColor}10 40%,transparent 65%),rgba(255,255,255,.6)`,border:`1px solid ${tintColor}22`,borderRadius:"var(--r-md)",padding:"18px",cursor:"pointer"}} onClick={()=>onSelectFolder(f.id)}>
             <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between"}}>
               <div style={{flex:1,marginRight:8}}>
                 <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}>
-                  <span style={{display:"inline-flex",width:22,height:22,borderRadius:8,background:f.color,boxShadow:`0 4px 10px ${f.color}77,inset 0 1px 0 rgba(255,255,255,.35)`}}/>
+                  {shared ? <span style={{fontSize:18,lineHeight:1}}>👥</span> : <FolderMark mark={f.color} size={22}/>}
                   <div style={{fontFamily:"Outfit,sans-serif",fontWeight:600,fontSize:15,letterSpacing:"-.2px"}}>{f.name}</div>
                 </div>
-                <div style={{fontSize:12,color:"var(--muted)"}}>{fs.length} Sets · {fc.length} Karten</div>
+                <div style={{fontSize:12,color:"var(--muted)"}}>{sc2.length} Sets · {sc.length} Karten{shared && <span style={{marginLeft:4,color:"var(--shared-fg)"}}>· geteilt</span>}</div>
               </div>
               <ProgressCircle pct={prog} size={44} stroke={4}/>
             </div>
@@ -1063,12 +1158,13 @@ function StudyConfigModal({config,onStart,onClose}) {
   </div></div>);
 }
 
-function FlashMode({set,cards,onExit,onRate,readOnly}) {
+function FlashMode({set,cards,onExit,onGoHome,onRate,readOnly}) {
   const [idx,setIdx]=useState(0); const [flipped,setFlipped]=useState(false); const [ratings,setRatings]=useState([]); const [done,setDone]=useState(false);
   const card=cards[idx];
   const rate=r=>{if(!readOnly&&onRate)onRate(card.id,r);const nr=[...ratings,r];setRatings(nr);if(idx+1>=cards.length){setDone(true);return;}setTimeout(()=>{setFlipped(false);setIdx(p=>p+1);},200);};
   if(done){const dist=RATINGS.map((r,i)=>({...r,count:ratings.filter(x=>x===i).length}));return(<div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:"var(--grad-bg)",padding:20}}><div className="au" style={{textAlign:"center",maxWidth:480}}><div style={{fontSize:56,marginBottom:16}}>{dist[3].count>cards.length/2?"\ud83c\udfc6":"\ud83d\udcaa"}</div><h2 style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:28,marginBottom:24}}>Session abgeschlossen!</h2><div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10,marginBottom:32}}>{dist.map(r=><div key={r.label} style={{background:"linear-gradient(160deg,#FFF,#FDFCFA)",border:"1.5px solid var(--border)",borderRadius:12,padding:"14px 8px",textAlign:"center"}}><div style={{fontSize:24,marginBottom:4}}>{r.emoji}</div><div style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:22,color:r.c}}>{r.count}</div><div style={{fontSize:11,color:"var(--muted)"}}>{r.label}</div></div>)}</div><div style={{display:"flex",gap:10,justifyContent:"center"}}><button className="btn-g" onClick={()=>{setIdx(0);setFlipped(false);setRatings([]);setDone(false);}}>Nochmal</button><button className="btn-o" onClick={onExit}>Zurück</button></div></div></div>);}
   return(<div style={{minHeight:"100vh",background:"var(--grad-bg)",padding:"40px 20px",display:"flex",flexDirection:"column",alignItems:"center"}}>
+    {onGoHome && <div style={{width:"100%",maxWidth:640,marginBottom:18,display:"flex",justifyContent:"center"}}><button onClick={onGoHome} title="Zur Übersicht" style={{border:"none",background:"none",padding:"4px 10px",cursor:"pointer",fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:18,letterSpacing:"-.3px",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",backgroundImage:"var(--grad)"}}>Heribert ✦</button></div>}
     <div style={{width:"100%",maxWidth:640,marginBottom:28}}><div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}><button onClick={onExit} style={{display:"flex",alignItems:"center",gap:6,border:"none",background:"none",color:"var(--muted)",fontSize:14,cursor:"pointer",padding:0,fontFamily:"inherit"}}><IBack/> {set?.name}</button><span style={{fontSize:14,fontWeight:600,color:"var(--muted)"}}>{idx+1} / {cards.length}</span></div><div className="prog-track"><div className="prog-fill" style={{width:`${(idx/cards.length)*100}%`}}/></div></div>
     <div className="flip-wrap" style={{width:"100%",maxWidth:640,marginBottom:24}} onClick={()=>setFlipped(p=>!p)}>
       <div className={`flip-inner${flipped?" flipped":""}`} style={{height:280}}>
@@ -1082,17 +1178,18 @@ function FlashMode({set,cards,onExit,onRate,readOnly}) {
   </div>);
 }
 
-function MCQMode({set,cards,onExit,onRate,onCacheMCQ,readOnly}) {
+function MCQMode({set,cards,onExit,onGoHome,onRate,onCacheMCQ,readOnly}) {
   const [idx,setIdx]=useState(0); const [optsMap,setOptsMap]=useState({}); const [loadingMCQ,setLoadingMCQ]=useState(true);
   const [picked,setPicked]=useState(null); const [score,setScore]=useState(0); const [done,setDone]=useState(false); const [shuffledOpts,setShuffledOpts]=useState(null);
   const card=cards[idx];
   useEffect(()=>{(async()=>{setLoadingMCQ(true);const map={};for(const c of cards){if(c.mcqOptions){map[c.id]=c.mcqOptions;}else{const w=await genMCQ(c.questionHtml,c.answerHtml);if(w){map[c.id]=w;if(!readOnly&&onCacheMCQ)onCacheMCQ(c.id,w);}else{map[c.id]=["Option A","Option B","Option C"];}}}setOptsMap(map);setLoadingMCQ(false);})();},[]);
   useEffect(()=>{if(optsMap[card?.id]){const correct=strip(card.answerHtml)||"Richtige Antwort";const all=[...optsMap[card.id].map(w=>({text:w,ok:false})),{text:correct,ok:true}];for(let i=all.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[all[i],all[j]]=[all[j],all[i]];}setShuffledOpts(all);setPicked(null);}},[idx,optsMap]);
-  const pick=(opt,i)=>{if(picked!==null)return;setPicked(i);if(!readOnly&&onRate)onRate(card.id,opt.ok?2:0);if(opt.ok)setScore(p=>p+1);};
+  const pick=(opt,i)=>{if(picked!==null)return;setPicked(i);if(!readOnly&&onRate)onRate(card.id,mcqProgressRating(opt.ok,card.lastRating));if(opt.ok)setScore(p=>p+1);};
   const next=()=>{if(idx+1>=cards.length){setDone(true);return;}setIdx(p=>p+1);};
   if(loadingMCQ)return(<div style={{minHeight:"100vh",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",background:"var(--grad-bg)",gap:16}}><ISpin/><div style={{color:"var(--muted)",fontSize:14}}>KI generiert Antwortoptionen…</div></div>);
   if(done){const pct=Math.round((score/cards.length)*100);return(<div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:"var(--grad-bg)",padding:20}}><div className="au" style={{textAlign:"center",maxWidth:440}}><div style={{fontSize:56,marginBottom:16}}>{pct>=80?"\ud83c\udfc6":pct>=50?"\ud83d\udcc8":"\ud83d\udcaa"}</div><h2 style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:28,marginBottom:8}}>Ergebnis</h2><div style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:52,background:pct>=80?"linear-gradient(135deg,#22C55E,#16A34A)":"var(--grad)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",marginBottom:6}}>{pct}%</div><div style={{color:"var(--muted)",marginBottom:32}}>{score} von {cards.length} richtig</div><div style={{display:"flex",gap:10,justifyContent:"center"}}><button className="btn-g" onClick={()=>{setIdx(0);setScore(0);setDone(false);}}>Nochmal</button><button className="btn-o" onClick={onExit}>Zurück</button></div></div></div>);}
   return(<div style={{minHeight:"100vh",background:"var(--grad-bg)",padding:"40px 20px",display:"flex",flexDirection:"column",alignItems:"center"}}>
+    {onGoHome && <div style={{width:"100%",maxWidth:640,marginBottom:18,display:"flex",justifyContent:"center"}}><button onClick={onGoHome} title="Zur Übersicht" style={{border:"none",background:"none",padding:"4px 10px",cursor:"pointer",fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:18,letterSpacing:"-.3px",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",backgroundImage:"var(--grad)"}}>Heribert ✦</button></div>}
     <div style={{width:"100%",maxWidth:640,marginBottom:28}}><div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}><button onClick={onExit} style={{display:"flex",alignItems:"center",gap:6,border:"none",background:"none",color:"var(--muted)",fontSize:14,cursor:"pointer",padding:0,fontFamily:"inherit"}}><IBack/> {set?.name}</button><span style={{fontSize:14,fontWeight:600,color:"var(--muted)"}}>{idx+1} / {cards.length} · {score} ✓</span></div><div className="prog-track"><div className="prog-fill" style={{width:`${(idx/cards.length)*100}%`}}/></div></div>
     <div style={{width:"100%",maxWidth:640,background:"rgba(255,255,255,.68)",backdropFilter:"blur(26px) saturate(150%)",WebkitBackdropFilter:"blur(26px) saturate(150%)",border:"1.5px solid rgba(255,255,255,.75)",borderRadius:"var(--r-lg)",padding:28,marginBottom:16,boxShadow:"var(--sh-md),inset 0 1px 0 rgba(255,255,255,.95)"}}><div style={{fontSize:11,fontWeight:600,color:"var(--muted)",textTransform:"uppercase",letterSpacing:".08em",marginBottom:12}}>Frage {idx+1}</div><div style={{fontSize:18,lineHeight:1.6}} dangerouslySetInnerHTML={{__html:card?.questionHtml||""}}/></div>
     <div style={{width:"100%",maxWidth:640,display:"flex",flexDirection:"column",gap:10}}>
@@ -1105,40 +1202,112 @@ function MCQMode({set,cards,onExit,onRate,onCacheMCQ,readOnly}) {
   </div>);
 }
 
-function ProfileModal({user,userName,onLogout,onClose}) {
-  const [name,setName]=useState(userName); const [pw,setPw]=useState(""); const [pw2,setPw2]=useState("");
+function ProfileModal({user,userName,onLogout,onClose,hideShared,setHideShared,onRemoveAllShared,hasSharedFolders}) {
+  const [name,setName]=useState(userName);
+  const [pw,setPw]=useState(""); const [pw2,setPw2]=useState("");
   const [err,setErr]=useState(""); const [ok,setOk]=useState(false); const [busy,setBusy]=useState(false);
+  const [avatar,setAvatar]=useState(user.user_metadata?.avatar_url||null);
+  const [uploading,setUploading]=useState(false);
+  const fileRef = useRef();
   const save=async()=>{
     setErr("");setBusy(true);
     try{
       if(!name.trim()){setErr("Name darf nicht leer sein.");return;}
       if(pw&&pw.length<6){setErr("Passwort mind. 6 Zeichen.");return;}
       if(pw&&pw!==pw2){setErr("Passwörter stimmen nicht überein.");return;}
-      const updates={data:{display_name:name.trim()}};if(pw)updates.password=pw;
+      const updates={data:{display_name:name.trim(),avatar_url:avatar}};if(pw)updates.password=pw;
       const {error}=await sb.auth.updateUser(updates);
       if(error)setErr(error.message);else setOk(true);
     }finally{setBusy(false);}
   };
-  return(<div className="overlay" onClick={onClose}><div className="modal si" style={{maxWidth:440,padding:32}} onClick={e=>e.stopPropagation()}>
+  const pickAvatar = async (file) => {
+    if (!file) return;
+    setUploading(true); setErr("");
+    try {
+      const dataUrl = await resizeImageDataUrl(file, 220, 0.82);
+      // ~15-40 KB per image at 220px JPEG/82% — fits comfortably in user_metadata.
+      setAvatar(dataUrl);
+    } catch (e) {
+      setErr("Bild konnte nicht geladen werden.");
+    } finally { setUploading(false); }
+  };
+  return(<div className="overlay" onClick={onClose}><div className="modal si" style={{maxWidth:460,padding:32}} onClick={e=>e.stopPropagation()}>
     <h3 style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:20,marginBottom:4}}>Profil</h3>
-    <p style={{color:"var(--muted)",fontSize:14,marginBottom:24}}>{user.email}</p>
-    {ok&&<div style={{color:"var(--green)",fontWeight:500,marginBottom:16,padding:"10px 14px",background:"var(--gl)",borderRadius:8}}>✓ Gespeichert!</div>}
+    <p style={{color:"var(--muted)",fontSize:14,marginBottom:20}}>{user.email}</p>
+    {ok&&<div style={{color:"var(--green)",fontWeight:500,marginBottom:16,padding:"10px 14px",background:"var(--gl)",borderRadius:10}}>✓ Gespeichert!</div>}
+    <div style={{display:"flex",alignItems:"center",gap:14,marginBottom:18,padding:"14px",background:"rgba(255,243,236,.5)",border:"1px solid rgba(245,99,26,.15)",borderRadius:14}}>
+      <Avatar url={avatar} name={name} size={56}/>
+      <div style={{flex:1,minWidth:0}}>
+        <div style={{fontSize:13,fontWeight:600,color:"var(--text)"}}>Profilbild</div>
+        <div style={{fontSize:11,color:"var(--muted)",marginTop:2,lineHeight:1.45}}>Wird beim Teilen sichtbar sein. Max. 220×220 px, wird automatisch komprimiert.</div>
+      </div>
+      <div style={{display:"flex",flexDirection:"column",gap:4}}>
+        <button className="btn-sm" onClick={()=>fileRef.current?.click()} disabled={uploading}>{uploading?<ISpin c="var(--orange)" s={14}/>:"Ändern"}</button>
+        {avatar && <button className="btn-danger" style={{fontSize:11,padding:"4px 10px"}} onClick={()=>setAvatar(null)}>Entfernen</button>}
+        <input ref={fileRef} type="file" accept="image/*" style={{display:"none"}} onChange={e=>pickAvatar(e.target.files?.[0])}/>
+      </div>
+    </div>
     <Inp label="Name" value={name} onChange={setName}/>
     <Inp label="Neues Passwort (optional)" type="password" placeholder="Leer = unverändert" value={pw} onChange={setPw}/>
     {pw&&<Inp label="Passwort bestätigen" type="password" placeholder="••••••••" value={pw2} onChange={setPw2}/>}
-    {err&&<div style={{color:"var(--red)",fontSize:13,marginBottom:14,padding:"10px 14px",background:"var(--rl)",borderRadius:8}}>{err}</div>}
-    <div style={{display:"flex",gap:10,marginBottom:16}}><button className="btn-g" onClick={onClose}>Abbrechen</button><button className="btn-o" onClick={save} disabled={busy}>{busy?<ISpin c="#fff" s={16}/>:"Speichern"}</button></div>
+    {err&&<div style={{color:"var(--red)",fontSize:13,marginBottom:14,padding:"10px 14px",background:"var(--rl)",borderRadius:10}}>{err}</div>}
+    <div style={{display:"flex",gap:10,marginBottom:18}}><button className="btn-g" onClick={onClose}>Abbrechen</button><button className="btn-o" onClick={save} disabled={busy}>{busy?<ISpin c="#fff" s={16}/>:"Speichern"}</button></div>
+    {hasSharedFolders && (
+      <div style={{paddingTop:16,borderTop:"1px solid rgba(245,99,26,.15)",marginBottom:12}}>
+        <div style={{fontSize:12,fontWeight:600,color:"var(--muted)",textTransform:"uppercase",letterSpacing:".06em",marginBottom:10}}>Geteilte Ordner</div>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:12,marginBottom:10}}>
+          <div style={{flex:1}}>
+            <div style={{fontSize:13,fontWeight:600,color:"var(--text)"}}>Ausblenden</div>
+            <div style={{fontSize:11,color:"var(--muted)",marginTop:2,lineHeight:1.5}}>Blende alle von anderen geteilten Ordner in deiner Übersicht aus.</div>
+          </div>
+          <button onClick={()=>setHideShared(!hideShared)} style={{width:44,height:24,borderRadius:99,background:hideShared?"var(--grad)":"rgba(200,195,180,.5)",border:"none",cursor:"pointer",position:"relative",transition:"all .18s",flexShrink:0,boxShadow:hideShared?"0 2px 8px rgba(244,63,94,.3)":"inset 0 1px 2px rgba(0,0,0,.06)"}}>
+            <span style={{position:"absolute",top:2,left:hideShared?22:2,width:20,height:20,borderRadius:"50%",background:"#fff",transition:"all .18s",boxShadow:"0 1px 3px rgba(0,0,0,.2)"}}/>
+          </button>
+        </div>
+        <button onClick={()=>{if(confirm("Zugriff auf ALLE mit dir geteilten Ordner entfernen? Der Besitzer kann dich erneut einladen.")){onRemoveAllShared();onClose();}}} style={{width:"100%",padding:"9px 12px",fontSize:12,fontWeight:500,background:"rgba(254,242,242,.6)",color:"var(--red)",border:"1px solid rgba(220,38,38,.2)",borderRadius:10,cursor:"pointer",fontFamily:"inherit",transition:"all .15s"}}>Zugriff auf alle geteilten Ordner entfernen</button>
+      </div>
+    )}
     {onLogout && <button onClick={()=>{onClose();onLogout();}} style={{width:"100%",display:"inline-flex",alignItems:"center",justifyContent:"center",gap:8,padding:"11px",background:"linear-gradient(160deg,#FEF2F2,#FEE2E2)",color:"var(--red)",border:"1.5px solid #FCA5A5",borderRadius:10,fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"inherit",transition:"all .15s",marginTop:4}}><ILogout/> Abmelden</button>}
   </div></div>);
 }
 
-function FolderModal({onSave,onClose}) {
-  const [name,setName]=useState(""); const [color,setColor]=useState(COLORS[0]);
-  return(<div className="overlay" onClick={onClose}><div className="modal si" style={{maxWidth:400,padding:32}} onClick={e=>e.stopPropagation()}>
-    <h3 style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:20,marginBottom:20}}>Neuer Lernbereich</h3>
-    <Inp label="Name" placeholder="z.B. Marketing, Biologie …" value={name} onChange={setName} onEnter={()=>name.trim()&&onSave(name.trim(),color)}/>
-    <div style={{marginBottom:20}}><label style={{display:"block",fontSize:13,fontWeight:500,color:"var(--muted)",marginBottom:8}}>Farbe</label><div style={{display:"flex",gap:8}}>{COLORS.map(c=><button key={c} onClick={()=>setColor(c)} style={{width:28,height:28,borderRadius:8,background:c,border:color===c?`3px solid ${c}`:"3px solid transparent",outline:color===c?`2px solid ${c}`:"none",outlineOffset:2,cursor:"pointer"}}/>)}</div></div>
-    <div style={{display:"flex",gap:10}}><button className="btn-g" onClick={onClose}>Abbrechen</button><button className="btn-o" onClick={()=>name.trim()&&onSave(name.trim(),color)}>Erstellen</button></div>
+function FolderModal({onSave,onClose,initial}) {
+  const editing = !!initial;
+  const [name,setName]=useState(initial?.name||"");
+  const [mark,setMark]=useState(initial?.color||COLORS[0]);
+  const [tab,setTab]=useState(isEmojiMark(initial?.color)?"emoji":"color");
+  const [customEmoji,setCustomEmoji]=useState("");
+  const submit = () => { if(name.trim()) onSave(name.trim(), mark); };
+  return(<div className="overlay" onClick={onClose}><div className="modal si" style={{maxWidth:420,padding:32}} onClick={e=>e.stopPropagation()}>
+    <h3 style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:20,marginBottom:4,display:"flex",alignItems:"center",gap:10}}>
+      <FolderMark mark={mark} size={26}/>
+      {editing ? "Lernbereich bearbeiten" : "Neuer Lernbereich"}
+    </h3>
+    <div style={{fontSize:13,color:"var(--muted)",marginBottom:20}}>Name + Farbe oder Emoji als Marker</div>
+    <Inp label="Name" placeholder="z.B. Marketing, Biologie …" value={name} onChange={setName} onEnter={submit}/>
+    <div style={{marginBottom:20}}>
+      <div style={{display:"flex",gap:4,background:"rgba(245,240,232,.7)",borderRadius:10,padding:3,marginBottom:12}}>
+        {[["color","Farbe"],["emoji","Emoji"]].map(([k,lbl])=>(
+          <button key={k} onClick={()=>setTab(k)} style={{flex:1,padding:"7px",border:"none",borderRadius:8,background:tab===k?"rgba(255,255,255,.9)":"transparent",color:tab===k?"var(--text)":"var(--muted)",fontWeight:tab===k?600:500,fontSize:13,cursor:"pointer",fontFamily:"inherit",boxShadow:tab===k?"0 1px 3px rgba(0,0,0,.06)":"none",transition:"all .15s"}}>{lbl}</button>
+        ))}
+      </div>
+      {tab==="color" && (
+        <div style={{display:"flex",flexWrap:"wrap",gap:8}}>{COLORS.map(c=>(
+          <button key={c} onClick={()=>setMark(c)} style={{width:32,height:32,borderRadius:11,background:c,border:mark===c?`3px solid ${c}`:"3px solid transparent",outline:mark===c?`2px solid ${c}`:"none",outlineOffset:2,cursor:"pointer",boxShadow:mark===c?`0 4px 10px ${c}55`:"0 1px 3px rgba(0,0,0,.06)"}}/>
+        ))}</div>
+      )}
+      {tab==="emoji" && (
+        <div>
+          <div style={{display:"flex",flexWrap:"wrap",gap:6,marginBottom:12}}>
+            {EMOJI_PRESETS.map(e=>(
+              <button key={e} onClick={()=>setMark(e)} style={{width:36,height:36,borderRadius:10,border:mark===e?"2px solid var(--orange)":"1.5px solid rgba(245,99,26,.15)",background:mark===e?"rgba(255,243,236,.85)":"rgba(255,255,255,.6)",fontSize:18,cursor:"pointer",transition:"all .15s",display:"flex",alignItems:"center",justifyContent:"center"}}>{e}</button>
+            ))}
+          </div>
+          <input type="text" maxLength={4} value={customEmoji} onChange={e=>{setCustomEmoji(e.target.value);if(e.target.value.trim())setMark(e.target.value.trim());}} placeholder="Oder eigenes Emoji tippen…" style={{width:"100%",padding:"10px 14px",border:"1.5px solid rgba(245,99,26,.2)",borderRadius:10,fontSize:15,background:"rgba(255,255,255,.6)",outline:"none",fontFamily:"inherit"}} onFocus={e=>e.target.style.borderColor="var(--orange)"} onBlur={e=>e.target.style.borderColor="rgba(245,99,26,.2)"}/>
+        </div>
+      )}
+    </div>
+    <div style={{display:"flex",gap:10}}><button className="btn-g" onClick={onClose}>Abbrechen</button><button className="btn-o" onClick={submit} disabled={!name.trim()}>{editing?"Speichern":"Erstellen"}</button></div>
   </div></div>);
 }
 
@@ -1250,7 +1419,7 @@ function FolderShareModal({folder,folderSets,ownerEmail,ownerId,onClose}) {
   if (!folder) return null;
   return (<div className="overlay" onClick={onClose}><div className="modal si" style={{maxWidth:480,padding:0}} onClick={e=>e.stopPropagation()}>
     <div style={{padding:"22px 26px 14px",borderBottom:"1px solid var(--border)",background:"linear-gradient(160deg,#FFF3EC,#FFE0E4)"}}>
-      <h3 style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:19,marginBottom:2,display:"flex",alignItems:"center",gap:8}}><span style={{display:"inline-flex",width:20,height:20,borderRadius:6,background:folder.color,boxShadow:`0 2px 6px ${folder.color}55`}}/> Ordner teilen</h3>
+      <h3 style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:19,marginBottom:2,display:"flex",alignItems:"center",gap:8}}><FolderMark mark={folder.color} size={22}/> Ordner teilen</h3>
       <div style={{fontSize:13,color:"var(--muted)"}}>„{folder.name}" · {setIds.length} Set{setIds.length===1?"":"s"} — eingeladene Personen sehen alle Sets in diesem Ordner</div>
     </div>
     <div style={{padding:"18px 26px 22px"}}>
