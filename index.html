@@ -595,19 +595,21 @@ function Dashboard({session, onLogout}) {
 
   useEffect(() => { loadAll(); }, []);
   // Keep the public `profiles` row in sync with our auth metadata so other
-  // users can see our display_name + avatar. Best-effort: if the profiles
-  // table doesn't exist, we silently no-op.
+  // users can see our display_name + avatar. Errors surface in the console
+  // so a missing table / RLS issue is diagnosable (but the UI keeps working
+  // with initial-circle fallbacks).
   useEffect(() => {
     (async () => {
       try {
-        await sb.from("profiles").upsert({
+        const {error} = await sb.from("profiles").upsert({
           id: user.id,
-          email: user.email,
+          email: (user.email||"").toLowerCase(),
           display_name: userName,
           avatar_url: avatarUrl,
           updated_at: new Date().toISOString()
         }, { onConflict: "id" });
-      } catch {}
+        if (error) console.warn("[Heribert] Profile-Sync fehlgeschlagen — läuft die SQL-Migration für `profiles`?", error);
+      } catch (e) { console.warn("[Heribert] Profile-Sync-Fehler:", e); }
     })();
   }, [user.id, userName, avatarUrl]);
   const loadAll = async () => {
@@ -638,13 +640,18 @@ function Dashboard({session, onLogout}) {
       return s;
     });
     // Fetch profiles for all sharers so we can show their avatar/name in the UI.
-    const sharerEmails = Array.from(new Set(sets.filter(s=>s.isSharedWithMe && s.sharedBy).map(s=>s.sharedBy.toLowerCase())));
+    // Also include ALL invitees' emails on our own shares so the ShareModal has
+    // fresh data without a second roundtrip.
+    const sharerEmails = sets.filter(s=>s.isSharedWithMe && s.sharedBy).map(s=>(s.sharedBy||"").toLowerCase());
+    const inviteeEmails = shares.filter(x => x.owner_id === user.id).map(x=>(x.invited_email||"").toLowerCase());
+    const allEmails = Array.from(new Set([...sharerEmails, ...inviteeEmails].filter(Boolean)));
     let profileMap = {};
-    if (sharerEmails.length > 0) {
+    if (allEmails.length > 0) {
       try {
-        const {data: pr} = await sb.from("profiles").select("email,avatar_url,display_name").in("email", sharerEmails);
+        const {data: pr, error: perr} = await sb.from("profiles").select("email,avatar_url,display_name").in("email", allEmails);
+        if (perr) console.warn("[Heribert] Profile-Lookup fehlgeschlagen — läuft die SQL-Migration für `profiles`?", perr);
         for (const p of (pr||[])) profileMap[(p.email||"").toLowerCase()] = p;
-      } catch {}
+      } catch (e) { console.warn("[Heribert] Profile-Lookup-Fehler:", e); }
     }
     setData({
       folders:(fr.data||[]).map(toFolder),
@@ -1068,38 +1075,44 @@ function HomeView({userName,data,rootFolders,onSelectFolder}){
       ))}
       <div className="hb-prog-span" style={{
         gridColumn:"span 2",
-        background:"radial-gradient(ellipse 110% 80% at 50% 130%,rgba(220,38,38,.55) 0%,transparent 55%),radial-gradient(ellipse 90% 70% at 50% 60%,rgba(245,99,26,.4) 0%,transparent 65%),linear-gradient(180deg,#FFDDBC 0%,#FFA763 55%,#F0773A 100%)",
-        border:"1px solid rgba(220,80,30,.35)",
+        background:"radial-gradient(ellipse 110% 85% at 50% 130%,rgba(244,63,94,.38) 0%,transparent 55%),radial-gradient(ellipse 90% 70% at 50% 60%,rgba(245,99,26,.22) 0%,transparent 70%),linear-gradient(180deg,#FFF4EC 0%,#FFDCCB 55%,#FFB5A8 100%)",
+        border:"1px solid rgba(244,63,94,.22)",
         borderRadius:"var(--r-hero)",
         padding:"18px 20px",
-        boxShadow:"0 16px 44px rgba(220,80,30,.28),0 4px 14px rgba(0,0,0,.06),inset 0 1px 0 rgba(255,255,255,.45)",
+        boxShadow:"0 14px 40px rgba(244,63,94,.16),0 4px 14px rgba(0,0,0,.04),inset 0 1px 0 rgba(255,255,255,.85)",
         display:"flex",alignItems:"center",gap:14,
         position:"relative",overflow:"hidden",color:"var(--text)",isolation:"isolate"
       }}>
         <div style={{position:"relative",zIndex:1,display:"flex",alignItems:"center",gap:14,width:"100%"}}>
           {(() => {
-            // Progress ring with white stroke on semi-transparent backdrop, over the warm gradient card.
-            const size=62,stroke=5,r=(size-stroke*2)/2,circ=2*Math.PI*r,off=circ-(overallProg/100)*circ;
+            // Progress ring using the Heribert orange→rose gradient stroke.
+            const size=62,stroke=5.5,r=(size-stroke*2)/2,circ=2*Math.PI*r,off=circ-(overallProg/100)*circ;
             return (
-              <div style={{position:"relative",width:size,height:size,flexShrink:0,borderRadius:"50%",background:"rgba(255,255,255,.22)",backdropFilter:"blur(10px)",WebkitBackdropFilter:"blur(10px)",boxShadow:"0 4px 12px rgba(0,0,0,.12),inset 0 1px 0 rgba(255,255,255,.45)"}}>
+              <div style={{position:"relative",width:size,height:size,flexShrink:0,borderRadius:"50%",background:"rgba(255,255,255,.55)",backdropFilter:"blur(10px)",WebkitBackdropFilter:"blur(10px)",boxShadow:"0 4px 12px rgba(244,63,94,.18),inset 0 1px 0 rgba(255,255,255,.95)"}}>
                 <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{position:"absolute",inset:0}}>
-                  <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="rgba(255,255,255,.35)" strokeWidth={stroke}/>
-                  <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="#FFFFFF" strokeWidth={stroke}
+                  <defs>
+                    <linearGradient id="heri-ring" x1="0" y1="0" x2="1" y2="1">
+                      <stop offset="0%" stopColor="#F5631A"/>
+                      <stop offset="100%" stopColor="#F43F5E"/>
+                    </linearGradient>
+                  </defs>
+                  <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="rgba(244,63,94,.15)" strokeWidth={stroke}/>
+                  <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="url(#heri-ring)" strokeWidth={stroke}
                     strokeDasharray={circ} strokeDashoffset={off} strokeLinecap="round"
                     transform={`rotate(-90 ${size/2} ${size/2})`}
-                    style={{transition:"stroke-dashoffset .5s",filter:"drop-shadow(0 1px 3px rgba(0,0,0,.25))"}}/>
+                    style={{transition:"stroke-dashoffset .5s",filter:"drop-shadow(0 1px 3px rgba(244,63,94,.3))"}}/>
                 </svg>
                 <div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center"}}>
-                  <span style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:16,color:"#fff",letterSpacing:"-.3px",textShadow:"0 1px 2px rgba(0,0,0,.25)"}}>{overallProg}%</span>
+                  <span style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:16,background:"var(--grad)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",letterSpacing:"-.3px"}}>{overallProg}%</span>
                 </div>
               </div>
             );
           })()}
           <div style={{flex:1,minWidth:0}}>
-            <div style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:18,color:"#fff",letterSpacing:"-.2px",textShadow:"0 1px 3px rgba(140,40,10,.3)"}}>Gesamt-Fortschritt</div>
-            <div style={{fontSize:12,color:"rgba(255,255,255,.92)",marginTop:3,fontWeight:500,textShadow:"0 1px 2px rgba(140,40,10,.25)"}}>{data.cards.length} Karten · {superCards} gemeistert</div>
+            <div style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:18,color:"var(--text)",letterSpacing:"-.2px"}}>Gesamt-Fortschritt</div>
+            <div style={{fontSize:12,color:"var(--muted)",marginTop:3,fontWeight:500}}>{data.cards.length} Karten · {superCards} gemeistert</div>
           </div>
-          <div style={{fontSize:30,opacity:.98,filter:"drop-shadow(0 2px 5px rgba(0,0,0,.22))"}}>🎯</div>
+          <div style={{fontSize:30,opacity:.95,filter:"drop-shadow(0 2px 4px rgba(244,63,94,.25))"}}>🎯</div>
         </div>
       </div>
     </div>
@@ -1289,7 +1302,20 @@ function ProfileModal({user,userName,onLogout,onClose,hideShared,setHideShared,o
       if(pw&&pw!==pw2){setErr("Passwörter stimmen nicht überein.");return;}
       const updates={data:{display_name:name.trim(),avatar_url:avatar}};if(pw)updates.password=pw;
       const {error}=await sb.auth.updateUser(updates);
-      if(error)setErr(error.message);else setOk(true);
+      if(error){setErr(error.message);return;}
+      // Immediately sync the public profile so sharers who already have this
+      // user in their share modal see the new avatar without a reload.
+      try {
+        const {error: pe} = await sb.from("profiles").upsert({
+          id: user.id,
+          email: (user.email||"").toLowerCase(),
+          display_name: name.trim(),
+          avatar_url: avatar,
+          updated_at: new Date().toISOString()
+        }, { onConflict: "id" });
+        if (pe) console.warn("[Heribert] Profile-Sync fehlgeschlagen:", pe);
+      } catch (e) { console.warn("[Heribert] Profile-Sync-Fehler:", e); }
+      setOk(true);
     }finally{setBusy(false);}
   };
   const pickAvatar = async (file) => {
@@ -1431,6 +1457,7 @@ function FolderShareModal({folder,folderSets,ownerEmail,ownerId,ownerAvatar,owne
   // user can manage sharing at the folder level.
   const [rows,setRows]=useState([]);
   const [profiles,setProfiles]=useState({});  // email(lower) → {avatar_url, display_name}
+  const [profileErr,setProfileErr]=useState(null);
   const [email,setEmail]=useState("");
   const [err,setErr]=useState("");
   const [ok,setOk]=useState("");
@@ -1441,19 +1468,20 @@ function FolderShareModal({folder,folderSets,ownerEmail,ownerId,ownerAvatar,owne
 
   const load = async () => {
     setLoading(true);
+    setProfileErr(null);
     if (setIds.length === 0) { setRows([]); setLoading(false); return; }
     const {data, error} = await sb.from("set_shares").select("*").in("set_id", setIds).order("created_at",{ascending:false});
     if (!error) {
       setRows(data||[]);
       const emails = Array.from(new Set((data||[]).map(r=>(r.invited_email||"").toLowerCase()).filter(Boolean)));
       if (emails.length > 0) {
-        // Best-effort profile lookup — if the table doesn't exist, we fall back to initials silently.
         try {
-          const {data: pr} = await sb.from("profiles").select("email,avatar_url,display_name").in("email", emails);
+          const {data: pr, error: perr} = await sb.from("profiles").select("email,avatar_url,display_name").in("email", emails);
+          if (perr) { console.warn("[Heribert] Profile-Lookup fehlgeschlagen:", perr); setProfileErr(perr.message||"Profile-Tabelle nicht erreichbar"); }
           const map = {};
           for (const p of (pr||[])) map[(p.email||"").toLowerCase()] = p;
           setProfiles(map);
-        } catch {}
+        } catch (e) { console.warn("[Heribert] Profile-Lookup-Fehler:", e); setProfileErr(String(e.message||e)); }
       }
     }
     setLoading(false);
@@ -1522,6 +1550,7 @@ function FolderShareModal({folder,folderSets,ownerEmail,ownerId,ownerAvatar,owne
       </div>
       {err && <div style={{color:"var(--red)",fontSize:13,marginBottom:10,padding:"8px 12px",background:"var(--rl)",borderRadius:8}}>{err}</div>}
       {ok && <div style={{color:"var(--green)",fontSize:13,marginBottom:10,padding:"8px 12px",background:"var(--gl)",borderRadius:8}}>{ok}</div>}
+      {profileErr && <div style={{color:"var(--shared-fg)",fontSize:11,marginBottom:10,padding:"7px 11px",background:"var(--shared-bg)",border:"1px solid var(--shared-border)",borderRadius:8,lineHeight:1.5}}>⚠️ Profilbilder können nicht geladen werden. Bitte prüfe, ob die <code style={{background:"rgba(0,0,0,.06)",padding:"0 4px",borderRadius:3}}>profiles</code>-Tabelle + RLS-Policies angelegt sind (SQL-Migration). Details in der Browser-Konsole.</div>}
 
       <div style={{fontSize:12,fontWeight:600,color:"var(--muted2)",textTransform:"uppercase",letterSpacing:".06em",marginTop:18,marginBottom:8}}>Zugriff haben</div>
       {loading ? <div style={{display:"flex",alignItems:"center",gap:8,padding:"10px 0",color:"var(--muted2)",fontSize:13}}><ISpin c="var(--muted2)" s={14}/> Lädt…</div>
