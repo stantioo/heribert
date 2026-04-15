@@ -557,6 +557,7 @@ function Dashboard({session, onLogout}) {
   const avatarUrl = user.user_metadata?.avatar_url || null;
   const [data, setData] = useState({folders:[], sets:[], cards:[], shares:[], profiles:{}});
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
   const [sel, setSel] = useState({folderId:null, setId:null});
   const [studyConfig, setStudyConfig] = useState(null);
   const [studyMode, setStudyMode] = useState(null);
@@ -594,10 +595,23 @@ function Dashboard({session, onLogout}) {
   };
 
   useEffect(() => { loadAll(); }, []);
+  // Safety net: if loadAll doesn't finish within 20 s (network wedge,
+  // stuck Supabase call, whatever), surface a retry UI so the user
+  // isn't stuck on an endless spinner.
+  useEffect(() => {
+    if (!loading) return;
+    const t = setTimeout(() => {
+      if (loading) {
+        console.warn("[Heribert] loadAll hat nach 20s nicht abgeschlossen — zeige Retry.");
+        setLoadError("Das Laden dauert ungewöhnlich lange. Möglicherweise gibt es ein Netzwerk- oder Datenbankproblem.");
+        setLoading(false);
+      }
+    }, 20000);
+    return () => clearTimeout(t);
+  }, [loading]);
   // Keep the public `profiles` row in sync with our auth metadata so other
-  // users can see our display_name + avatar. Errors surface in the console
-  // so a missing table / RLS issue is diagnosable (but the UI keeps working
-  // with initial-circle fallbacks).
+  // users can see our display_name + avatar. Fully isolated from loadAll —
+  // if this fails, the app keeps working with initial-circle fallbacks.
   useEffect(() => {
     (async () => {
       try {
@@ -613,54 +627,71 @@ function Dashboard({session, onLogout}) {
     })();
   }, [user.id, userName, avatarUrl]);
   const loadAll = async () => {
-    setLoading(true);
-    // Load all data. RLS ensures we only see our own sets + sets shared with us.
-    // We also pull set_shares so we know which sets are "shared with me" vs. owned.
-    const [fr,sr,cr,shr] = await Promise.all([
-      sb.from("folders").select("*").order("created_at"),
-      sb.from("sets").select("*").order("created_at"),
-      sb.from("cards").select("*").order("created_at"),
-      sb.from("set_shares").select("*"),
-    ]);
-    const shares = shr.data || [];
-    const myEmail = (user.email || "").toLowerCase();
-    // Mark sets we don't own as shared-with-me
-    const sets = (sr.data||[]).map(r => {
-      const s = toSet(r);
-      s.ownerId = r.user_id;
-      s.isSharedWithMe = r.user_id !== user.id;
-      if (s.isSharedWithMe) {
-        const sh = shares.find(x => x.set_id === s.id && (x.invited_email || "").toLowerCase() === myEmail);
-        s.sharedBy = sh?.owner_email || null;
-        // Denormalized folder metadata from set_shares (graceful fallback if columns missing)
-        s.sourceFolderId = sh?.folder_id || null;
-        s.sourceFolderName = sh?.folder_name || null;
-        s.sourceFolderColor = sh?.folder_color || null;
+    setLoading(true); setLoadError(null);
+    // Defensive: EVERY path out of this function must setLoading(false),
+    // even if a single query errors out. Otherwise the UI hangs forever
+    // on "Daten werden geladen…". Each stage logs so we can diagnose in
+    // DevTools which query blew up.
+    try {
+      console.log("[Heribert] loadAll: starting for", user.email);
+      const t0 = Date.now();
+      // Run core queries in parallel — one slow query can't hold the others hostage.
+      const [fr,sr,cr,shr] = await Promise.all([
+        sb.from("folders").select("*").order("created_at"),
+        sb.from("sets").select("*").order("created_at"),
+        sb.from("cards").select("*").order("created_at"),
+        sb.from("set_shares").select("*"),
+      ]);
+      console.log("[Heribert] loadAll: core queries done in", Date.now()-t0, "ms",
+        {folders:fr.error?"ERR":"ok", sets:sr.error?"ERR":"ok", cards:cr.error?"ERR":"ok", shares:shr.error?"ERR":"ok"});
+      if (fr.error) console.error("[Heribert] folders error:", fr.error);
+      if (sr.error) console.error("[Heribert] sets error:", sr.error);
+      if (cr.error) console.error("[Heribert] cards error:", cr.error);
+      if (shr.error) console.error("[Heribert] set_shares error:", shr.error);
+
+      const shares = shr.data || [];
+      const myEmail = (user.email || "").toLowerCase();
+      const sets = (sr.data||[]).map(r => {
+        const s = toSet(r);
+        s.ownerId = r.user_id;
+        s.isSharedWithMe = r.user_id !== user.id;
+        if (s.isSharedWithMe) {
+          const sh = shares.find(x => x.set_id === s.id && (x.invited_email || "").toLowerCase() === myEmail);
+          s.sharedBy = sh?.owner_email || null;
+          s.sourceFolderId = sh?.folder_id || null;
+          s.sourceFolderName = sh?.folder_name || null;
+          s.sourceFolderColor = sh?.folder_color || null;
+        }
+        return s;
+      });
+      // Profile lookup for avatars — strictly best-effort. Any error is
+      // logged but does NOT block the page from rendering.
+      const sharerEmails = sets.filter(s=>s.isSharedWithMe && s.sharedBy).map(s=>(s.sharedBy||"").toLowerCase());
+      const inviteeEmails = shares.filter(x => x.owner_id === user.id).map(x=>(x.invited_email||"").toLowerCase());
+      const allEmails = Array.from(new Set([...sharerEmails, ...inviteeEmails].filter(Boolean)));
+      let profileMap = {};
+      if (allEmails.length > 0) {
+        try {
+          const {data: pr, error: perr} = await sb.from("profiles").select("email,avatar_url,display_name").in("email", allEmails);
+          if (perr) console.warn("[Heribert] Profile-Lookup fehlgeschlagen — läuft die SQL-Migration für `profiles`?", perr);
+          for (const p of (pr||[])) profileMap[(p.email||"").toLowerCase()] = p;
+        } catch (e) { console.warn("[Heribert] Profile-Lookup-Fehler:", e); }
       }
-      return s;
-    });
-    // Fetch profiles for all sharers so we can show their avatar/name in the UI.
-    // Also include ALL invitees' emails on our own shares so the ShareModal has
-    // fresh data without a second roundtrip.
-    const sharerEmails = sets.filter(s=>s.isSharedWithMe && s.sharedBy).map(s=>(s.sharedBy||"").toLowerCase());
-    const inviteeEmails = shares.filter(x => x.owner_id === user.id).map(x=>(x.invited_email||"").toLowerCase());
-    const allEmails = Array.from(new Set([...sharerEmails, ...inviteeEmails].filter(Boolean)));
-    let profileMap = {};
-    if (allEmails.length > 0) {
-      try {
-        const {data: pr, error: perr} = await sb.from("profiles").select("email,avatar_url,display_name").in("email", allEmails);
-        if (perr) console.warn("[Heribert] Profile-Lookup fehlgeschlagen — läuft die SQL-Migration für `profiles`?", perr);
-        for (const p of (pr||[])) profileMap[(p.email||"").toLowerCase()] = p;
-      } catch (e) { console.warn("[Heribert] Profile-Lookup-Fehler:", e); }
+      setData({
+        folders:(fr.data||[]).map(toFolder),
+        sets,
+        cards:(cr.data||[]).map(toCard),
+        shares: shares.filter(x => x.owner_id === user.id),
+        profiles: profileMap,
+      });
+      console.log("[Heribert] loadAll: done in", Date.now()-t0, "ms",
+        {folders:fr.data?.length||0, sets:sets.length, cards:cr.data?.length||0, shares:shares.length});
+    } catch (e) {
+      console.error("[Heribert] loadAll crashed:", e);
+      setLoadError(String(e?.message || e));
+    } finally {
+      setLoading(false);
     }
-    setData({
-      folders:(fr.data||[]).map(toFolder),
-      sets,
-      cards:(cr.data||[]).map(toCard),
-      shares: shares.filter(x => x.owner_id === user.id),
-      profiles: profileMap,
-    });
-    setLoading(false);
   };
 
   const createFolder = async (name,color) => { const id=uid(); await sb.from("folders").insert({id,user_id:user.id,name,color,parent_id:null}); setData(d=>({...d,folders:[...d.folders,{id,name,color,parentId:null}]})); setModal(null); };
@@ -865,7 +896,13 @@ function Dashboard({session, onLogout}) {
       <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden"}}>
       <div className="mob-topbar"><button onClick={()=>setMenuOpen(true)} style={{background:"none",border:"none",cursor:"pointer",color:"var(--text)",padding:4,display:"flex"}}><IMenu/></button><button onClick={goHome} style={{border:"none",background:"none",padding:0,cursor:"pointer",fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:18,flex:1,textAlign:"left",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",backgroundImage:"var(--grad)"}}>Heribert ✦</button><div onClick={()=>setProfileOpen(true)} style={{cursor:"pointer"}}><Avatar url={avatarUrl} name={userName} size={32}/></div></div>
         <main className="hb-main" style={{flex:1,overflowY:"auto",padding:"40px 48px",background:"var(--grad-bg)"}}>
-        {loading ? <div style={{display:"flex",alignItems:"center",justifyContent:"center",height:"60vh",gap:12,color:"var(--muted)"}}><ISpin/><span style={{fontSize:15}}>Daten werden geladen…</span></div> : <>
+        {loadError ? <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",height:"60vh",gap:16,padding:20,textAlign:"center"}}>
+          <div style={{fontSize:42}}>⚠️</div>
+          <div style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:18,color:"var(--text)"}}>Daten konnten nicht geladen werden</div>
+          <div style={{fontSize:13,color:"var(--muted)",maxWidth:420,lineHeight:1.5}}>{loadError}</div>
+          <div style={{fontSize:12,color:"var(--muted2)",maxWidth:420,lineHeight:1.5}}>Öffne die Browser-Konsole (F12) für Details — und prüfe, ob die SQL-Migration (<code style={{background:"rgba(245,99,26,.1)",padding:"1px 6px",borderRadius:4}}>profiles</code>-Tabelle + Policies) gelaufen ist.</div>
+          <button className="btn-o" onClick={()=>loadAll()}>Nochmal versuchen</button>
+        </div> : loading ? <div style={{display:"flex",alignItems:"center",justifyContent:"center",height:"60vh",gap:12,color:"var(--muted)"}}><ISpin/><span style={{fontSize:15}}>Daten werden geladen…</span></div> : <>
           {!sel.folderId && <HomeView userName={userName} data={data} rootFolders={rootFolders} onSelectFolder={openFolder}/>}
           {sel.folderId && !sel.setId && (
             <FolderView folder={folder} sets={folderSets} data={data}
