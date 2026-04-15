@@ -555,7 +555,7 @@ function Dashboard({session, onLogout}) {
   const user = session.user;
   const userName = user.user_metadata?.display_name || user.email.split("@")[0];
   const avatarUrl = user.user_metadata?.avatar_url || null;
-  const [data, setData] = useState({folders:[], sets:[], cards:[], shares:[]});
+  const [data, setData] = useState({folders:[], sets:[], cards:[], shares:[], profiles:{}});
   const [loading, setLoading] = useState(true);
   const [sel, setSel] = useState({folderId:null, setId:null});
   const [studyConfig, setStudyConfig] = useState(null);
@@ -594,6 +594,22 @@ function Dashboard({session, onLogout}) {
   };
 
   useEffect(() => { loadAll(); }, []);
+  // Keep the public `profiles` row in sync with our auth metadata so other
+  // users can see our display_name + avatar. Best-effort: if the profiles
+  // table doesn't exist, we silently no-op.
+  useEffect(() => {
+    (async () => {
+      try {
+        await sb.from("profiles").upsert({
+          id: user.id,
+          email: user.email,
+          display_name: userName,
+          avatar_url: avatarUrl,
+          updated_at: new Date().toISOString()
+        }, { onConflict: "id" });
+      } catch {}
+    })();
+  }, [user.id, userName, avatarUrl]);
   const loadAll = async () => {
     setLoading(true);
     // Load all data. RLS ensures we only see our own sets + sets shared with us.
@@ -614,14 +630,28 @@ function Dashboard({session, onLogout}) {
       if (s.isSharedWithMe) {
         const sh = shares.find(x => x.set_id === s.id && (x.invited_email || "").toLowerCase() === myEmail);
         s.sharedBy = sh?.owner_email || null;
+        // Denormalized folder metadata from set_shares (graceful fallback if columns missing)
+        s.sourceFolderId = sh?.folder_id || null;
+        s.sourceFolderName = sh?.folder_name || null;
+        s.sourceFolderColor = sh?.folder_color || null;
       }
       return s;
     });
+    // Fetch profiles for all sharers so we can show their avatar/name in the UI.
+    const sharerEmails = Array.from(new Set(sets.filter(s=>s.isSharedWithMe && s.sharedBy).map(s=>s.sharedBy.toLowerCase())));
+    let profileMap = {};
+    if (sharerEmails.length > 0) {
+      try {
+        const {data: pr} = await sb.from("profiles").select("email,avatar_url,display_name").in("email", sharerEmails);
+        for (const p of (pr||[])) profileMap[(p.email||"").toLowerCase()] = p;
+      } catch {}
+    }
     setData({
       folders:(fr.data||[]).map(toFolder),
       sets,
       cards:(cr.data||[]).map(toCard),
       shares: shares.filter(x => x.owner_id === user.id),
+      profiles: profileMap,
     });
     setLoading(false);
   };
@@ -809,6 +839,7 @@ function Dashboard({session, onLogout}) {
           )}
           {sel.setId && (
             <SetView set={set} folder={folder} cards={setCCards}
+              sharerProfile={set?.isSharedWithMe && set?.sharedBy ? data.profiles?.[(set.sharedBy||"").toLowerCase()] : null}
               onBack={()=>setSel(p=>({...p,setId:null}))} onNewCard={()=>setModal({type:"card"})}
               onEditCard={c=>{setEditCard(c);setModal({type:"card"});}} onDeleteCard={removeCard}
               onLearn={()=>setStudyConfig({sourceName:set.name,cards:setCCards,isFolder:false})}
@@ -842,6 +873,8 @@ function Dashboard({session, onLogout}) {
         folderSets={data.sets.filter(s=>!s.isSharedWithMe && s.folderId===modal.folderId)}
         ownerEmail={user.email}
         ownerId={user.id}
+        ownerAvatar={avatarUrl}
+        ownerName={userName}
         onClose={()=>{setModal(null);loadAll();}}/>}
       {modal?.type==="pdfLoading" && <SimpleModal title="📄 PDF verarbeiten" onClose={undefined}>
         <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:14,padding:"8px 0 4px"}}>
@@ -887,7 +920,7 @@ function FolderView({folder,sets,data,onBack,onNewSet,onSelectSet,onLearnSet,onL
       {sets.length===0
         ? <EmptyState icon={isShared?"👥":"📚"} title={isShared?"Noch nichts geteilt":"Noch keine Sets"} sub={isShared?"Wenn dich jemand zu einem Ordner einlädt, erscheinen seine Sets hier.":"Erstelle dein erstes Set, um loszulegen."} btnLabel={isShared?null:"+ Erstes Set erstellen"} onBtn={isShared?null:onNewSet}/>
         : <div className="hb-g-sets" style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(240px,1fr))",gap:16}}>
-            {sets.map(s => { const sc=data.cards.filter(c=>c.setId===s.id); return <SetCard key={s.id} set={s} cardCount={sc.length} progress={calcProgress(sc)} onClick={()=>onSelectSet(s.id)} onLearn={()=>onLearnSet(s,sc)} onDelete={()=>onDeleteSet(s.id)} onRename={name=>onRenameSet(s.id,name)}/>; })}
+            {sets.map(s => { const sc=data.cards.filter(c=>c.setId===s.id); const sp=s.isSharedWithMe && s.sharedBy ? data.profiles?.[(s.sharedBy||"").toLowerCase()] : null; return <SetCard key={s.id} set={s} cardCount={sc.length} progress={calcProgress(sc)} sharerProfile={sp} onClick={()=>onSelectSet(s.id)} onLearn={()=>onLearnSet(s,sc)} onDelete={()=>onDeleteSet(s.id)} onRename={name=>onRenameSet(s.id,name)}/>; })}
           </div>
       }
     </div>
@@ -895,16 +928,26 @@ function FolderView({folder,sets,data,onBack,onNewSet,onSelectSet,onLearnSet,onL
 }
 
 // \u2500\u2500\u2500 SET VIEW \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
-function SetView({set,folder,cards,onBack,onNewCard,onEditCard,onDeleteCard,onLearn,onImportPDF,onExport}) {
+function SetView({set,folder,cards,sharerProfile,onBack,onNewCard,onEditCard,onDeleteCard,onLearn,onImportPDF,onExport}) {
   const prog = calcProgress(cards);
   const readOnly = set?.isSharedWithMe;
+  const sharerName = sharerProfile?.display_name || set?.sharedBy;
   return (
     <div className="au">
       <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",marginBottom:28,flexWrap:"wrap",gap:14}}>
         <div>
-          <button style={{display:"flex",alignItems:"center",gap:6,border:"none",background:"none",color:"var(--muted)",fontSize:14,cursor:"pointer",fontFamily:"inherit",marginBottom:10,padding:"4px 0"}} onClick={onBack}><IBack/> {folder?.name}</button>
+          <button style={{display:"flex",alignItems:"center",gap:6,border:"none",background:"none",color:"var(--muted)",fontSize:14,cursor:"pointer",fontFamily:"inherit",marginBottom:10,padding:"4px 0"}} onClick={onBack}>
+            <IBack/>
+            {readOnly && set?.sourceFolderName ? <><span style={{opacity:.7}}>Geteilt mit mir ·</span> {set.sourceFolderName}</> : folder?.name}
+          </button>
           <h1 style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:26,display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}>{set?.name}{readOnly && <span style={{fontSize:11,fontWeight:600,background:"var(--shared-bg)",color:"var(--shared-fg)",padding:"3px 10px",borderRadius:99,border:"1px solid var(--shared-border)",boxShadow:"0 2px 6px rgba(194,65,12,.1)"}}>🔗 Geteilt · nur lesen</span>}</h1>
-          {set?.description && <p style={{color:"var(--muted)",fontSize:14,marginTop:4}}>{set.description}</p>}
+          {readOnly && sharerName && (
+            <div style={{display:"inline-flex",alignItems:"center",gap:7,marginTop:8,padding:"5px 10px 5px 6px",background:"var(--shared-bg)",border:"1px solid var(--shared-border)",borderRadius:99,fontSize:12,color:"var(--shared-fg)",fontWeight:500}}>
+              <Avatar url={sharerProfile?.avatar_url} name={sharerName} size={20}/>
+              <span>geteilt von <b>{sharerName}</b></span>
+            </div>
+          )}
+          {set?.description && <p style={{color:"var(--muted)",fontSize:14,marginTop:6}}>{set.description}</p>}
           <div style={{display:"flex",gap:16,marginTop:8,alignItems:"center"}}>
             <span style={{color:"var(--muted)",fontSize:13}}>{cards.length} Karten</span>
             {cards.length>0 && <><div style={{flex:1,maxWidth:120}}><div className="prog-track"><div className={`prog-fill${prog>=80?" done":""}`} style={{width:`${prog}%`}}/></div></div><span style={{color:"var(--rose)",fontSize:13,fontWeight:600}}>{prog}%</span></>}
@@ -939,17 +982,31 @@ function SidebarFolder({folder,isActive,onClick,onDelete,onEdit}) {
   </div>);
 }
 
-function SetCard({set,cardCount,progress,onClick,onLearn,onDelete,onRename}){
+function SetCard({set,cardCount,progress,onClick,onLearn,onDelete,onRename,sharerProfile}){
   const [editing,setEditing]=useState(false); const [name,setName]=useState(set.name); const ref=useRef();
   const commit=()=>{setEditing(false);if(name.trim()&&name.trim()!==set.name)onRename(name.trim());};
   useEffect(()=>{if(editing)ref.current?.focus();},[editing]);
   const readOnly = set.isSharedWithMe;
+  const sharerName = sharerProfile?.display_name || set.sharedBy;
   return (<div className="card-hover glass-card" style={{background:readOnly?"radial-gradient(ellipse 120% 90% at 100% 115%,rgba(194,65,12,.18) 0%,rgba(194,65,12,.06) 40%,transparent 65%),rgba(255,251,240,.7)":"radial-gradient(ellipse 120% 90% at 100% 115%,rgba(245,99,26,.20) 0%,rgba(245,99,26,.06) 40%,transparent 65%),rgba(255,255,255,.62)",border:readOnly?"1px solid rgba(194,65,12,.22)":"1px solid rgba(245,99,26,.16)",borderRadius:"var(--r-md)",padding:"18px 18px 14px",cursor:"pointer"}} onClick={editing?undefined:onClick}>
     <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",marginBottom:14}}>
       <div style={{flex:1,marginRight:10,paddingTop:2}}>
         {editing && !readOnly ? <input className="inline-edit" ref={ref} value={name} onChange={e=>setName(e.target.value)} onBlur={commit} onKeyDown={e=>{if(e.key==="Enter")commit();if(e.key==="Escape")setEditing(false);}} onClick={e=>e.stopPropagation()} style={{fontSize:15,fontWeight:600,width:"100%"}}/>
           : <div style={{fontFamily:"Outfit,sans-serif",fontWeight:600,fontSize:15,lineHeight:1.4}} onDoubleClick={readOnly?undefined:(e=>{e.stopPropagation();setEditing(true);})}>{set.name}</div>}
-        <div style={{fontSize:12,color:"var(--muted)",marginTop:5}}>{cardCount} Karten{readOnly && <span style={{marginLeft:6,color:"var(--shared-fg)",fontWeight:600}}>· geteilt</span>}</div>
+        <div style={{fontSize:12,color:"var(--muted)",marginTop:5}}>{cardCount} Karten{!readOnly && <span></span>}</div>
+        {readOnly && (set.sourceFolderName || sharerName) && (
+          <div style={{display:"flex",alignItems:"center",gap:6,marginTop:8,padding:"5px 8px",background:"rgba(194,65,12,.08)",border:"1px solid rgba(194,65,12,.16)",borderRadius:8,fontSize:11,color:"var(--shared-fg)"}}>
+            {set.sourceFolderName && <>
+              {set.sourceFolderColor && <FolderMark mark={set.sourceFolderColor} size={14}/>}
+              <span style={{fontWeight:600,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{set.sourceFolderName}</span>
+            </>}
+            {sharerName && <>
+              <span style={{opacity:.5}}>·</span>
+              <Avatar url={sharerProfile?.avatar_url} name={sharerName} size={16}/>
+              <span style={{whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{sharerName}</span>
+            </>}
+          </div>
+        )}
       </div>
       <ProgressCircle pct={progress} size={50} stroke={5}/>
     </div>
@@ -1011,23 +1068,38 @@ function HomeView({userName,data,rootFolders,onSelectFolder}){
       ))}
       <div className="hb-prog-span" style={{
         gridColumn:"span 2",
-        background:"radial-gradient(ellipse 110% 85% at 50% 130%,rgba(245,99,26,.35) 0%,transparent 55%),linear-gradient(180deg,#FFFAF2 0%,#FFECD2 55%,#FFD6AA 100%)",
-        border:"1px solid rgba(245,99,26,.22)",
+        background:"radial-gradient(ellipse 110% 80% at 50% 130%,rgba(220,38,38,.55) 0%,transparent 55%),radial-gradient(ellipse 90% 70% at 50% 60%,rgba(245,99,26,.4) 0%,transparent 65%),linear-gradient(180deg,#FFDDBC 0%,#FFA763 55%,#F0773A 100%)",
+        border:"1px solid rgba(220,80,30,.35)",
         borderRadius:"var(--r-hero)",
         padding:"18px 20px",
-        boxShadow:"0 14px 40px rgba(245,99,26,.14),0 4px 14px rgba(0,0,0,.04),inset 0 1px 0 rgba(255,255,255,.85)",
+        boxShadow:"0 16px 44px rgba(220,80,30,.28),0 4px 14px rgba(0,0,0,.06),inset 0 1px 0 rgba(255,255,255,.45)",
         display:"flex",alignItems:"center",gap:14,
         position:"relative",overflow:"hidden",color:"var(--text)",isolation:"isolate"
       }}>
         <div style={{position:"relative",zIndex:1,display:"flex",alignItems:"center",gap:14,width:"100%"}}>
-          <div style={{width:60,height:60,borderRadius:"50%",background:"rgba(255,255,255,.75)",border:"2px solid rgba(255,255,255,.9)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,backdropFilter:"blur(6px)",WebkitBackdropFilter:"blur(6px)",boxShadow:"0 4px 12px rgba(245,99,26,.18),inset 0 1px 0 rgba(255,255,255,.95)"}}>
-            <span style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:18,background:"var(--grad)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",letterSpacing:"-.3px"}}>{overallProg}%</span>
-          </div>
+          {(() => {
+            // Progress ring with white stroke on semi-transparent backdrop, over the warm gradient card.
+            const size=62,stroke=5,r=(size-stroke*2)/2,circ=2*Math.PI*r,off=circ-(overallProg/100)*circ;
+            return (
+              <div style={{position:"relative",width:size,height:size,flexShrink:0,borderRadius:"50%",background:"rgba(255,255,255,.22)",backdropFilter:"blur(10px)",WebkitBackdropFilter:"blur(10px)",boxShadow:"0 4px 12px rgba(0,0,0,.12),inset 0 1px 0 rgba(255,255,255,.45)"}}>
+                <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{position:"absolute",inset:0}}>
+                  <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="rgba(255,255,255,.35)" strokeWidth={stroke}/>
+                  <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="#FFFFFF" strokeWidth={stroke}
+                    strokeDasharray={circ} strokeDashoffset={off} strokeLinecap="round"
+                    transform={`rotate(-90 ${size/2} ${size/2})`}
+                    style={{transition:"stroke-dashoffset .5s",filter:"drop-shadow(0 1px 3px rgba(0,0,0,.25))"}}/>
+                </svg>
+                <div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center"}}>
+                  <span style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:16,color:"#fff",letterSpacing:"-.3px",textShadow:"0 1px 2px rgba(0,0,0,.25)"}}>{overallProg}%</span>
+                </div>
+              </div>
+            );
+          })()}
           <div style={{flex:1,minWidth:0}}>
-            <div style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:18,color:"var(--text)",letterSpacing:"-.2px"}}>Gesamt-Fortschritt</div>
-            <div style={{fontSize:12,color:"var(--muted)",marginTop:3,fontWeight:500}}>{data.cards.length} Karten · {superCards} gemeistert</div>
+            <div style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:18,color:"#fff",letterSpacing:"-.2px",textShadow:"0 1px 3px rgba(140,40,10,.3)"}}>Gesamt-Fortschritt</div>
+            <div style={{fontSize:12,color:"rgba(255,255,255,.92)",marginTop:3,fontWeight:500,textShadow:"0 1px 2px rgba(140,40,10,.25)"}}>{data.cards.length} Karten · {superCards} gemeistert</div>
           </div>
-          <div style={{fontSize:30,opacity:.95,filter:"drop-shadow(0 2px 4px rgba(245,99,26,.25))"}}>🎯</div>
+          <div style={{fontSize:30,opacity:.98,filter:"drop-shadow(0 2px 5px rgba(0,0,0,.22))"}}>🎯</div>
         </div>
       </div>
     </div>
@@ -1353,11 +1425,12 @@ function SimpleModal({title,onClose,children}) {
   </div></div>);
 }
 
-function FolderShareModal({folder,folderSets,ownerEmail,ownerId,onClose}) {
+function FolderShareModal({folder,folderSets,ownerEmail,ownerId,ownerAvatar,ownerName,onClose}) {
   // A folder is "shared with email E" if any set in the folder has a
   // set_shares row for E. We aggregate across all sets in the folder so the
   // user can manage sharing at the folder level.
-  const [rows,setRows]=useState([]);          // raw set_shares rows from DB
+  const [rows,setRows]=useState([]);
+  const [profiles,setProfiles]=useState({});  // email(lower) → {avatar_url, display_name}
   const [email,setEmail]=useState("");
   const [err,setErr]=useState("");
   const [ok,setOk]=useState("");
@@ -1370,12 +1443,23 @@ function FolderShareModal({folder,folderSets,ownerEmail,ownerId,onClose}) {
     setLoading(true);
     if (setIds.length === 0) { setRows([]); setLoading(false); return; }
     const {data, error} = await sb.from("set_shares").select("*").in("set_id", setIds).order("created_at",{ascending:false});
-    if (!error) setRows(data||[]);
+    if (!error) {
+      setRows(data||[]);
+      const emails = Array.from(new Set((data||[]).map(r=>(r.invited_email||"").toLowerCase()).filter(Boolean)));
+      if (emails.length > 0) {
+        // Best-effort profile lookup — if the table doesn't exist, we fall back to initials silently.
+        try {
+          const {data: pr} = await sb.from("profiles").select("email,avatar_url,display_name").in("email", emails);
+          const map = {};
+          for (const p of (pr||[])) map[(p.email||"").toLowerCase()] = p;
+          setProfiles(map);
+        } catch {}
+      }
+    }
     setLoading(false);
   };
   useEffect(()=>{ if(folder) load(); }, [folder?.id, folderSets.length]);
 
-  // Group rows by invited_email → one entry per person
   const grouped = (() => {
     const m = new Map();
     for (const r of rows) {
@@ -1397,11 +1481,17 @@ function FolderShareModal({folder,folderSets,ownerEmail,ownerId,onClose}) {
     if (grouped.some(g => (g.email||"").toLowerCase() === e && g.coverage === setIds.length)) { setErr("Diese E-Mail hat bereits Zugriff auf den gesamten Ordner."); return; }
     if (setIds.length === 0) { setErr("Dieser Ordner hat noch keine Sets zum Teilen."); return; }
     setBusy(true);
-    // Add share for every set in the folder that doesn't already have one for this email
     const existingSetIds = new Set(rows.filter(r => (r.invited_email||"").toLowerCase()===e).map(r=>r.set_id));
-    const toInsert = setIds.filter(sid => !existingSetIds.has(sid)).map(sid => ({set_id:sid, invited_email:e, owner_email:ownerEmail, owner_id:ownerId}));
-    if (toInsert.length === 0) { setBusy(false); setErr("Diese E-Mail hat bereits Zugriff."); return; }
-    const {error} = await sb.from("set_shares").insert(toInsert);
+    // Include denormalized folder metadata so invitees can see the original folder.
+    // If these columns don't exist yet, we retry without them.
+    const baseRows = setIds.filter(sid => !existingSetIds.has(sid)).map(sid => ({set_id:sid, invited_email:e, owner_email:ownerEmail, owner_id:ownerId}));
+    if (baseRows.length === 0) { setBusy(false); setErr("Diese E-Mail hat bereits Zugriff."); return; }
+    const withMeta = baseRows.map(r => ({...r, folder_id:folder.id, folder_name:folder.name, folder_color:folder.color}));
+    let {error} = await sb.from("set_shares").insert(withMeta);
+    if (error) {
+      // Fallback: schema without folder_* columns
+      ({error} = await sb.from("set_shares").insert(baseRows));
+    }
     setBusy(false);
     if (error) { setErr(error.message); return; }
     setEmail(""); setOk(`✓ ${e} hat jetzt Zugriff auf „${folder.name}" (${setIds.length} Set${setIds.length===1?"":"s"}).`);
@@ -1436,22 +1526,23 @@ function FolderShareModal({folder,folderSets,ownerEmail,ownerId,onClose}) {
       <div style={{fontSize:12,fontWeight:600,color:"var(--muted2)",textTransform:"uppercase",letterSpacing:".06em",marginTop:18,marginBottom:8}}>Zugriff haben</div>
       {loading ? <div style={{display:"flex",alignItems:"center",gap:8,padding:"10px 0",color:"var(--muted2)",fontSize:13}}><ISpin c="var(--muted2)" s={14}/> Lädt…</div>
         : <div style={{display:"flex",flexDirection:"column",gap:6}}>
-          <div style={{display:"flex",alignItems:"center",gap:10,padding:"10px 12px",background:"linear-gradient(160deg,#FFF3EC,#FFE0E4)",border:"1px solid var(--ob)",borderRadius:11}}>
-            <div style={{width:28,height:28,borderRadius:"50%",background:"var(--grad)",display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontWeight:700,fontSize:12,flexShrink:0}}>{(ownerEmail||"?").charAt(0).toUpperCase()}</div>
+          <div style={{display:"flex",alignItems:"center",gap:10,padding:"10px 12px",background:"linear-gradient(160deg,#FFF3EC,#FFE0E4)",border:"1px solid var(--ob)",borderRadius:12,boxShadow:"0 2px 6px rgba(245,99,26,.08)"}}>
+            <Avatar url={ownerAvatar} name={ownerName||ownerEmail} size={32}/>
             <div style={{flex:1,overflow:"hidden"}}>
-              <div style={{fontSize:13,fontWeight:600,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{ownerEmail}</div>
+              <div style={{fontSize:13,fontWeight:600,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{ownerName||ownerEmail}</div>
               <div style={{fontSize:11,color:"var(--orange)",fontWeight:600}}>Besitzer · Du</div>
             </div>
           </div>
           {grouped.length===0 ? <div style={{fontSize:13,color:"var(--muted2)",padding:"8px 2px"}}>Noch niemand eingeladen.</div>
             : grouped.map(g => {
               const partial = g.coverage < setIds.length;
+              const prof = profiles[(g.email||"").toLowerCase()] || {};
               return (
               <div key={g.email} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 12px",background:"rgba(255,255,255,.62)",backdropFilter:"blur(14px)",WebkitBackdropFilter:"blur(14px)",border:"1px solid rgba(255,255,255,.78)",borderRadius:12,boxShadow:"0 2px 6px rgba(245,99,26,.05)"}}>
-                <div style={{width:28,height:28,borderRadius:"50%",background:"linear-gradient(135deg,#F59E0B,#C2410C)",display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontWeight:700,fontSize:12,flexShrink:0,boxShadow:"0 2px 6px rgba(194,65,12,.3)"}}>{(g.email||"?").charAt(0).toUpperCase()}</div>
+                <Avatar url={prof.avatar_url} name={prof.display_name||g.email} size={32}/>
                 <div style={{flex:1,overflow:"hidden"}}>
-                  <div style={{fontSize:13,fontWeight:500,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{g.email}</div>
-                  <div style={{fontSize:11,color:partial?"var(--amber)":"var(--muted2)"}}>{partial ? `Nur ${g.coverage}/${setIds.length} Sets · ungewöhnlich` : `Eingeladen ${new Date(g.createdAt).toLocaleDateString("de-DE")}`}</div>
+                  <div style={{fontSize:13,fontWeight:600,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{prof.display_name||g.email}</div>
+                  <div style={{fontSize:11,color:partial?"var(--amber)":"var(--muted2)",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{prof.display_name?<>{g.email} · </>:null}{partial ? `nur ${g.coverage}/${setIds.length} Sets` : `eingeladen ${new Date(g.createdAt).toLocaleDateString("de-DE")}`}</div>
                 </div>
                 <button onClick={()=>removeShare(g.email)} className="icon-btn" title="Zugriff entfernen"><ITrash/></button>
               </div>);
