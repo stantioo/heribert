@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>E-Mail bestätigt · Heribert ✦</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23F5631A'/%3E%3Crect x='6' y='5' width='14' height='18' rx='2' fill='white' opacity='.95'/%3E%3Crect x='8' y='9' width='8' height='1.5' rx='.75' fill='%23F5631A'/%3E%3Ctext x='24' y='12' text-anchor='middle' font-family='system-ui' font-weight='700' font-size='9' fill='white'%3E%E2%9C%A6%3C/text%3E%3C/svg%3E"/>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700&family=DM+Sans:wght@400;500;600&display=swap"/>
+  <style>
+    :root {
+      --orange: #F5631A; --text: #18170F; --muted: #7A7468; --muted2: #B8B2A8;
+      --red: #DC2626; --rl: #FEF2F2;
+      --grad: linear-gradient(135deg, #F5631A 0%, #FF9552 100%);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; font-family: 'DM Sans', system-ui, -apple-system, sans-serif; -webkit-font-smoothing: antialiased; color: var(--text); }
+    body {
+      display: flex; align-items: center; justify-content: center;
+      background: linear-gradient(160deg, #FFF8F4, #F8F7F4);
+      padding: 20px;
+    }
+    .card {
+      background: linear-gradient(180deg, #FFF, #FEFCFA);
+      border-radius: 24px;
+      padding: 48px 40px;
+      width: 100%; max-width: 440px;
+      box-shadow: 0 8px 48px rgba(245,99,26,.1), 0 0 0 1px rgba(245,99,26,.06);
+      text-align: center;
+      animation: fadeUp .32s ease both;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(14px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .logo {
+      font-family: 'Outfit', sans-serif;
+      font-weight: 700;
+      font-size: 28px;
+      background: var(--grad);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 28px;
+      letter-spacing: -.3px;
+    }
+    .emoji { font-size: 56px; margin-bottom: 20px; line-height: 1; }
+    h1 { font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 24px; margin-bottom: 12px; }
+    p { color: var(--muted); font-size: 15px; line-height: 1.6; margin-bottom: 28px; }
+    a.btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 13px 28px;
+      background: var(--grad);
+      color: #fff;
+      border-radius: 12px;
+      font-size: 15px; font-weight: 600;
+      text-decoration: none;
+      box-shadow: 0 4px 16px rgba(245,99,26,.28);
+      transition: all .2s;
+      font-family: inherit;
+    }
+    a.btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(245,99,26,.4); }
+    .err {
+      color: var(--red); background: var(--rl);
+      padding: 12px 16px; border-radius: 10px;
+      margin-bottom: 24px; font-size: 14px; text-align: left;
+      border: 1px solid rgba(220,38,38,.15);
+      line-height: 1.5;
+    }
+    .countdown { font-size: 12px; color: var(--muted2); margin-top: 18px; }
+    .spin { width: 32px; height: 32px; margin: 10px auto 20px; border: 3px solid #F0EDE8; border-top-color: var(--orange); border-radius: 50%; animation: spin .9s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">Heribert ✦</div>
+    <div id="content">
+      <div class="spin"></div>
+      <h1>Bestätigung läuft …</h1>
+      <p>Einen kurzen Moment bitte.</p>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script>
+    (function(){
+      var SUPABASE_URL = "https://ivvrfnsuoufymcwtsycp.supabase.co";
+      var SUPABASE_KEY = "sb_publishable_hQ2G_piEyVVp0SFABugOZA_6PEU9my9";
+      var sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+      // Compute URL back to the main app (same directory, index.html or /)
+      var path = window.location.pathname;
+      var appUrl = path.substring(0, path.lastIndexOf('/') + 1);
+
+      // Errors can arrive in query string OR hash
+      var qParams = new URLSearchParams(window.location.search);
+      var hParams = new URLSearchParams(window.location.hash.substring(1));
+      var errCode = qParams.get('error') || hParams.get('error');
+      var errDesc = qParams.get('error_description') || hParams.get('error_description');
+
+      var content = document.getElementById('content');
+
+      function showSuccess() {
+        content.innerHTML =
+          '<div class="emoji">✅</div>' +
+          '<h1>E-Mail bestätigt!</h1>' +
+          '<p>Super — dein Account ist jetzt aktiv. Du kannst dich in der App anmelden.</p>' +
+          '<a href="' + appUrl + '" class="btn">Zu Heribert →</a>' +
+          '<div class="countdown" id="cd">Weiterleitung in 4 Sekunden …</div>';
+        var s = 4;
+        var cd = document.getElementById('cd');
+        var t = setInterval(function(){
+          s--;
+          if (s <= 0) { clearInterval(t); window.location.href = appUrl; }
+          else cd.textContent = 'Weiterleitung in ' + s + ' Sekunden …';
+        }, 1000);
+      }
+
+      function showError(msg) {
+        content.innerHTML =
+          '<div class="emoji">⚠️</div>' +
+          '<h1>Bestätigung fehlgeschlagen</h1>' +
+          '<div class="err">' + (msg ? msg.replace(/[<>]/g, '') : 'Unbekannter Fehler. Der Bestätigungslink ist möglicherweise abgelaufen oder bereits verwendet.') + '</div>' +
+          '<a href="' + appUrl + '" class="btn">Zurück zur App</a>';
+      }
+
+      if (errCode) {
+        showError(decodeURIComponent(errDesc || errCode).replace(/\+/g, ' '));
+      } else {
+        // Supabase will auto-consume the URL fragment and persist session in localStorage.
+        // We just trigger getSession() to make sure the client has had a chance to parse it.
+        sb.auth.getSession().then(function(){ showSuccess(); }).catch(function(){ showSuccess(); });
+      }
+    })();
+  </script>
+</body>
+</html>
