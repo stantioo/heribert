@@ -31,47 +31,90 @@ const PDFJS  = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.j
 const CSS = `
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{
-  --bg:#F8F7F4;--surface:#FFF;--border:#E8E4DB;
+  /* Base */
+  --bg:#F7F5EF;--bg2:#EFECE3;--surface:#FFF;--border:#E8E4DB;--border2:#D9D4C8;
   --text:#18170F;--muted:#7A7468;--muted2:#B8B2A8;
-  --orange:#F5631A;--ol:#FFF3EC;--ob:#FDC9A8;
+  /* Accents */
+  --orange:#F5631A;--orange2:#FF8A3D;--ol:#FFF3EC;--ob:#FDC9A8;
   --green:#16A34A;--gm:#22C55E;--gl:#F0FDF4;
   --red:#DC2626;--rl:#FEF2F2;
-  --grad:linear-gradient(135deg,#F5631A 0%,#FF9552 100%);
+  --rose:#F43F5E;--pink:#EC4899;--violet:#8B5CF6;--blue:#3B82F6;--cyan:#06B6D4;--amber:#F59E0B;--teal:#14B8A6;
+  /* Gradients */
+  --grad:linear-gradient(135deg,#F5631A 0%,#F43F5E 100%);
+  --grad-sunset:linear-gradient(135deg,#FFB347 0%,#F5631A 45%,#EC4899 100%);
+  --grad-rose:linear-gradient(135deg,#F43F5E,#EC4899);
+  --grad-violet:linear-gradient(135deg,#8B5CF6,#EC4899);
+  --grad-ocean:linear-gradient(135deg,#3B82F6,#06B6D4);
+  --grad-amber:linear-gradient(135deg,#F59E0B,#F5631A);
+  --grad-aurora:linear-gradient(135deg,#FFB347 0%,#F43F5E 35%,#8B5CF6 70%,#3B82F6 100%);
+  /* Soft tints */
+  --tint-orange:linear-gradient(160deg,#FFF5EE,#FFE4CF 55%,#FFCBA0);
+  --tint-rose:linear-gradient(160deg,#FFF1F2,#FFD9DE 55%,#FFB3BD);
+  --tint-pink:linear-gradient(160deg,#FDF4FF,#F9D7FF 55%,#F3A6FB);
+  --tint-violet:linear-gradient(160deg,#F5F3FF,#E2DCFF 55%,#C4B6FD);
+  --tint-blue:linear-gradient(160deg,#EFF6FF,#CCDEFE 55%,#9CBAFB);
+  --tint-amber:linear-gradient(160deg,#FFFBEB,#FFE9A8 55%,#FFCF5A);
+  --tint-green:linear-gradient(160deg,#F0FDF4,#BDF4C9 55%,#7EE296);
+  --tint-cyan:linear-gradient(160deg,#ECFEFF,#B8F0F5 55%,#6FDCE6);
+  /* App bg */
+  --grad-bg:linear-gradient(160deg,#FFF6EE 0%,#FAF1F3 40%,#F1F4FA 100%);
+  /* Sizes & shapes */
   --sw:272px;
+  --r-xl:26px;--r-lg:20px;--r-md:16px;--r-sm:11px;
+  --safe-b:env(safe-area-inset-bottom,0px);
 }
 html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;}
 ::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-thumb{background:var(--border);border-radius:99px;}
-.btn-o{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;background:var(--grad);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit;transition:all .15s;box-shadow:0 2px 8px rgba(245,99,26,.2);}
-.btn-o:hover{background:linear-gradient(135deg,#E05515,#F07030);transform:translateY(-1px);box-shadow:0 6px 18px rgba(245,99,26,.35);}
-.btn-g{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;background:linear-gradient(160deg,#FFF,#F8F6F3);color:var(--text);border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit;transition:all .15s;}
-.btn-g:hover{background:linear-gradient(160deg,#FFF3EC,#FFE8D8);border-color:var(--ob);color:var(--orange);transform:translateY(-1px);}
-.btn-sm{display:inline-flex;align-items:center;gap:5px;padding:6px 12px;background:linear-gradient(160deg,#FFF,#F8F6F3);color:var(--muted);border:1.5px solid var(--border);border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;transition:all .15s;}
-.btn-sm:hover{background:linear-gradient(160deg,#FFF3EC,#FFE8D8);border-color:var(--ob);color:var(--orange);}
-.btn-danger{display:inline-flex;align-items:center;gap:5px;padding:6px 12px;background:transparent;color:var(--muted2);border:none;border-radius:8px;font-size:12px;cursor:pointer;font-family:inherit;transition:all .15s;}
+
+.btn-o{display:inline-flex;align-items:center;gap:6px;padding:10px 18px;background:var(--grad);color:#fff;border:none;border-radius:13px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .18s;box-shadow:0 4px 14px rgba(244,63,94,.28),inset 0 1px 0 rgba(255,255,255,.22);}
+.btn-o:hover{background:linear-gradient(135deg,#E0540E,#E11D48);transform:translateY(-1px);box-shadow:0 8px 22px rgba(244,63,94,.38),inset 0 1px 0 rgba(255,255,255,.25);}
+.btn-o:active{transform:translateY(0);}
+.btn-o:disabled{opacity:.55;cursor:not-allowed;transform:none;}
+.btn-g{display:inline-flex;align-items:center;gap:6px;padding:10px 18px;background:linear-gradient(160deg,#FFF,#F8F6F3);color:var(--text);border:1.5px solid var(--border);border-radius:13px;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit;transition:all .15s;}
+.btn-g:hover{background:linear-gradient(160deg,#FFF3EC,#FFE0E4);border-color:var(--ob);color:var(--orange);transform:translateY(-1px);}
+.btn-sm{display:inline-flex;align-items:center;gap:5px;padding:7px 12px;background:linear-gradient(160deg,#FFF,#F8F6F3);color:var(--muted);border:1.5px solid var(--border);border-radius:10px;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;transition:all .15s;}
+.btn-sm:hover{background:linear-gradient(160deg,#FFF3EC,#FFE0E4);border-color:var(--ob);color:var(--orange);}
+.btn-danger{display:inline-flex;align-items:center;gap:5px;padding:7px 12px;background:transparent;color:var(--muted2);border:none;border-radius:10px;font-size:12px;cursor:pointer;font-family:inherit;transition:all .15s;}
 .btn-danger:hover{background:linear-gradient(160deg,#FEF2F2,#FEE2E2);color:var(--red);}
-.icon-btn{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;background:transparent;border:none;border-radius:7px;cursor:pointer;color:var(--muted2);transition:all .15s;}
+.icon-btn{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;background:transparent;border:none;border-radius:9px;cursor:pointer;color:var(--muted2);transition:all .15s;}
 .icon-btn:hover{background:linear-gradient(160deg,#FEF2F2,#FEE2E2);color:var(--red);}
-.icon-btn.edit:hover{background:linear-gradient(160deg,#FFF3EC,#FFE8D8);color:var(--orange);}
-.folder-row{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:9px;cursor:pointer;transition:all .12s;width:100%;border:none;background:transparent;font-family:inherit;text-align:left;}
-.folder-row:hover,.folder-row.active{background:linear-gradient(160deg,#FFF3EC,#FFE8D8);}
-.card-hover{transition:all .18s;}
-.card-hover:hover{box-shadow:0 8px 28px rgba(245,99,26,.1),0 2px 8px rgba(0,0,0,.06);transform:translateY(-2px);}
+.icon-btn.edit:hover{background:linear-gradient(160deg,#FFF3EC,#FFE0E4);color:var(--orange);}
+.icon-btn.share:hover{background:linear-gradient(160deg,#F5F3FF,#EDE9FE);color:var(--violet);}
+
+.folder-row{display:flex;align-items:center;gap:8px;padding:9px 10px;border-radius:12px;cursor:pointer;transition:all .15s;width:100%;border:none;background:transparent;font-family:inherit;text-align:left;}
+.folder-row:hover,.folder-row.active{background:linear-gradient(160deg,#FFF3EC,#FFE0E4);}
+
+.card-hover{transition:all .22s cubic-bezier(.4,0,.2,1);}
+.card-hover:hover{box-shadow:0 14px 40px rgba(244,63,94,.12),0 4px 12px rgba(0,0,0,.05);transform:translateY(-3px);}
+
 .rich{outline:none;min-height:90px;line-height:1.7;word-break:break-word;padding:14px;}
 .rich:empty::before{content:attr(data-ph);color:var(--muted2);pointer-events:none;}
 .rich ul,.rich ol{padding-left:22px;}
-.rich img{max-width:100%;border-radius:8px;display:block;margin:6px 0;}
+.rich img{max-width:100%;border-radius:10px;display:block;margin:6px 0;}
+
 .flip-wrap{perspective:1200px;}
 .flip-inner{position:relative;transform-style:preserve-3d;transition:transform .5s cubic-bezier(.4,0,.2,1);}
 .flip-inner.flipped{transform:rotateY(180deg);}
-.flip-f,.flip-b{backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:20px;overflow:hidden;}
+.flip-f,.flip-b{backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:var(--r-xl);overflow:hidden;}
 .flip-b{transform:rotateY(180deg);}
-.prog-track{height:6px;background:linear-gradient(90deg,#F0EDE8,#E8E4DB);border-radius:99px;overflow:hidden;}
-.prog-fill{height:100%;background:var(--grad);border-radius:99px;transition:width .4s ease;box-shadow:0 1px 4px rgba(245,99,26,.25);}
+
+.prog-track{height:7px;background:linear-gradient(90deg,#EFEAE0,#E0DAC9);border-radius:99px;overflow:hidden;}
+.prog-fill{height:100%;background:var(--grad);border-radius:99px;transition:width .4s ease;box-shadow:0 1px 4px rgba(244,63,94,.3);}
 .prog-fill.done{background:linear-gradient(90deg,#34D399,#16A34A);}
-.overlay{position:fixed;inset:0;background:rgba(15,12,8,.5);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;z-index:100;padding:20px;}
-.modal{background:linear-gradient(180deg,#FFF,#FEFCFA);border-radius:20px;box-shadow:0 24px 80px rgba(0,0,0,.18),0 0 0 1px rgba(245,99,26,.06);width:100%;max-height:90vh;overflow-y:auto;animation:scaleIn .18s ease;}
+
+.overlay{position:fixed;inset:0;background:rgba(15,12,8,.55);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;z-index:100;padding:20px;}
+.modal{background:linear-gradient(180deg,#FFF,#FEFCFA);border-radius:var(--r-xl);box-shadow:0 24px 80px rgba(0,0,0,.22),0 0 0 1px rgba(244,63,94,.05);width:100%;max-height:90vh;overflow-y:auto;animation:scaleIn .18s ease;}
 .inline-edit{border:none;background:transparent;font:inherit;color:inherit;padding:0 4px;outline:none;border-radius:4px;}
 .inline-edit:focus{background:var(--ol);}
+
+/* Stat tile: compact horizontal layout */
+.hb-stat{display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:var(--r-md);border:1.5px solid transparent;box-shadow:0 2px 8px rgba(0,0,0,.04);transition:all .22s cubic-bezier(.4,0,.2,1);position:relative;overflow:hidden;}
+.hb-stat:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(0,0,0,.09);}
+.hb-stat-text{flex:1;min-width:0;}
+.hb-stat-val{font-family:'Outfit',sans-serif;font-weight:700;font-size:24px;line-height:1;letter-spacing:-.3px;}
+.hb-stat-label{font-size:12px;color:var(--muted);margin-top:5px;font-weight:500;}
+.hb-stat-emoji{font-size:28px;flex-shrink:0;line-height:1;filter:drop-shadow(0 2px 4px rgba(0,0,0,.08));}
+
 @keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
 @keyframes scaleIn{from{opacity:0;transform:scale(.95);}to{opacity:1;transform:scale(1);}}
 @keyframes spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
@@ -79,27 +122,31 @@ html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;background:var(
 .si{animation:scaleIn .18s ease both;}
 
 .mob-topbar{display:none;align-items:center;gap:10px;padding:12px 16px;background:linear-gradient(180deg,#FFFDF7,#FFFAF5);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:50;}
-.mob-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:149;}
+.mob-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);backdrop-filter:blur(4px);z-index:149;}
+.hb-sidebar-footer{border-top:1px solid var(--border);padding:10px 8px;background:linear-gradient(0deg,#FFF6ED,#FFF);}
+
 @keyframes splashFade{0%,60%{opacity:1;}100%{opacity:0;transform:scale(1.02);}}
 @keyframes splashIn{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
 .splash-out{animation:splashFade 1.9s ease forwards;pointer-events:none;}
 .splash-in{animation:splashIn .5s .1s ease both;}
+
 @media(max-width:768px){
   .hb-aside{position:fixed!important;top:0;left:0;height:100vh!important;z-index:150;transform:translateX(-100%);transition:transform .28s ease;}
   .hb-aside.open{transform:translateX(0)!important;}
   .mob-topbar{display:flex!important;}
-  .hb-main{padding:16px 14px!important;}
+  .hb-main{padding:16px 14px 40px!important;}
   .hb-g-folders{grid-template-columns:repeat(2,1fr)!important;}
   .hb-g-sets{grid-template-columns:repeat(2,1fr)!important;}
   .hb-g-stats{grid-template-columns:repeat(2,1fr)!important;gap:8px!important;}
-  .hb-stat{padding:10px 12px!important;border-radius:10px!important;}
-  .hb-stat-icon{font-size:18px!important;margin-bottom:2px!important;}
-  .hb-stat-val{font-size:17px!important;}
-  .hb-stat-label{font-size:10px!important;margin-top:0!important;}
-  .hb-prog-span{grid-column:span 2!important;padding:10px 12px!important;gap:10px!important;}
-  .modal{border-radius:20px 20px 0 0!important;position:fixed!important;bottom:0!important;left:0!important;right:0!important;max-height:90vh!important;width:100%!important;max-width:100%!important;}
+  .hb-stat{padding:11px 13px!important;gap:10px!important;border-radius:14px!important;}
+  .hb-stat-val{font-size:19px!important;}
+  .hb-stat-label{font-size:11px!important;margin-top:3px!important;}
+  .hb-stat-emoji{font-size:22px!important;}
+  .hb-prog-span{grid-column:span 2!important;padding:14px 16px!important;gap:12px!important;}
+  .modal{border-radius:var(--r-xl) var(--r-xl) 0 0!important;position:fixed!important;bottom:0!important;left:0!important;right:0!important;max-height:90vh!important;width:100%!important;max-width:100%!important;padding-bottom:calc(var(--safe-b) + 8px)!important;}
   .overlay{align-items:flex-end!important;padding:0!important;}
   .hb-study{padding:20px 14px!important;}
+  .hb-sidebar-footer{display:none!important;}
 }
 @media(max-width:480px){
   .hb-g-sets{grid-template-columns:1fr!important;}
@@ -270,6 +317,51 @@ async function genMCQ(q, a) {
 const COLORS = ["#F5631A","#3B82F6","#10B981","#8B5CF6","#F59E0B","#EC4899","#14B8A6","#EF4444"];
 const RATINGS = [{emoji:"\ud83d\ude30",label:"Schwer",c:"#EF4444"},{emoji:"\ud83d\ude10",label:"Ok",c:"#F59E0B"},{emoji:"\ud83d\ude42",label:"Gut",c:"#3B82F6"},{emoji:"\ud83d\ude0e",label:"Super!",c:"#22C55E"}];
 
+// ─── SMART SAMPLING ────────────────────────────────────────────────────
+// Pick up to `count` cards using spaced-repetition-style weighting.
+// Unseen & hard cards get priority; mastered cards are rarely re-shown.
+// lastRating: null=unseen, 0=Schwer, 1=Ok, 2=Gut, 3=Super
+function pickStudyCards(cards, count) {
+  if (!cards.length) return [];
+  if (cards.length <= count) {
+    // Small pool: include all, but order so hard ones come first
+    return [...cards].sort((a,b) => {
+      const wa = cardWeight(a), wb = cardWeight(b);
+      return wb - wa;
+    });
+  }
+  const pool = cards.map(c => ({ card: c, weight: cardWeight(c) }));
+  const picked = [];
+  for (let i = 0; i < count && pool.length > 0; i++) {
+    const total = pool.reduce((s, x) => s + x.weight, 0);
+    if (total <= 0) {
+      const idx = Math.floor(Math.random() * pool.length);
+      picked.push(pool[idx].card); pool.splice(idx, 1); continue;
+    }
+    let r = Math.random() * total;
+    for (let j = 0; j < pool.length; j++) {
+      r -= pool[j].weight;
+      if (r <= 0) { picked.push(pool[j].card); pool.splice(j, 1); break; }
+    }
+  }
+  // Shuffle picked order so session feels fresh
+  for (let i = picked.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [picked[i], picked[j]] = [picked[j], picked[i]];
+  }
+  return picked;
+}
+function cardWeight(c) {
+  const r = c.lastRating;
+  if (r == null) return 10;   // unseen → highest priority
+  if (r === 0)   return 8;    // hard  → high priority
+  if (r === 1)   return 5;    // ok    → medium priority
+  if (r === 2)   return 2;    // gut   → low priority
+  return 0.4;                 // super → rare re-appearance
+}
+// Suggested default session size: 30, capped at total
+const suggestedCount = total => Math.min(30, Math.max(5, total));
+
 // \u2500\u2500\u2500 ICONS \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 function ProgressCircle({pct,size=54,stroke=5}){
   const r=(size-stroke*2)/2,circ=2*Math.PI*r,off=circ-(pct/100)*circ;
@@ -311,7 +403,7 @@ function SplashScreen({name,onDone}){
   const E=["🎯","📚","⚡","🚀","✨","🧠"][Math.floor(Math.random()*6)];
   useEffect(()=>{const t=setTimeout(onDone,1900);return()=>clearTimeout(t);},[]);
   return(
-    <div className="splash-out" style={{position:"fixed",inset:0,zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",background:"linear-gradient(160deg,#FFFAF7,#FFF8F4)"}}>
+    <div className="splash-out" style={{position:"fixed",inset:0,zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",background:"var(--grad-bg)"}}>
       <div className="splash-in" style={{textAlign:"center"}}>
         <div style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:22,background:"var(--grad)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",marginBottom:16}}>Heribert ✦</div>
         <div style={{fontSize:52,marginBottom:16}}>{E}</div>
@@ -334,7 +426,7 @@ function App() {
   }, []);
 
   if (session === undefined) return (
-    <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:"linear-gradient(160deg,#FFF8F4,#F8F7F4)"}}>
+    <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:"var(--grad-bg)"}}>
       <div style={{textAlign:"center"}}>
         <div style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:28,background:"var(--grad)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",marginBottom:20}}>Heribert ✦</div>
         <ISpin/>
@@ -372,7 +464,7 @@ function AuthScreen() {
     } finally { setBusy(false); }
   };
   return (
-    <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",padding:20,background:"linear-gradient(160deg,#FFF8F4,#F8F7F4)"}}>
+    <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",padding:20,background:"var(--grad-bg)"}}>
       <div className="au" style={{background:"linear-gradient(180deg,#FFF,#FEFCFA)",borderRadius:24,padding:"44px 40px",width:"100%",maxWidth:420,boxShadow:"0 8px 48px rgba(245,99,26,.1),0 0 0 1px rgba(245,99,26,.06)"}}>
         <div style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:28,background:"var(--grad)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",marginBottom:4}}>Heribert ✦</div>
         <div style={{color:"var(--muted)",fontSize:14,marginBottom:30}}>Deine persönliche Lernplattform</div>
@@ -449,7 +541,22 @@ function Dashboard({session, onLogout}) {
   const createFolder = async (name,color) => { const id=uid(); await sb.from("folders").insert({id,user_id:user.id,name,color,parent_id:null}); setData(d=>({...d,folders:[...d.folders,{id,name,color,parentId:null}]})); setModal(null); };
   const removeFolder = async (fid) => { await sb.from("folders").delete().eq("id",fid); setData(d=>{const sids=d.sets.filter(s=>s.folderId===fid).map(s=>s.id);return{folders:d.folders.filter(f=>f.id!==fid),sets:d.sets.filter(s=>s.folderId!==fid),cards:d.cards.filter(c=>!sids.includes(c.setId))};});if(sel.folderId===fid)setSel({folderId:null,setId:null}); };
   const renameFolder = async (fid,name) => { await sb.from("folders").update({name}).eq("id",fid); setData(d=>({...d,folders:d.folders.map(f=>f.id===fid?{...f,name}:f)})); };
-  const createSet = async (name,desc) => { const id=uid(); await sb.from("sets").insert({id,user_id:user.id,folder_id:sel.folderId,name,description:desc,created_at:new Date().toISOString()}); setData(d=>({...d,sets:[...d.sets,{id,folderId:sel.folderId,name,description:desc,createdAt:new Date().toISOString()}]})); setModal(null); };
+  const createSet = async (name,desc) => {
+    const id=uid(); const now=new Date().toISOString();
+    await sb.from("sets").insert({id,user_id:user.id,folder_id:sel.folderId,name,description:desc,created_at:now});
+    // Propagate folder-level shares to the new set: find all emails currently
+    // sharing any sibling set in this folder and add shares for the new set.
+    const siblingIds = data.sets.filter(s=>!s.isSharedWithMe && s.folderId===sel.folderId).map(s=>s.id);
+    if (siblingIds.length > 0) {
+      const {data:sh} = await sb.from("set_shares").select("invited_email").in("set_id", siblingIds);
+      const emails = Array.from(new Set((sh||[]).map(x=>(x.invited_email||"").toLowerCase()).filter(Boolean)));
+      if (emails.length > 0) {
+        await sb.from("set_shares").insert(emails.map(e=>({set_id:id,invited_email:e,owner_email:user.email,owner_id:user.id})));
+      }
+    }
+    setData(d=>({...d,sets:[...d.sets,{id,folderId:sel.folderId,name,description:desc,createdAt:now}]}));
+    setModal(null);
+  };
   const removeSet = async (sid) => { await sb.from("sets").delete().eq("id",sid); setData(d=>({...d,sets:d.sets.filter(s=>s.id!==sid),cards:d.cards.filter(c=>c.setId!==sid)})); if(sel.setId===sid)setSel(p=>({...p,setId:null})); };
   const renameSet = async (sid,name) => { await sb.from("sets").update({name}).eq("id",sid); setData(d=>({...d,sets:d.sets.map(s=>s.id===sid?{...s,name}:s)})); };
 
@@ -527,8 +634,6 @@ function Dashboard({session, onLogout}) {
     setModal({type:"pdfDone", count:rows.length});
   };
 
-  const shareSet = sid => setModal({type:"share", setId:sid});
-
   const SHARED_FOLDER_ID = "__shared__";
   const sharedSets = data.sets.filter(s => s.isSharedWithMe);
   const ownedSets = data.sets.filter(s => !s.isSharedWithMe);
@@ -549,10 +654,10 @@ function Dashboard({session, onLogout}) {
   }
 
   if (studyMode) {
-    const sc=data.cards.filter(c=>c.setId===studyMode.setId).slice(0,studyMode.count);
-    const ss=data.sets.find(s=>s.id===studyMode.setId); const Exit=()=>setStudyMode(null);
-    if (studyMode.mode==="flash") return <FlashMode set={ss} cards={sc} onExit={Exit} onRate={updateCardRating}/>;
-    return <MCQMode set={ss} cards={sc} onExit={Exit} onRate={updateCardRating} onCacheMCQ={cacheCardMCQ}/>;
+    const Exit=()=>setStudyMode(null);
+    const sessionInfo = {name: studyMode.sourceName};
+    if (studyMode.mode==="flash") return <FlashMode set={sessionInfo} cards={studyMode.cards} onExit={Exit} onRate={updateCardRating}/>;
+    return <MCQMode set={sessionInfo} cards={studyMode.cards} onExit={Exit} onRate={updateCardRating} onCacheMCQ={cacheCardMCQ}/>;
   }
 
   return (
@@ -573,7 +678,7 @@ function Dashboard({session, onLogout}) {
             <IPlus/> Neuer Ordner
           </button>
         </div>
-        <div style={{borderTop:"1px solid var(--border)",padding:"10px 8px",background:"linear-gradient(0deg,#FFF8F4,#FFF)"}}>
+        <div className="hb-sidebar-footer">
           <button className="folder-row" onClick={()=>setProfileOpen(true)} style={{width:"100%",justifyContent:"flex-start"}}>
             <div style={{width:30,height:30,borderRadius:"50%",background:"var(--grad)",display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontWeight:700,fontSize:12,flexShrink:0}}>{userName.charAt(0).toUpperCase()}</div>
             <div style={{flex:1,overflow:"hidden"}}>
@@ -586,36 +691,48 @@ function Dashboard({session, onLogout}) {
       </aside>
       <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden"}}>
       <div className="mob-topbar"><button onClick={()=>setMenuOpen(true)} style={{background:"none",border:"none",cursor:"pointer",color:"var(--text)",padding:4,display:"flex"}}><IMenu/></button><div style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:18,background:"var(--grad)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",flex:1}}>Heribert ✦</div><div onClick={()=>setProfileOpen(true)} style={{width:30,height:30,borderRadius:"50%",background:"var(--grad)",display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontWeight:700,fontSize:12,cursor:"pointer"}}>{userName.charAt(0).toUpperCase()}</div></div>
-        <main className="hb-main" style={{flex:1,overflowY:"auto",padding:"40px 48px",background:"linear-gradient(160deg,#FFF8F4,#F8F7F4 40%,#F5F4F1)"}}>
+        <main className="hb-main" style={{flex:1,overflowY:"auto",padding:"40px 48px",background:"var(--grad-bg)"}}>
         {loading ? <div style={{display:"flex",alignItems:"center",justifyContent:"center",height:"60vh",gap:12,color:"var(--muted)"}}><ISpin/><span style={{fontSize:15}}>Daten werden geladen…</span></div> : <>
           {!sel.folderId && <HomeView userName={userName} data={data} onSelectFolder={fid=>setSel({folderId:fid,setId:null})}/>}
           {sel.folderId && !sel.setId && (
             <FolderView folder={folder} sets={folderSets} data={data}
               onBack={()=>setSel({folderId:null,setId:null})} onNewSet={()=>setModal({type:"set"})}
-              onSelectSet={sid=>setSel(p=>({...p,setId:sid}))} onLearn={sc=>setStudyConfig(sc)}
+              onSelectSet={sid=>setSel(p=>({...p,setId:sid}))}
+              onLearnSet={(s,sc)=>setStudyConfig({sourceName:s.name,cards:sc,isFolder:false})}
+              onLearnFolder={()=>{
+                const fc = data.cards.filter(c=>folderSets.some(s=>s.id===c.setId));
+                if(fc.length===0) return;
+                setStudyConfig({sourceName:folder.name,cards:fc,isFolder:true});
+              }}
               onDeleteSet={sid=>{if(confirm("Set l\u00f6schen?"))removeSet(sid);}} onRenameSet={renameSet}
-              onShare={shareSet}/>
+              onShareFolder={()=>!isViewingShared && setModal({type:"folderShare",folderId:folder.id})}/>
           )}
           {sel.setId && (
             <SetView set={set} folder={folder} cards={setCCards}
               onBack={()=>setSel(p=>({...p,setId:null}))} onNewCard={()=>setModal({type:"card"})}
               onEditCard={c=>{setEditCard(c);setModal({type:"card"});}} onDeleteCard={removeCard}
-              onLearn={()=>setStudyConfig({setId:sel.setId,cards:setCCards})}
-              onShare={()=>shareSet(sel.setId)} onImportPDF={importPDF}
+              onLearn={()=>setStudyConfig({sourceName:set.name,cards:setCCards,isFolder:false})}
+              onImportPDF={importPDF}
               onExport={()=>setModal({type:"export"})}/>
           )}
         </>}
       </main>
       </div>
 
-      {studyConfig && <StudyConfigModal config={studyConfig} onStart={cfg=>{setStudyConfig(null);setStudyMode(cfg);}} onClose={()=>setStudyConfig(null)}/>}
+      {studyConfig && <StudyConfigModal config={studyConfig} onStart={cfg=>{
+        const picked = pickStudyCards(studyConfig.cards, cfg.count);
+        setStudyConfig(null);
+        setStudyMode({sourceName:studyConfig.sourceName, cards:picked, mode:cfg.mode});
+      }} onClose={()=>setStudyConfig(null)}/>}
       {profileOpen && <ProfileModal user={user} userName={userName} onLogout={onLogout} onClose={()=>setProfileOpen(false)}/>}
       {modal?.type==="folder" && <FolderModal onSave={createFolder} onClose={()=>setModal(null)}/>}
       {modal?.type==="set" && <SetModal onSave={createSet} onClose={()=>setModal(null)}/>}
       {modal?.type==="card" && <CardModal card={editCard} saving={saving} onSave={c=>{saveCard(c);setEditCard(null);}} onClose={()=>{setModal(null);setEditCard(null);}}/>}
-      {modal?.type==="share" && <ShareModal
-        set={data.sets.find(x=>x.id===modal.setId)}
+      {modal?.type==="folderShare" && <FolderShareModal
+        folder={data.folders.find(x=>x.id===modal.folderId)}
+        folderSets={data.sets.filter(s=>!s.isSharedWithMe && s.folderId===modal.folderId)}
         ownerEmail={user.email}
+        ownerId={user.id}
         onClose={()=>{setModal(null);loadAll();}}/>}
       {modal?.type==="pdfLoading" && <SimpleModal title="📄 PDF verarbeiten" onClose={undefined}>
         <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:14,padding:"8px 0 4px"}}>
@@ -639,25 +756,29 @@ function Dashboard({session, onLogout}) {
 }
 
 // \u2500\u2500\u2500 FOLDER VIEW \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
-function FolderView({folder,sets,data,onBack,onNewSet,onSelectSet,onLearn,onDeleteSet,onRenameSet,onShare}) {
+function FolderView({folder,sets,data,onBack,onNewSet,onSelectSet,onLearnSet,onLearnFolder,onDeleteSet,onRenameSet,onShareFolder}) {
   const isShared = folder?.isVirtualShared;
+  const folderCards = data.cards.filter(c=>sets.some(s=>s.id===c.setId));
+  const folderProg = calcProgress(folderCards);
   return (
     <div className="au">
-      <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",marginBottom:32,flexWrap:"wrap",gap:16}}>
-        <div>
+      <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",marginBottom:24,flexWrap:"wrap",gap:16}}>
+        <div style={{flex:1,minWidth:260}}>
           <button style={{display:"flex",alignItems:"center",gap:6,border:"none",background:"none",color:"var(--muted)",fontSize:14,cursor:"pointer",fontFamily:"inherit",marginBottom:12,padding:"4px 0"}} onClick={onBack}><IBack/> Übersicht</button>
-          <h1 style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:28,display:"flex",alignItems:"center",gap:10}}>{isShared && <span>👥</span>}{folder?.name}</h1>
-          <div style={{color:"var(--muted)",fontSize:14,marginTop:4}}>{sets.length} Sets · {data.cards.filter(c=>sets.some(s=>s.id===c.setId)).length} Karten · <span style={{color:"var(--orange)",fontWeight:600}}>{calcProgress(data.cards.filter(c=>sets.some(s=>s.id===c.setId)))}% gelernt</span></div>
-          {isShared && <div style={{marginTop:8,fontSize:12,color:"var(--muted2)",background:"#F5F3FF",border:"1px solid #C4B5FD",borderRadius:8,padding:"6px 10px",display:"inline-block"}}>Sets, die andere mit dir geteilt haben · nur lesen & lernen</div>}
+          <h1 style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:30,display:"flex",alignItems:"center",gap:10,letterSpacing:"-.5px"}}>{isShared ? <span>👥</span> : <span style={{display:"inline-flex",width:34,height:34,borderRadius:10,background:folder?.color,boxShadow:`0 4px 12px ${folder?.color}55`}}/>}{folder?.name}</h1>
+          <div style={{color:"var(--muted)",fontSize:14,marginTop:6}}>{sets.length} Sets · {folderCards.length} Karten{folderCards.length>0 && <> · <span style={{color:"var(--rose)",fontWeight:600}}>{folderProg}% gelernt</span></>}</div>
+          {isShared && <div style={{marginTop:10,fontSize:12,color:"var(--violet)",background:"linear-gradient(160deg,#F5F3FF,#EDE9FE)",border:"1px solid #C4B5FD",borderRadius:10,padding:"7px 11px",display:"inline-block",fontWeight:500}}>Geteilte Ordner · nur lesen & lernen</div>}
         </div>
-        {!isShared && <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
-          <button className="btn-o" onClick={onNewSet}><IPlus/> Neues Set</button>
-        </div>}
+        <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+          {folderCards.length>0 && <button className="btn-o" onClick={onLearnFolder}><IBook/> Ganzen Ordner lernen</button>}
+          {!isShared && <button className="btn-sm" onClick={onShareFolder}><IShare/> Teilen</button>}
+          {!isShared && <button className="btn-g" onClick={onNewSet}><IPlus/> Neues Set</button>}
+        </div>
       </div>
       {sets.length===0
-        ? <EmptyState icon={isShared?"👥":"📚"} title={isShared?"Noch nichts geteilt":"Noch keine Sets"} sub={isShared?"Wenn dich jemand zu einem Set einlädt, erscheint es hier.":"Erstelle dein erstes Set, um loszulegen."} btnLabel={isShared?null:"+ Erstes Set erstellen"} onBtn={isShared?null:onNewSet}/>
-        : <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(240px,1fr))",gap:16}}>
-            {sets.map(s => { const sc=data.cards.filter(c=>c.setId===s.id); return <SetCard key={s.id} set={s} cardCount={sc.length} progress={calcProgress(sc)} onClick={()=>onSelectSet(s.id)} onLearn={()=>onLearn({setId:s.id,cards:sc})} onDelete={()=>onDeleteSet(s.id)} onRename={name=>onRenameSet(s.id,name)} onShare={()=>onShare(s.id)}/>; })}
+        ? <EmptyState icon={isShared?"👥":"📚"} title={isShared?"Noch nichts geteilt":"Noch keine Sets"} sub={isShared?"Wenn dich jemand zu einem Ordner einlädt, erscheinen seine Sets hier.":"Erstelle dein erstes Set, um loszulegen."} btnLabel={isShared?null:"+ Erstes Set erstellen"} onBtn={isShared?null:onNewSet}/>
+        : <div className="hb-g-sets" style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(240px,1fr))",gap:16}}>
+            {sets.map(s => { const sc=data.cards.filter(c=>c.setId===s.id); return <SetCard key={s.id} set={s} cardCount={sc.length} progress={calcProgress(sc)} onClick={()=>onSelectSet(s.id)} onLearn={()=>onLearnSet(s,sc)} onDelete={()=>onDeleteSet(s.id)} onRename={name=>onRenameSet(s.id,name)}/>; })}
           </div>
       }
     </div>
@@ -665,7 +786,7 @@ function FolderView({folder,sets,data,onBack,onNewSet,onSelectSet,onLearn,onDele
 }
 
 // \u2500\u2500\u2500 SET VIEW \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
-function SetView({set,folder,cards,onBack,onNewCard,onEditCard,onDeleteCard,onLearn,onShare,onImportPDF,onExport}) {
+function SetView({set,folder,cards,onBack,onNewCard,onEditCard,onDeleteCard,onLearn,onImportPDF,onExport}) {
   const prog = calcProgress(cards);
   const readOnly = set?.isSharedWithMe;
   return (
@@ -673,17 +794,16 @@ function SetView({set,folder,cards,onBack,onNewCard,onEditCard,onDeleteCard,onLe
       <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",marginBottom:28,flexWrap:"wrap",gap:14}}>
         <div>
           <button style={{display:"flex",alignItems:"center",gap:6,border:"none",background:"none",color:"var(--muted)",fontSize:14,cursor:"pointer",fontFamily:"inherit",marginBottom:10,padding:"4px 0"}} onClick={onBack}><IBack/> {folder?.name}</button>
-          <h1 style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:26,display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}>{set?.name}{readOnly && <span style={{fontSize:11,fontWeight:600,background:"#F5F3FF",color:"#7C3AED",padding:"3px 10px",borderRadius:99,border:"1px solid #C4B5FD"}}>Geteilt · nur lesen</span>}</h1>
+          <h1 style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:26,display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}>{set?.name}{readOnly && <span style={{fontSize:11,fontWeight:600,background:"linear-gradient(160deg,#F5F3FF,#EDE9FE)",color:"#7C3AED",padding:"3px 10px",borderRadius:99,border:"1px solid #C4B5FD"}}>Geteilt · nur lesen</span>}</h1>
           {set?.description && <p style={{color:"var(--muted)",fontSize:14,marginTop:4}}>{set.description}</p>}
           <div style={{display:"flex",gap:16,marginTop:8,alignItems:"center"}}>
             <span style={{color:"var(--muted)",fontSize:13}}>{cards.length} Karten</span>
-            {cards.length>0 && <><div style={{flex:1,maxWidth:120}}><div className="prog-track"><div className={`prog-fill${prog>=80?" done":""}`} style={{width:`${prog}%`}}/></div></div><span style={{color:"var(--orange)",fontSize:13,fontWeight:600}}>{prog}%</span></>}
+            {cards.length>0 && <><div style={{flex:1,maxWidth:120}}><div className="prog-track"><div className={`prog-fill${prog>=80?" done":""}`} style={{width:`${prog}%`}}/></div></div><span style={{color:"var(--rose)",fontSize:13,fontWeight:600}}>{prog}%</span></>}
           </div>
         </div>
         <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
           {!readOnly && <label className="btn-sm" style={{cursor:"pointer"}}><IPdf/> PDF <input type="file" accept=".pdf" style={{display:"none"}} onChange={e=>e.target.files[0]&&onImportPDF(e.target.files[0])}/></label>}
           {cards.length>0 && <button className="btn-sm" onClick={onExport}><IDownload/> Export</button>}
-          {!readOnly && <button className="btn-sm" onClick={onShare}><IShare/> Teilen</button>}
           {cards.length>0 && <button className="btn-o" onClick={onLearn}><IBook/> Lernen</button>}
           {!readOnly && <button className="btn-g" onClick={onNewCard}><IPlus/> Karte</button>}
         </div>
@@ -713,12 +833,12 @@ function SidebarFolder({folder,isActive,onClick,onDelete,onRename}) {
   </div>);
 }
 
-function SetCard({set,cardCount,progress,onClick,onLearn,onDelete,onRename,onShare}){
+function SetCard({set,cardCount,progress,onClick,onLearn,onDelete,onRename}){
   const [editing,setEditing]=useState(false); const [name,setName]=useState(set.name); const ref=useRef();
   const commit=()=>{setEditing(false);if(name.trim()&&name.trim()!==set.name)onRename(name.trim());};
   useEffect(()=>{if(editing)ref.current?.focus();},[editing]);
   const readOnly = set.isSharedWithMe;
-  return (<div className="card-hover" style={{background:readOnly?"linear-gradient(180deg,#FAF5FF,#F5F3FF)":"linear-gradient(180deg,#FFF,#F8F5F0)",border:readOnly?"1.5px solid #C4B5FD":"1.5px solid var(--border)",borderRadius:16,padding:"18px 18px 14px",cursor:"pointer",boxShadow:"0 2px 6px rgba(0,0,0,.05)"}} onClick={editing?undefined:onClick}>
+  return (<div className="card-hover" style={{background:readOnly?"linear-gradient(180deg,#FAF5FF,#F0EBFE)":"linear-gradient(180deg,#FFF,#FBF4ED)",border:readOnly?"1.5px solid #C4B5FD":"1.5px solid var(--border)",borderRadius:18,padding:"18px 18px 14px",cursor:"pointer",boxShadow:"0 2px 8px rgba(0,0,0,.05)"}} onClick={editing?undefined:onClick}>
     <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",marginBottom:14}}>
       <div style={{flex:1,marginRight:10,paddingTop:2}}>
         {editing && !readOnly ? <input className="inline-edit" ref={ref} value={name} onChange={e=>setName(e.target.value)} onBlur={commit} onKeyDown={e=>{if(e.key==="Enter")commit();if(e.key==="Escape")setEditing(false);}} onClick={e=>e.stopPropagation()} style={{fontSize:15,fontWeight:600,width:"100%"}}/>
@@ -732,7 +852,6 @@ function SetCard({set,cardCount,progress,onClick,onLearn,onDelete,onRename,onSha
       {!readOnly && <>
         <button className="icon-btn edit" onClick={e=>{e.stopPropagation();setEditing(true);}}><IEdit/></button>
         <button className="icon-btn" onClick={e=>{e.stopPropagation();onDelete();}}><ITrash/></button>
-        <button className="btn-sm" style={{minHeight:34}} onClick={onShare}><IShare/></button>
       </>}
     </div>
   </div>);
@@ -750,7 +869,7 @@ function CardRow({card,onEdit,onDelete,readOnly}) {
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--muted2)" strokeWidth="2.5" style={{transform:open?"rotate(90deg)":"rotate(0deg)",transition:"transform .2s"}}><path d="M9 18l6-6-6-6"/></svg>
       </div>
     </div>
-    {open && <div style={{borderTop:"1px solid var(--border)",padding:"14px 16px",background:"linear-gradient(160deg,#FFF8F4,#F8F7F4)"}}>
+    {open && <div style={{borderTop:"1px solid var(--border)",padding:"14px 16px",background:"var(--grad-bg)"}}>
       <div style={{fontSize:12,fontWeight:600,color:"var(--orange)",marginBottom:8,textTransform:"uppercase",letterSpacing:".06em"}}>Antwort</div>
       <div style={{fontSize:14,lineHeight:1.7}} dangerouslySetInnerHTML={{__html:card.answerHtml||"<em style='color:var(--muted2)'>Keine Antwort</em>"}}/>
     </div>}
@@ -760,33 +879,54 @@ function CardRow({card,onEdit,onDelete,readOnly}) {
 function HomeView({userName,data,onSelectFolder}){
   const overallProg=calcProgress(data.cards); const superCards=data.cards.filter(c=>c.lastRating===3).length;
   const rootFolders=data.folders.filter(f=>!f.parentId);
+  const stats = [
+    {label:"Lernbereiche",val:data.folders.length,icon:"📁",c:"#F5631A",tint:"var(--tint-orange)",ring:"#FFD4B5"},
+    {label:"Sets",         val:data.sets.length,   icon:"📚",c:"#8B5CF6",tint:"var(--tint-violet)",ring:"#D7CBFD"},
+    {label:"Karten",       val:data.cards.length,  icon:"🃏",c:"#EC4899",tint:"var(--tint-pink)",  ring:"#F5B7EB"},
+    {label:"Gemeistert",   val:superCards,         icon:"😎",c:"#F59E0B",tint:"var(--tint-amber)", ring:"#FADF7B"},
+  ];
   return (<div className="au">
     <div style={{marginBottom:28}}>
-      <h1 style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:30,marginBottom:4}}>Übersicht</h1>
+      <h1 style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:32,marginBottom:4,letterSpacing:"-.5px"}}>Übersicht</h1>
       <p style={{color:"var(--muted)",fontSize:15}}>Guten Tag, {userName.split(" ")[0]} — weiter geht's 🎯</p>
     </div>
-    <div className="hb-g-stats" style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(140px,1fr))",gap:12,marginBottom:32}}>
-      {[{label:"Lernbereiche",val:data.folders.length,icon:"📁",c:"#F5631A"},{label:"Sets",val:data.sets.length,icon:"📚",c:"#3B82F6"},{label:"Karten",val:data.cards.length,icon:"🃏",c:"#8B5CF6"},{label:"Gemeistert",val:superCards,icon:"😎",c:"#F59E0B"}].map(s=>(
-        <div key={s.label} className="hb-stat" style={{background:"linear-gradient(180deg,#FFF,#F8F5F0)",border:"1.5px solid var(--border)",borderRadius:13,padding:"14px 16px",boxShadow:"0 1px 4px rgba(0,0,0,.04)"}}>
-          <div className="hb-stat-icon" style={{fontSize:24,marginBottom:5}}>{s.icon}</div>
-          <div className="hb-stat-val" style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:22,color:s.c}}>{s.val}</div>
-          <div className="hb-stat-label" style={{fontSize:12,color:"var(--muted)",marginTop:2}}>{s.label}</div>
+    <div className="hb-g-stats" style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(160px,1fr))",gap:12,marginBottom:32}}>
+      {stats.map(s=>(
+        <div key={s.label} className="hb-stat" style={{background:s.tint,borderColor:s.ring}}>
+          <div className="hb-stat-text">
+            <div className="hb-stat-val" style={{color:s.c}}>{s.val}</div>
+            <div className="hb-stat-label">{s.label}</div>
+          </div>
+          <div className="hb-stat-emoji">{s.icon}</div>
         </div>
       ))}
-      <div className="hb-prog-span" style={{background:"linear-gradient(180deg,#FFF3EC,#FFE8D8)",border:"1.5px solid var(--ob)",borderRadius:13,padding:"14px 16px",boxShadow:"0 1px 4px rgba(245,99,26,.07)",display:"flex",alignItems:"center",gap:12}}>
-        <ProgressCircle pct={overallProg} size={52} stroke={6}/>
-        <div><div style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:14,color:"var(--orange)"}}>Gesamt</div><div style={{fontSize:11,color:"var(--muted)",marginTop:2}}>{data.cards.length} Karten</div></div>
+      <div className="hb-prog-span" style={{gridColumn:"span 2",background:"var(--grad-sunset)",border:"none",borderRadius:16,padding:"16px 18px",boxShadow:"0 10px 28px rgba(244,63,94,.28),inset 0 1px 0 rgba(255,255,255,.25)",display:"flex",alignItems:"center",gap:14,position:"relative",overflow:"hidden",color:"#fff"}}>
+        <div style={{position:"absolute",inset:0,background:"radial-gradient(120% 120% at 100% 0%,rgba(255,255,255,.3),transparent 50%)",pointerEvents:"none"}}/>
+        <div style={{position:"relative",zIndex:1,display:"flex",alignItems:"center",gap:14,width:"100%"}}>
+          <div style={{width:58,height:58,borderRadius:"50%",background:"rgba(255,255,255,.2)",border:"2px solid rgba(255,255,255,.5)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,backdropFilter:"blur(4px)"}}>
+            <span style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:17,color:"#fff",letterSpacing:"-.3px"}}>{overallProg}%</span>
+          </div>
+          <div style={{flex:1,minWidth:0}}>
+            <div style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:17,color:"#fff",letterSpacing:"-.2px"}}>Gesamt-Fortschritt</div>
+            <div style={{fontSize:12,color:"rgba(255,255,255,.85)",marginTop:3,fontWeight:500}}>{data.cards.length} Karten · {superCards} gemeistert</div>
+          </div>
+          <div style={{fontSize:28,opacity:.9}}>🎯</div>
+        </div>
       </div>
     </div>
     {rootFolders.length>0 && <>
-      <h2 style={{fontFamily:"Outfit,sans-serif",fontWeight:600,fontSize:18,marginBottom:14}}>Lernbereiche</h2>
-      <div className="hb-g-folders" style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(200px,1fr))",gap:12}}>
+      <h2 style={{fontFamily:"Outfit,sans-serif",fontWeight:600,fontSize:20,marginBottom:14,letterSpacing:"-.2px"}}>Lernbereiche</h2>
+      <div className="hb-g-folders" style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(220px,1fr))",gap:14}}>
         {rootFolders.map(f=>{const fs=data.sets.filter(s=>s.folderId===f.id);const fc=data.cards.filter(c=>fs.some(s=>s.id===c.setId));const prog=calcProgress(fc);return(
-          <div key={f.id} className="card-hover" style={{background:"linear-gradient(180deg,#FFF,#F8F5F0)",border:"1.5px solid var(--border)",borderRadius:13,padding:"16px",cursor:"pointer",boxShadow:"0 1px 4px rgba(0,0,0,.04)"}} onClick={()=>onSelectFolder(f.id)}>
-            <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between"}}>
+          <div key={f.id} className="card-hover" style={{background:`linear-gradient(160deg,#FFF,#FBF4ED)`,border:"1.5px solid var(--border)",borderRadius:18,padding:"18px",cursor:"pointer",boxShadow:"0 2px 8px rgba(0,0,0,.04)",position:"relative",overflow:"hidden"}} onClick={()=>onSelectFolder(f.id)}>
+            <div style={{position:"absolute",top:-30,right:-30,width:100,height:100,borderRadius:"50%",background:`radial-gradient(circle,${f.color}33,transparent 70%)`,pointerEvents:"none"}}/>
+            <div style={{position:"relative",display:"flex",alignItems:"flex-start",justifyContent:"space-between"}}>
               <div style={{flex:1,marginRight:8}}>
-                <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:5}}><IFolder c={f.color} s={16}/><div style={{fontFamily:"Outfit,sans-serif",fontWeight:600,fontSize:14}}>{f.name}</div></div>
-                <div style={{fontSize:11,color:"var(--muted)"}}>{fs.length} Sets · {fc.length} Karten</div>
+                <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}>
+                  <span style={{display:"inline-flex",width:22,height:22,borderRadius:7,background:f.color,boxShadow:`0 3px 8px ${f.color}66`}}/>
+                  <div style={{fontFamily:"Outfit,sans-serif",fontWeight:600,fontSize:15,letterSpacing:"-.2px"}}>{f.name}</div>
+                </div>
+                <div style={{fontSize:12,color:"var(--muted)"}}>{fs.length} Sets · {fc.length} Karten</div>
               </div>
               <ProgressCircle pct={prog} size={44} stroke={4}/>
             </div>
@@ -794,19 +934,30 @@ function HomeView({userName,data,onSelectFolder}){
         );})}
       </div>
     </>}
-    {data.folders.length===0 && <EmptyState icon="✦" title="Willkommen bei Heribert" sub="Erstelle deinen ersten Lernbereich oder importiere aus Vaia." btnLabel={null} onBtn={null}/>}
+    {data.folders.length===0 && <EmptyState icon="✦" title="Willkommen bei Heribert" sub="Erstelle deinen ersten Lernbereich, um loszulegen." btnLabel={null} onBtn={null}/>}
   </div>);
 }
 
 function StudyConfigModal({config,onStart,onClose}) {
-  const [mode,setMode]=useState("flash"); const total=config.cards.length; const [count,setCount]=useState(total);
+  const [mode,setMode]=useState("flash");
+  const total=config.cards.length;
+  const [count,setCount]=useState(suggestedCount(total));
+  const isFolder = !!config.isFolder;
   return (<div className="overlay" onClick={onClose}><div className="modal si" style={{maxWidth:480,padding:32}} onClick={e=>e.stopPropagation()}>
     <h3 style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:22,marginBottom:6}}>Lernen einrichten</h3>
-    <p style={{color:"var(--muted)",fontSize:14,marginBottom:24}}>{total} Karten verf\u00fcgbar</p>
+    <p style={{color:"var(--muted)",fontSize:14,marginBottom:20}}>
+      {isFolder ? <><b style={{color:"var(--text)"}}>{config.sourceName}</b> · </> : null}
+      {total} Karten verfügbar
+    </p>
+    {isFolder && total > 30 && (
+      <div style={{fontSize:12,color:"var(--violet)",background:"linear-gradient(160deg,#F5F3FF,#EDE9FE)",border:"1px solid #C4B5FD",borderRadius:10,padding:"9px 12px",marginBottom:20,lineHeight:1.5}}>
+        <b>✨ Smart-Mix:</b> Wir wählen automatisch {count} Karten — Schwierige & neue zuerst, gemeisterte seltener. So arbeitest du dich Session für Session durch.
+      </div>
+    )}
     <div style={{fontSize:13,fontWeight:600,color:"var(--muted)",marginBottom:10,textTransform:"uppercase",letterSpacing:".06em"}}>Modus</div>
-    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:24}}>
+    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:22}}>
       {[{id:"flash",icon:"\ud83c\udccf",label:"Karteikarten",sub:"Selbst bewerten"},{id:"mcq",icon:"\ud83d\udcdd",label:"Multiple Choice",sub:"KI-Antwortoptionen"}].map(m=>(
-        <button key={m.id} onClick={()=>setMode(m.id)} style={{padding:"14px",border:`2px solid ${mode===m.id?"var(--orange)":"var(--border)"}`,borderRadius:12,background:mode===m.id?"linear-gradient(160deg,#FFF3EC,#FFE8D8)":"linear-gradient(160deg,#FFF,#FDFCFA)",cursor:"pointer",textAlign:"left",fontFamily:"inherit",transition:"all .15s"}}>
+        <button key={m.id} onClick={()=>setMode(m.id)} style={{padding:"14px",border:`2px solid ${mode===m.id?"var(--orange)":"var(--border)"}`,borderRadius:14,background:mode===m.id?"linear-gradient(160deg,#FFF3EC,#FFE0E4)":"linear-gradient(160deg,#FFF,#FDFCFA)",cursor:"pointer",textAlign:"left",fontFamily:"inherit",transition:"all .15s"}}>
           <div style={{fontSize:22,marginBottom:6}}>{m.icon}</div>
           <div style={{fontWeight:600,fontSize:14,color:mode===m.id?"var(--orange)":"var(--text)",marginBottom:2}}>{m.label}</div>
           <div style={{fontSize:12,color:"var(--muted)"}}>{m.sub}</div>
@@ -819,7 +970,7 @@ function StudyConfigModal({config,onStart,onClose}) {
       <div style={{flex:1,textAlign:"center",fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:22}}>{count} / {total}</div>
       <button className="btn-g" style={{padding:"6px 16px",fontSize:16}} onClick={()=>setCount(p=>Math.min(total,p+5))}>+</button>
     </div>
-    <button className="btn-o" style={{width:"100%",justifyContent:"center",padding:"12px",fontSize:15,fontWeight:600}} onClick={()=>onStart({setId:config.cards[0]?.setId,mode,count})}>Lernen starten →</button>
+    <button className="btn-o" style={{width:"100%",justifyContent:"center",padding:"12px",fontSize:15,fontWeight:600}} onClick={()=>onStart({mode,count})}>Lernen starten →</button>
   </div></div>);
 }
 
@@ -827,13 +978,13 @@ function FlashMode({set,cards,onExit,onRate,readOnly}) {
   const [idx,setIdx]=useState(0); const [flipped,setFlipped]=useState(false); const [ratings,setRatings]=useState([]); const [done,setDone]=useState(false);
   const card=cards[idx];
   const rate=r=>{if(!readOnly&&onRate)onRate(card.id,r);const nr=[...ratings,r];setRatings(nr);if(idx+1>=cards.length){setDone(true);return;}setTimeout(()=>{setFlipped(false);setIdx(p=>p+1);},200);};
-  if(done){const dist=RATINGS.map((r,i)=>({...r,count:ratings.filter(x=>x===i).length}));return(<div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:"linear-gradient(160deg,#FFF8F4,#F8F7F4)",padding:20}}><div className="au" style={{textAlign:"center",maxWidth:480}}><div style={{fontSize:56,marginBottom:16}}>{dist[3].count>cards.length/2?"\ud83c\udfc6":"\ud83d\udcaa"}</div><h2 style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:28,marginBottom:24}}>Session abgeschlossen!</h2><div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10,marginBottom:32}}>{dist.map(r=><div key={r.label} style={{background:"linear-gradient(160deg,#FFF,#FDFCFA)",border:"1.5px solid var(--border)",borderRadius:12,padding:"14px 8px",textAlign:"center"}}><div style={{fontSize:24,marginBottom:4}}>{r.emoji}</div><div style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:22,color:r.c}}>{r.count}</div><div style={{fontSize:11,color:"var(--muted)"}}>{r.label}</div></div>)}</div><div style={{display:"flex",gap:10,justifyContent:"center"}}><button className="btn-g" onClick={()=>{setIdx(0);setFlipped(false);setRatings([]);setDone(false);}}>Nochmal</button><button className="btn-o" onClick={onExit}>Zurück</button></div></div></div>);}
-  return(<div style={{minHeight:"100vh",background:"linear-gradient(160deg,#FFF8F4,#F8F7F4)",padding:"40px 20px",display:"flex",flexDirection:"column",alignItems:"center"}}>
+  if(done){const dist=RATINGS.map((r,i)=>({...r,count:ratings.filter(x=>x===i).length}));return(<div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:"var(--grad-bg)",padding:20}}><div className="au" style={{textAlign:"center",maxWidth:480}}><div style={{fontSize:56,marginBottom:16}}>{dist[3].count>cards.length/2?"\ud83c\udfc6":"\ud83d\udcaa"}</div><h2 style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:28,marginBottom:24}}>Session abgeschlossen!</h2><div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10,marginBottom:32}}>{dist.map(r=><div key={r.label} style={{background:"linear-gradient(160deg,#FFF,#FDFCFA)",border:"1.5px solid var(--border)",borderRadius:12,padding:"14px 8px",textAlign:"center"}}><div style={{fontSize:24,marginBottom:4}}>{r.emoji}</div><div style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:22,color:r.c}}>{r.count}</div><div style={{fontSize:11,color:"var(--muted)"}}>{r.label}</div></div>)}</div><div style={{display:"flex",gap:10,justifyContent:"center"}}><button className="btn-g" onClick={()=>{setIdx(0);setFlipped(false);setRatings([]);setDone(false);}}>Nochmal</button><button className="btn-o" onClick={onExit}>Zurück</button></div></div></div>);}
+  return(<div style={{minHeight:"100vh",background:"var(--grad-bg)",padding:"40px 20px",display:"flex",flexDirection:"column",alignItems:"center"}}>
     <div style={{width:"100%",maxWidth:640,marginBottom:28}}><div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}><button onClick={onExit} style={{display:"flex",alignItems:"center",gap:6,border:"none",background:"none",color:"var(--muted)",fontSize:14,cursor:"pointer",padding:0,fontFamily:"inherit"}}><IBack/> {set?.name}</button><span style={{fontSize:14,fontWeight:600,color:"var(--muted)"}}>{idx+1} / {cards.length}</span></div><div className="prog-track"><div className="prog-fill" style={{width:`${(idx/cards.length)*100}%`}}/></div></div>
     <div className="flip-wrap" style={{width:"100%",maxWidth:640,marginBottom:24}} onClick={()=>setFlipped(p=>!p)}>
       <div className={`flip-inner${flipped?" flipped":""}`} style={{height:280}}>
         <div className="flip-f" style={{position:"absolute",inset:0,background:"linear-gradient(160deg,#FFF,#FDFCFA)",border:"2px solid var(--border)",display:"flex",flexDirection:"column",justifyContent:"center",alignItems:"center",padding:32}}><div style={{fontSize:11,fontWeight:600,color:"var(--muted)",textTransform:"uppercase",letterSpacing:".08em",marginBottom:16}}>Frage</div><div style={{fontSize:18,lineHeight:1.6,textAlign:"center"}} dangerouslySetInnerHTML={{__html:card?.questionHtml||""}}/></div>
-        <div className="flip-b" style={{position:"absolute",inset:0,background:"linear-gradient(160deg,#FFF3EC,#FFF8F4)",border:"2px solid var(--ob)",display:"flex",flexDirection:"column",justifyContent:"center",alignItems:"center",padding:32}}><div style={{fontSize:11,fontWeight:600,color:"var(--orange)",textTransform:"uppercase",letterSpacing:".08em",marginBottom:16}}>Antwort</div><div style={{fontSize:17,lineHeight:1.7,textAlign:"center"}} dangerouslySetInnerHTML={{__html:card?.answerHtml||""}}/></div>
+        <div className="flip-b" style={{position:"absolute",inset:0,background:"var(--tint-orange)",border:"2px solid var(--ob)",display:"flex",flexDirection:"column",justifyContent:"center",alignItems:"center",padding:32}}><div style={{fontSize:11,fontWeight:600,color:"var(--rose)",textTransform:"uppercase",letterSpacing:".08em",marginBottom:16}}>Antwort</div><div style={{fontSize:17,lineHeight:1.7,textAlign:"center",color:"var(--text)"}} dangerouslySetInnerHTML={{__html:card?.answerHtml||""}}/></div>
       </div>
     </div>
     {!flipped?<button className="btn-o" onClick={()=>setFlipped(true)}>Antwort zeigen</button>:<div className="au" style={{width:"100%",maxWidth:640}}><div style={{fontSize:13,fontWeight:500,color:"var(--muted)",textAlign:"center",marginBottom:12}}>Wie gut kennst du das?</div><div style={{display:"flex",gap:10}}>{RATINGS.map((r,i)=><button key={r.label} onClick={()=>rate(i)} style={{flex:1,padding:"12px 6px",border:"2px solid var(--border)",borderRadius:12,background:"linear-gradient(160deg,#FFF,#FDFCFA)",cursor:"pointer",fontSize:22,display:"flex",flexDirection:"column",alignItems:"center",gap:4,transition:"all .15s",fontFamily:"inherit"}} onMouseEnter={e=>{e.currentTarget.style.borderColor=r.c;e.currentTarget.style.background=`${r.c}18`;e.currentTarget.style.transform="translateY(-3px)";}} onMouseLeave={e=>{e.currentTarget.style.borderColor="var(--border)";e.currentTarget.style.background="linear-gradient(160deg,#FFF,#FDFCFA)";e.currentTarget.style.transform="translateY(0)";}}>
@@ -850,9 +1001,9 @@ function MCQMode({set,cards,onExit,onRate,onCacheMCQ,readOnly}) {
   useEffect(()=>{if(optsMap[card?.id]){const correct=strip(card.answerHtml)||"Richtige Antwort";const all=[...optsMap[card.id].map(w=>({text:w,ok:false})),{text:correct,ok:true}];for(let i=all.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[all[i],all[j]]=[all[j],all[i]];}setShuffledOpts(all);setPicked(null);}},[idx,optsMap]);
   const pick=(opt,i)=>{if(picked!==null)return;setPicked(i);if(!readOnly&&onRate)onRate(card.id,opt.ok?2:0);if(opt.ok)setScore(p=>p+1);};
   const next=()=>{if(idx+1>=cards.length){setDone(true);return;}setIdx(p=>p+1);};
-  if(loadingMCQ)return(<div style={{minHeight:"100vh",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",background:"linear-gradient(160deg,#FFF8F4,#F8F7F4)",gap:16}}><ISpin/><div style={{color:"var(--muted)",fontSize:14}}>KI generiert Antwortoptionen…</div></div>);
-  if(done){const pct=Math.round((score/cards.length)*100);return(<div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:"linear-gradient(160deg,#FFF8F4,#F8F7F4)",padding:20}}><div className="au" style={{textAlign:"center",maxWidth:440}}><div style={{fontSize:56,marginBottom:16}}>{pct>=80?"\ud83c\udfc6":pct>=50?"\ud83d\udcc8":"\ud83d\udcaa"}</div><h2 style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:28,marginBottom:8}}>Ergebnis</h2><div style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:52,background:pct>=80?"linear-gradient(135deg,#22C55E,#16A34A)":"var(--grad)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",marginBottom:6}}>{pct}%</div><div style={{color:"var(--muted)",marginBottom:32}}>{score} von {cards.length} richtig</div><div style={{display:"flex",gap:10,justifyContent:"center"}}><button className="btn-g" onClick={()=>{setIdx(0);setScore(0);setDone(false);}}>Nochmal</button><button className="btn-o" onClick={onExit}>Zurück</button></div></div></div>);}
-  return(<div style={{minHeight:"100vh",background:"linear-gradient(160deg,#FFF8F4,#F8F7F4)",padding:"40px 20px",display:"flex",flexDirection:"column",alignItems:"center"}}>
+  if(loadingMCQ)return(<div style={{minHeight:"100vh",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",background:"var(--grad-bg)",gap:16}}><ISpin/><div style={{color:"var(--muted)",fontSize:14}}>KI generiert Antwortoptionen…</div></div>);
+  if(done){const pct=Math.round((score/cards.length)*100);return(<div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:"var(--grad-bg)",padding:20}}><div className="au" style={{textAlign:"center",maxWidth:440}}><div style={{fontSize:56,marginBottom:16}}>{pct>=80?"\ud83c\udfc6":pct>=50?"\ud83d\udcc8":"\ud83d\udcaa"}</div><h2 style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:28,marginBottom:8}}>Ergebnis</h2><div style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:52,background:pct>=80?"linear-gradient(135deg,#22C55E,#16A34A)":"var(--grad)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",marginBottom:6}}>{pct}%</div><div style={{color:"var(--muted)",marginBottom:32}}>{score} von {cards.length} richtig</div><div style={{display:"flex",gap:10,justifyContent:"center"}}><button className="btn-g" onClick={()=>{setIdx(0);setScore(0);setDone(false);}}>Nochmal</button><button className="btn-o" onClick={onExit}>Zurück</button></div></div></div>);}
+  return(<div style={{minHeight:"100vh",background:"var(--grad-bg)",padding:"40px 20px",display:"flex",flexDirection:"column",alignItems:"center"}}>
     <div style={{width:"100%",maxWidth:640,marginBottom:28}}><div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}><button onClick={onExit} style={{display:"flex",alignItems:"center",gap:6,border:"none",background:"none",color:"var(--muted)",fontSize:14,cursor:"pointer",padding:0,fontFamily:"inherit"}}><IBack/> {set?.name}</button><span style={{fontSize:14,fontWeight:600,color:"var(--muted)"}}>{idx+1} / {cards.length} · {score} ✓</span></div><div className="prog-track"><div className="prog-fill" style={{width:`${(idx/cards.length)*100}%`}}/></div></div>
     <div style={{width:"100%",maxWidth:640,background:"linear-gradient(160deg,#FFF,#FDFCFA)",border:"2px solid var(--border)",borderRadius:18,padding:28,marginBottom:16}}><div style={{fontSize:11,fontWeight:600,color:"var(--muted)",textTransform:"uppercase",letterSpacing:".08em",marginBottom:12}}>Frage {idx+1}</div><div style={{fontSize:18,lineHeight:1.6}} dangerouslySetInnerHTML={{__html:card?.questionHtml||""}}/></div>
     <div style={{width:"100%",maxWidth:640,display:"flex",flexDirection:"column",gap:10}}>
@@ -944,84 +1095,113 @@ function SimpleModal({title,onClose,children}) {
   </div></div>);
 }
 
-function ShareModal({set,ownerEmail,onClose}) {
-  const [shares,setShares]=useState([]);
+function FolderShareModal({folder,folderSets,ownerEmail,ownerId,onClose}) {
+  // A folder is "shared with email E" if any set in the folder has a
+  // set_shares row for E. We aggregate across all sets in the folder so the
+  // user can manage sharing at the folder level.
+  const [rows,setRows]=useState([]);          // raw set_shares rows from DB
   const [email,setEmail]=useState("");
   const [err,setErr]=useState("");
   const [ok,setOk]=useState("");
   const [loading,setLoading]=useState(true);
   const [busy,setBusy]=useState(false);
 
+  const setIds = folderSets.map(s=>s.id);
+
   const load = async () => {
     setLoading(true);
-    const {data, error} = await sb.from("set_shares").select("*").eq("set_id", set.id).order("created_at",{ascending:false});
-    if (!error) setShares(data||[]);
+    if (setIds.length === 0) { setRows([]); setLoading(false); return; }
+    const {data, error} = await sb.from("set_shares").select("*").in("set_id", setIds).order("created_at",{ascending:false});
+    if (!error) setRows(data||[]);
     setLoading(false);
   };
-  useEffect(()=>{ if(set) load(); }, [set?.id]);
+  useEffect(()=>{ if(folder) load(); }, [folder?.id, folderSets.length]);
+
+  // Group rows by invited_email → one entry per person
+  const grouped = (() => {
+    const m = new Map();
+    for (const r of rows) {
+      const key = (r.invited_email||"").toLowerCase();
+      if (!m.has(key)) m.set(key, {email:r.invited_email, createdAt:r.created_at, coverage:0, rowIds:[]});
+      const e = m.get(key);
+      e.coverage += 1;
+      e.rowIds.push(r.id);
+      if (new Date(r.created_at) < new Date(e.createdAt)) e.createdAt = r.created_at;
+    }
+    return Array.from(m.values());
+  })();
 
   const addShare = async () => {
     setErr(""); setOk("");
     const e = email.trim().toLowerCase();
     if (!e || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)) { setErr("Bitte gültige E-Mail-Adresse eingeben."); return; }
     if (e === (ownerEmail||"").toLowerCase()) { setErr("Du kannst dich nicht selbst einladen."); return; }
-    if (shares.some(s => (s.invited_email||"").toLowerCase() === e)) { setErr("Diese E-Mail wurde bereits eingeladen."); return; }
+    if (grouped.some(g => (g.email||"").toLowerCase() === e && g.coverage === setIds.length)) { setErr("Diese E-Mail hat bereits Zugriff auf den gesamten Ordner."); return; }
+    if (setIds.length === 0) { setErr("Dieser Ordner hat noch keine Sets zum Teilen."); return; }
     setBusy(true);
-    const {error} = await sb.from("set_shares").insert({set_id:set.id, invited_email:e, owner_email:ownerEmail});
+    // Add share for every set in the folder that doesn't already have one for this email
+    const existingSetIds = new Set(rows.filter(r => (r.invited_email||"").toLowerCase()===e).map(r=>r.set_id));
+    const toInsert = setIds.filter(sid => !existingSetIds.has(sid)).map(sid => ({set_id:sid, invited_email:e, owner_email:ownerEmail, owner_id:ownerId}));
+    if (toInsert.length === 0) { setBusy(false); setErr("Diese E-Mail hat bereits Zugriff."); return; }
+    const {error} = await sb.from("set_shares").insert(toInsert);
     setBusy(false);
     if (error) { setErr(error.message); return; }
-    setEmail(""); setOk(`✓ ${e} hat jetzt Zugriff.`);
+    setEmail(""); setOk(`✓ ${e} hat jetzt Zugriff auf „${folder.name}" (${setIds.length} Set${setIds.length===1?"":"s"}).`);
     load();
   };
 
-  const removeShare = async (id) => {
-    if (!confirm("Zugriff für diese Person entfernen?")) return;
-    await sb.from("set_shares").delete().eq("id", id);
+  const removeShare = async (invitedEmail) => {
+    if (!confirm(`Zugriff für ${invitedEmail} auf „${folder.name}" entfernen?`)) return;
+    const ids = rows.filter(r => (r.invited_email||"").toLowerCase() === invitedEmail.toLowerCase()).map(r=>r.id);
+    if (ids.length === 0) return;
+    await sb.from("set_shares").delete().in("id", ids);
     load();
   };
 
-  if (!set) return null;
+  if (!folder) return null;
   return (<div className="overlay" onClick={onClose}><div className="modal si" style={{maxWidth:480,padding:0}} onClick={e=>e.stopPropagation()}>
-    <div style={{padding:"22px 26px 14px",borderBottom:"1px solid var(--border)",background:"linear-gradient(160deg,#FFF8F4,#FFF)"}}>
-      <h3 style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:19,marginBottom:2}}>Set teilen</h3>
-      <div style={{fontSize:13,color:"var(--muted)"}}>„{set.name}" — nur eingeladene Personen haben Zugriff</div>
+    <div style={{padding:"22px 26px 14px",borderBottom:"1px solid var(--border)",background:"linear-gradient(160deg,#FFF3EC,#FFE0E4)"}}>
+      <h3 style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:19,marginBottom:2,display:"flex",alignItems:"center",gap:8}}><span style={{display:"inline-flex",width:20,height:20,borderRadius:6,background:folder.color,boxShadow:`0 2px 6px ${folder.color}55`}}/> Ordner teilen</h3>
+      <div style={{fontSize:13,color:"var(--muted)"}}>„{folder.name}" · {setIds.length} Set{setIds.length===1?"":"s"} — eingeladene Personen sehen alle Sets in diesem Ordner</div>
     </div>
     <div style={{padding:"18px 26px 22px"}}>
       <label style={{display:"block",fontSize:13,fontWeight:500,color:"var(--muted)",marginBottom:6}}>Person per E-Mail einladen</label>
       <div style={{display:"flex",gap:8,marginBottom:10}}>
         <input type="email" placeholder="name@beispiel.de" value={email} onChange={e=>setEmail(e.target.value)} onKeyDown={e=>e.key==="Enter"&&addShare()}
-          style={{flex:1,padding:"10px 14px",border:"1.5px solid var(--border)",borderRadius:9,fontSize:14,background:"white",outline:"none",fontFamily:"inherit"}}
+          style={{flex:1,padding:"10px 14px",border:"1.5px solid var(--border)",borderRadius:11,fontSize:14,background:"white",outline:"none",fontFamily:"inherit"}}
           onFocus={e=>e.target.style.borderColor="var(--orange)"} onBlur={e=>e.target.style.borderColor="var(--border)"}/>
-        <button className="btn-o" onClick={addShare} disabled={busy||!email.trim()}>{busy?<ISpin c="#fff" s={16}/>:"Einladen"}</button>
+        <button className="btn-o" onClick={addShare} disabled={busy||!email.trim()||setIds.length===0}>{busy?<ISpin c="#fff" s={16}/>:"Einladen"}</button>
       </div>
-      {err && <div style={{color:"var(--red)",fontSize:13,marginBottom:10,padding:"8px 12px",background:"var(--rl)",borderRadius:7}}>{err}</div>}
-      {ok && <div style={{color:"var(--green)",fontSize:13,marginBottom:10,padding:"8px 12px",background:"var(--gl)",borderRadius:7}}>{ok}</div>}
+      {err && <div style={{color:"var(--red)",fontSize:13,marginBottom:10,padding:"8px 12px",background:"var(--rl)",borderRadius:8}}>{err}</div>}
+      {ok && <div style={{color:"var(--green)",fontSize:13,marginBottom:10,padding:"8px 12px",background:"var(--gl)",borderRadius:8}}>{ok}</div>}
 
       <div style={{fontSize:12,fontWeight:600,color:"var(--muted2)",textTransform:"uppercase",letterSpacing:".06em",marginTop:18,marginBottom:8}}>Zugriff haben</div>
       {loading ? <div style={{display:"flex",alignItems:"center",gap:8,padding:"10px 0",color:"var(--muted2)",fontSize:13}}><ISpin c="var(--muted2)" s={14}/> Lädt…</div>
         : <div style={{display:"flex",flexDirection:"column",gap:6}}>
-          <div style={{display:"flex",alignItems:"center",gap:10,padding:"10px 12px",background:"linear-gradient(160deg,#FFF8F4,#FFF3EC)",border:"1px solid var(--ob)",borderRadius:9}}>
+          <div style={{display:"flex",alignItems:"center",gap:10,padding:"10px 12px",background:"linear-gradient(160deg,#FFF3EC,#FFE0E4)",border:"1px solid var(--ob)",borderRadius:11}}>
             <div style={{width:28,height:28,borderRadius:"50%",background:"var(--grad)",display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontWeight:700,fontSize:12,flexShrink:0}}>{(ownerEmail||"?").charAt(0).toUpperCase()}</div>
             <div style={{flex:1,overflow:"hidden"}}>
               <div style={{fontSize:13,fontWeight:600,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{ownerEmail}</div>
               <div style={{fontSize:11,color:"var(--orange)",fontWeight:600}}>Besitzer · Du</div>
             </div>
           </div>
-          {shares.length===0 ? <div style={{fontSize:13,color:"var(--muted2)",padding:"8px 2px"}}>Noch niemand eingeladen.</div>
-            : shares.map(s => (
-              <div key={s.id} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 12px",background:"linear-gradient(160deg,#FFF,#FDFCFA)",border:"1px solid var(--border)",borderRadius:9}}>
-                <div style={{width:28,height:28,borderRadius:"50%",background:"linear-gradient(135deg,#8B5CF6,#A78BFA)",display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontWeight:700,fontSize:12,flexShrink:0}}>{(s.invited_email||"?").charAt(0).toUpperCase()}</div>
+          {grouped.length===0 ? <div style={{fontSize:13,color:"var(--muted2)",padding:"8px 2px"}}>Noch niemand eingeladen.</div>
+            : grouped.map(g => {
+              const partial = g.coverage < setIds.length;
+              return (
+              <div key={g.email} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 12px",background:"linear-gradient(160deg,#FFF,#FDFCFA)",border:"1px solid var(--border)",borderRadius:11}}>
+                <div style={{width:28,height:28,borderRadius:"50%",background:"linear-gradient(135deg,#8B5CF6,#EC4899)",display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontWeight:700,fontSize:12,flexShrink:0}}>{(g.email||"?").charAt(0).toUpperCase()}</div>
                 <div style={{flex:1,overflow:"hidden"}}>
-                  <div style={{fontSize:13,fontWeight:500,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{s.invited_email}</div>
-                  <div style={{fontSize:11,color:"var(--muted2)"}}>Eingeladen {new Date(s.created_at).toLocaleDateString("de-DE")}</div>
+                  <div style={{fontSize:13,fontWeight:500,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{g.email}</div>
+                  <div style={{fontSize:11,color:partial?"var(--amber)":"var(--muted2)"}}>{partial ? `Nur ${g.coverage}/${setIds.length} Sets · ungewöhnlich` : `Eingeladen ${new Date(g.createdAt).toLocaleDateString("de-DE")}`}</div>
                 </div>
-                <button onClick={()=>removeShare(s.id)} className="icon-btn" title="Zugriff entfernen"><ITrash/></button>
-              </div>
-            ))}
+                <button onClick={()=>removeShare(g.email)} className="icon-btn" title="Zugriff entfernen"><ITrash/></button>
+              </div>);
+            })}
         </div>}
 
-      <div style={{fontSize:11,color:"var(--muted2)",lineHeight:1.6,marginTop:16,padding:"10px 12px",background:"#F8F6F3",borderRadius:8}}>
-        💡 Eingeladene Personen müssen sich mit derselben E-Mail-Adresse in Heribert registrieren/anmelden. Das Set erscheint dann bei ihnen unter „Geteilt mit mir". Nur lesen & lernen, kein Bearbeiten.
+      <div style={{fontSize:11,color:"var(--muted2)",lineHeight:1.6,marginTop:16,padding:"10px 12px",background:"linear-gradient(160deg,#F8F6F3,#F0ECE4)",borderRadius:10}}>
+        💡 Eingeladene Personen müssen sich mit derselben E-Mail-Adresse in Heribert registrieren/anmelden. Der Ordner erscheint dann bei ihnen unter „Geteilt mit mir". Nur lesen & lernen, kein Bearbeiten. Neue Sets, die du später in diesem Ordner erstellst, werden automatisch mitgeteilt.
       </div>
     </div>
   </div></div>);
