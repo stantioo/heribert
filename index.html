@@ -58,13 +58,10 @@ const CSS = `
   /* Shared indicator (warm beige/sienna - distinct but still warm) */
   --shared-bg:linear-gradient(160deg,rgba(255,248,232,.85),rgba(253,228,192,.9));
   --shared-border:#E8CC8E;--shared-fg:#92400E;
-  /* App background with warm orbs (visible through glass) */
+  /* App background — single subtle warm wash from below */
   --grad-bg:
-    radial-gradient(ellipse 55% 45% at 12% 10%,rgba(245,99,26,.24),transparent 55%),
-    radial-gradient(ellipse 45% 40% at 92% 22%,rgba(244,63,94,.20),transparent 55%),
-    radial-gradient(ellipse 65% 55% at 50% 100%,rgba(245,158,11,.20),transparent 55%),
-    radial-gradient(ellipse 40% 35% at 80% 85%,rgba(220,38,38,.14),transparent 55%),
-    linear-gradient(160deg,#FFF8F0 0%,#FFF1E5 45%,#FFE9DC 100%);
+    radial-gradient(ellipse 95% 55% at 50% 118%,rgba(245,99,26,.14),transparent 62%),
+    linear-gradient(180deg,#FFFBF4 0%,#FFF6EB 70%,#FFF1E1 100%);
   /* Glass tokens */
   --glass:rgba(255,255,255,.58);
   --glass-s:rgba(255,255,255,.75);
@@ -74,9 +71,9 @@ const CSS = `
   --sh-md:0 10px 32px rgba(245,99,26,.14),0 3px 10px rgba(24,23,15,.06);
   --sh-lg:0 18px 48px rgba(244,63,94,.18),0 5px 16px rgba(24,23,15,.07);
   --sh-hero:0 22px 60px rgba(244,63,94,.30),0 6px 22px rgba(245,99,26,.18);
-  /* Sizes */
+  /* Sizes — larger radii for squircle feel */
   --sw:272px;
-  --r-xl:28px;--r-lg:22px;--r-md:18px;--r-sm:12px;
+  --r-hero:34px;--r-xl:30px;--r-lg:26px;--r-md:22px;--r-sm:14px;
   --safe-b:env(safe-area-inset-bottom,0px);
 }
 html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;}
@@ -127,14 +124,15 @@ html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;background:var(
 .inline-edit{border:none;background:transparent;font:inherit;color:inherit;padding:0 4px;outline:none;border-radius:4px;}
 .inline-edit:focus{background:var(--ol);}
 
-/* Stat tile — glass morphism */
-.hb-stat{display:flex;align-items:center;gap:14px;padding:15px 17px;border-radius:var(--r-md);background:rgba(255,255,255,.55);backdrop-filter:blur(22px) saturate(140%);-webkit-backdrop-filter:blur(22px) saturate(140%);border:1.5px solid rgba(255,255,255,.7);box-shadow:var(--sh-sm),inset 0 1px 0 rgba(255,255,255,.9);transition:all .25s cubic-bezier(.4,0,.2,1);position:relative;overflow:hidden;}
+/* Stat tile — glass with directional gradient (set inline per-color) */
+.hb-stat{display:flex;align-items:center;gap:14px;padding:16px 18px;border-radius:var(--r-md);backdrop-filter:blur(22px) saturate(140%);-webkit-backdrop-filter:blur(22px) saturate(140%);box-shadow:var(--sh-sm),inset 0 1px 0 rgba(255,255,255,.9);transition:all .25s cubic-bezier(.4,0,.2,1);position:relative;overflow:hidden;isolation:isolate;}
 .hb-stat:hover{transform:translateY(-2px);box-shadow:var(--sh-md),inset 0 1px 0 rgba(255,255,255,.95);}
-.hb-stat-glow{position:absolute;top:-22px;right:-22px;width:95px;height:95px;border-radius:50%;filter:blur(22px);opacity:.5;pointer-events:none;}
-.hb-stat-text{flex:1;min-width:0;position:relative;z-index:1;}
+.hb-stat-text{flex:1;min-width:0;}
 .hb-stat-val{font-family:'Outfit',sans-serif;font-weight:700;font-size:26px;line-height:1;letter-spacing:-.4px;}
 .hb-stat-label{font-size:12px;color:var(--muted);margin-top:5px;font-weight:500;}
-.hb-stat-emoji{font-size:30px;flex-shrink:0;line-height:1;filter:drop-shadow(0 3px 6px rgba(245,99,26,.22));position:relative;z-index:1;}
+.hb-stat-emoji{font-size:30px;flex-shrink:0;line-height:1;filter:drop-shadow(0 3px 6px rgba(245,99,26,.25));}
+/* Glass card base with isolation to contain internal gradients */
+.glass-card{backdrop-filter:blur(22px) saturate(140%);-webkit-backdrop-filter:blur(22px) saturate(140%);box-shadow:var(--sh-sm),inset 0 1px 0 rgba(255,255,255,.9);position:relative;overflow:hidden;isolation:isolate;}
 
 @keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
 @keyframes scaleIn{from{opacity:0;transform:scale(.95);}to{opacity:1;transform:scale(1);}}
@@ -860,7 +858,7 @@ function SetCard({set,cardCount,progress,onClick,onLearn,onDelete,onRename}){
   const commit=()=>{setEditing(false);if(name.trim()&&name.trim()!==set.name)onRename(name.trim());};
   useEffect(()=>{if(editing)ref.current?.focus();},[editing]);
   const readOnly = set.isSharedWithMe;
-  return (<div className="card-hover" style={{background:readOnly?"rgba(255,248,232,.75)":"rgba(255,255,255,.6)",backdropFilter:"blur(22px) saturate(140%)",WebkitBackdropFilter:"blur(22px) saturate(140%)",border:readOnly?"1.5px solid var(--shared-border)":"1.5px solid rgba(255,255,255,.72)",borderRadius:"var(--r-md)",padding:"18px 18px 14px",cursor:"pointer",boxShadow:"var(--sh-sm),inset 0 1px 0 rgba(255,255,255,.9)"}} onClick={editing?undefined:onClick}>
+  return (<div className="card-hover glass-card" style={{background:readOnly?"radial-gradient(ellipse 120% 90% at 100% 115%,rgba(194,65,12,.18) 0%,rgba(194,65,12,.06) 40%,transparent 65%),rgba(255,251,240,.7)":"radial-gradient(ellipse 120% 90% at 100% 115%,rgba(245,99,26,.20) 0%,rgba(245,99,26,.06) 40%,transparent 65%),rgba(255,255,255,.62)",border:readOnly?"1px solid rgba(194,65,12,.22)":"1px solid rgba(245,99,26,.16)",borderRadius:"var(--r-md)",padding:"18px 18px 14px",cursor:"pointer"}} onClick={editing?undefined:onClick}>
     <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",marginBottom:14}}>
       <div style={{flex:1,marginRight:10,paddingTop:2}}>
         {editing && !readOnly ? <input className="inline-edit" ref={ref} value={name} onChange={e=>setName(e.target.value)} onBlur={commit} onKeyDown={e=>{if(e.key==="Enter")commit();if(e.key==="Escape")setEditing(false);}} onClick={e=>e.stopPropagation()} style={{fontSize:15,fontWeight:600,width:"100%"}}/>
@@ -881,7 +879,7 @@ function SetCard({set,cardCount,progress,onClick,onLearn,onDelete,onRename}){
 
 function CardRow({card,onEdit,onDelete,readOnly}) {
   const [open,setOpen]=useState(false); const ri=card.lastRating!=null?RATINGS[card.lastRating]:null;
-  return (<div style={{background:"rgba(255,255,255,.55)",backdropFilter:"blur(18px) saturate(140%)",WebkitBackdropFilter:"blur(18px) saturate(140%)",border:"1.5px solid rgba(255,255,255,.7)",borderRadius:14,overflow:"hidden",boxShadow:"0 2px 10px rgba(245,99,26,.06),inset 0 1px 0 rgba(255,255,255,.85)"}}>
+  return (<div style={{background:"rgba(255,255,255,.55)",backdropFilter:"blur(18px) saturate(140%)",WebkitBackdropFilter:"blur(18px) saturate(140%)",border:"1px solid rgba(245,99,26,.12)",borderRadius:"var(--r-md)",overflow:"hidden",boxShadow:"0 2px 10px rgba(245,99,26,.06),inset 0 1px 0 rgba(255,255,255,.85)"}}>
     <div style={{display:"flex",alignItems:"center",gap:12,padding:"14px 16px",cursor:"pointer"}} onClick={()=>setOpen(p=>!p)}>
       <div style={{flex:1,overflow:"hidden",fontSize:14,fontWeight:500,whiteSpace:"nowrap",textOverflow:"ellipsis"}} dangerouslySetInnerHTML={{__html:card.questionHtml||"<em style='color:var(--muted2)'>Keine Frage</em>"}}/>
       <div style={{display:"flex",alignItems:"center",gap:8,flexShrink:0}}>
@@ -901,11 +899,12 @@ function CardRow({card,onEdit,onDelete,readOnly}) {
 function HomeView({userName,data,onSelectFolder}){
   const overallProg=calcProgress(data.cards); const superCards=data.cards.filter(c=>c.lastRating===3).length;
   const rootFolders=data.folders.filter(f=>!f.parentId);
+  // Each tile gets a clear-center + strong bottom-right glow + soft side + near-none top
   const stats = [
-    {label:"Lernbereiche",val:data.folders.length,icon:"📁",c:"#F5631A",glow:"rgba(245,99,26,.55)"},
-    {label:"Sets",         val:data.sets.length,   icon:"📚",c:"#D97706",glow:"rgba(217,119,6,.5)"},
-    {label:"Karten",       val:data.cards.length,  icon:"🃏",c:"#F43F5E",glow:"rgba(244,63,94,.55)"},
-    {label:"Gemeistert",   val:superCards,         icon:"😎",c:"#DC2626",glow:"rgba(220,38,38,.5)"},
+    {label:"Lernbereiche",val:data.folders.length,icon:"📁",c:"#F5631A",rgb:"245,99,26"},
+    {label:"Sets",         val:data.sets.length,   icon:"📚",c:"#D97706",rgb:"217,119,6"},
+    {label:"Karten",       val:data.cards.length,  icon:"🃏",c:"#F43F5E",rgb:"244,63,94"},
+    {label:"Gemeistert",   val:superCards,         icon:"😎",c:"#DC2626",rgb:"220,38,38"},
   ];
   return (<div className="au">
     <div style={{marginBottom:28}}>
@@ -914,8 +913,10 @@ function HomeView({userName,data,onSelectFolder}){
     </div>
     <div className="hb-g-stats" style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(160px,1fr))",gap:12,marginBottom:32}}>
       {stats.map(s=>(
-        <div key={s.label} className="hb-stat">
-          <div className="hb-stat-glow" style={{background:s.glow}}/>
+        <div key={s.label} className="hb-stat" style={{
+          background:`radial-gradient(ellipse 125% 95% at 100% 115%,rgba(${s.rgb},.36) 0%,rgba(${s.rgb},.10) 40%,transparent 65%),rgba(255,255,255,.55)`,
+          border:`1px solid rgba(${s.rgb},.18)`
+        }}>
           <div className="hb-stat-text">
             <div className="hb-stat-val" style={{color:s.c}}>{s.val}</div>
             <div className="hb-stat-label">{s.label}</div>
@@ -923,18 +924,25 @@ function HomeView({userName,data,onSelectFolder}){
           <div className="hb-stat-emoji">{s.icon}</div>
         </div>
       ))}
-      <div className="hb-prog-span" style={{gridColumn:"span 2",background:"var(--grad-ember)",border:"none",borderRadius:"var(--r-md)",padding:"18px 20px",boxShadow:"var(--sh-hero),inset 0 1px 0 rgba(255,255,255,.28)",display:"flex",alignItems:"center",gap:14,position:"relative",overflow:"hidden",color:"#fff"}}>
-        <div style={{position:"absolute",inset:0,background:"radial-gradient(120% 120% at 100% 0%,rgba(255,255,255,.32),transparent 50%)",pointerEvents:"none"}}/>
-        <div style={{position:"absolute",bottom:-30,left:-10,width:100,height:100,borderRadius:"50%",background:"radial-gradient(circle,rgba(255,255,255,.25),transparent 65%)",filter:"blur(10px)",pointerEvents:"none"}}/>
+      <div className="hb-prog-span" style={{
+        gridColumn:"span 2",
+        background:"radial-gradient(ellipse 130% 100% at 50% 125%,#7F1D1D 0%,transparent 55%),radial-gradient(ellipse 110% 120% at 50% 55%,#F5631A 0%,transparent 75%),linear-gradient(180deg,#FFA558,#F5631A 55%,#DC2626)",
+        border:"1px solid rgba(255,180,140,.35)",
+        borderRadius:"var(--r-hero)",
+        padding:"18px 20px",
+        boxShadow:"var(--sh-hero),inset 0 1px 0 rgba(255,255,255,.28)",
+        display:"flex",alignItems:"center",gap:14,
+        position:"relative",overflow:"hidden",color:"#fff",isolation:"isolate"
+      }}>
         <div style={{position:"relative",zIndex:1,display:"flex",alignItems:"center",gap:14,width:"100%"}}>
-          <div style={{width:60,height:60,borderRadius:"50%",background:"rgba(255,255,255,.22)",border:"2px solid rgba(255,255,255,.55)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,backdropFilter:"blur(6px)",WebkitBackdropFilter:"blur(6px)",boxShadow:"0 4px 12px rgba(0,0,0,.12),inset 0 1px 0 rgba(255,255,255,.45)"}}>
+          <div style={{width:60,height:60,borderRadius:"50%",background:"rgba(255,255,255,.22)",border:"2px solid rgba(255,255,255,.5)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,backdropFilter:"blur(6px)",WebkitBackdropFilter:"blur(6px)",boxShadow:"0 4px 12px rgba(0,0,0,.15),inset 0 1px 0 rgba(255,255,255,.4)"}}>
             <span style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:18,color:"#fff",letterSpacing:"-.3px"}}>{overallProg}%</span>
           </div>
           <div style={{flex:1,minWidth:0}}>
-            <div style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:18,color:"#fff",letterSpacing:"-.2px"}}>Gesamt-Fortschritt</div>
+            <div style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:18,color:"#fff",letterSpacing:"-.2px",textShadow:"0 1px 3px rgba(0,0,0,.15)"}}>Gesamt-Fortschritt</div>
             <div style={{fontSize:12,color:"rgba(255,255,255,.88)",marginTop:3,fontWeight:500}}>{data.cards.length} Karten · {superCards} gemeistert</div>
           </div>
-          <div style={{fontSize:30,opacity:.95,filter:"drop-shadow(0 2px 4px rgba(0,0,0,.2))"}}>🎯</div>
+          <div style={{fontSize:30,opacity:.95,filter:"drop-shadow(0 2px 4px rgba(0,0,0,.25))"}}>🎯</div>
         </div>
       </div>
     </div>
@@ -942,9 +950,8 @@ function HomeView({userName,data,onSelectFolder}){
       <h2 style={{fontFamily:"Outfit,sans-serif",fontWeight:600,fontSize:20,marginBottom:14,letterSpacing:"-.2px"}}>Lernbereiche</h2>
       <div className="hb-g-folders" style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(220px,1fr))",gap:14}}>
         {rootFolders.map(f=>{const fs=data.sets.filter(s=>s.folderId===f.id);const fc=data.cards.filter(c=>fs.some(s=>s.id===c.setId));const prog=calcProgress(fc);return(
-          <div key={f.id} className="card-hover" style={{background:"rgba(255,255,255,.58)",backdropFilter:"blur(22px) saturate(140%)",WebkitBackdropFilter:"blur(22px) saturate(140%)",border:"1.5px solid rgba(255,255,255,.7)",borderRadius:"var(--r-md)",padding:"18px",cursor:"pointer",boxShadow:"var(--sh-sm),inset 0 1px 0 rgba(255,255,255,.9)",position:"relative",overflow:"hidden"}} onClick={()=>onSelectFolder(f.id)}>
-            <div style={{position:"absolute",top:-35,right:-35,width:120,height:120,borderRadius:"50%",background:`radial-gradient(circle,${f.color}55,transparent 70%)`,filter:"blur(14px)",pointerEvents:"none"}}/>
-            <div style={{position:"relative",display:"flex",alignItems:"flex-start",justifyContent:"space-between"}}>
+          <div key={f.id} className="card-hover glass-card" style={{background:`radial-gradient(ellipse 125% 95% at 100% 115%,${f.color}32 0%,${f.color}10 40%,transparent 65%),rgba(255,255,255,.6)`,border:`1px solid ${f.color}22`,borderRadius:"var(--r-md)",padding:"18px",cursor:"pointer"}} onClick={()=>onSelectFolder(f.id)}>
+            <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between"}}>
               <div style={{flex:1,marginRight:8}}>
                 <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}>
                   <span style={{display:"inline-flex",width:22,height:22,borderRadius:8,background:f.color,boxShadow:`0 4px 10px ${f.color}77,inset 0 1px 0 rgba(255,255,255,.35)`}}/>
@@ -1336,7 +1343,7 @@ function PDFPreviewModal({cards,sourceName,pages,onConfirm,onClose}){
 
 function ExportModal({set,cards,onClose}) {
   const Tile = ({icon,title,desc,hint,onClick,color}) => (
-    <button onClick={onClick} style={{flex:1,minWidth:0,background:"linear-gradient(160deg,#FFF,#FDFCFA)",border:"1.5px solid var(--border)",borderRadius:14,padding:"20px 18px",textAlign:"left",cursor:"pointer",fontFamily:"inherit",transition:"all .15s",display:"flex",flexDirection:"column",gap:8}}
+    <button onClick={onClick} style={{flex:1,minWidth:0,background:"rgba(255,255,255,.6)",backdropFilter:"blur(14px)",WebkitBackdropFilter:"blur(14px)",border:"1px solid rgba(245,99,26,.14)",borderRadius:"var(--r-md)",padding:"20px 18px",textAlign:"left",cursor:"pointer",fontFamily:"inherit",transition:"all .15s",display:"flex",flexDirection:"column",gap:8,boxShadow:"var(--sh-sm)"}}
       onMouseEnter={e=>{e.currentTarget.style.borderColor=color;e.currentTarget.style.transform="translateY(-2px)";e.currentTarget.style.boxShadow=`0 8px 24px ${color}22`;}}
       onMouseLeave={e=>{e.currentTarget.style.borderColor="var(--border)";e.currentTarget.style.transform="translateY(0)";e.currentTarget.style.boxShadow="none";}}>
       <div style={{fontSize:28,lineHeight:1}}>{icon}</div>
