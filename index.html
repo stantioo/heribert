@@ -1220,11 +1220,11 @@ function HomeView({userName,data,rootFolders,onSelectFolder}){
   if (!greetingRef.current) {
     const h = new Date().getHours();
     const suffixes = {
-      morning: ["Bereit zum Lernen? ☀️", "Los geht's! 🚀", "Frisch ans Werk! 💪"],
-      midday: ["Weiter geht's! 🎯", "Produktiv bleiben! 💡", "Auf geht's! 🔥"],
-      afternoon: ["Weiter geht's! 🎯", "Bleib dran! 💪", "Du schaffst das! ✨"],
-      evening: ["Noch eine Runde? 🌙", "Endspurt für heute! ✨", "Feierabend-Session? 📚"],
-      night: ["Späte Session? 🦉", "Lernen kennt keine Uhrzeit! 🌟", "Noch ein paar Karten? 💫"]
+      morning: ["Bereit zum Lernen? ☀️","Los geht's! 🚀","Frisch ans Werk! 💪","Kaffee & Karteikarten! ☕","Der frühe Vogel lernt! 🐦","Starte produktiv in den Tag! ✨","Guter Start! 🌅","Neuer Tag, neues Wissen! 📖"],
+      midday: ["Weiter geht's! 🎯","Produktiv bleiben! 💡","Auf geht's! 🔥","Mittagspause nutzen! 📚","Halbzeit — bleib dran! ⚡","Noch motiviert? Let's go! 🏃","Power through! 💥","Läuft bei dir! 🙌"],
+      afternoon: ["Weiter geht's! 🎯","Bleib dran! 💪","Du schaffst das! ✨","Nachmittags-Push! 🚀","Fast geschafft für heute! 🏁","Endspurt! 🔥","Noch eine Runde? 📝","Keep it up! ⭐"],
+      evening: ["Noch eine Runde? 🌙","Endspurt für heute! ✨","Feierabend-Session? 📚","Abend-Lernzeit! 🌆","Entspannt noch was lernen? 🧠","Guter Zeitpunkt zum Wiederholen! 🔄","Wind-down & learn! 🌟","Die Ruhe nutzen! 🎧"],
+      night: ["Späte Session? 🦉","Lernen kennt keine Uhrzeit! 🌟","Noch ein paar Karten? 💫","Night owl mode! 🌙","Die besten Ideen kommen nachts! 💡","Stille Stunde, voller Fokus! 🎯","Nacht-Runde! 🌌","Du bist unaufhaltbar! 🔥"]
     };
     let period, greeting;
     if (h >= 5 && h < 11) { period = "morning"; greeting = "Guten Morgen"; }
@@ -1233,7 +1233,7 @@ function HomeView({userName,data,rootFolders,onSelectFolder}){
     else if (h >= 18 && h < 22) { period = "evening"; greeting = "Guten Abend"; }
     else { period = "night"; greeting = "Hey"; }
     const pool = suffixes[period];
-    const pick = pool[Math.floor(new Date().getDate() * 7 + h) % pool.length];
+    const pick = pool[Math.floor(Math.random() * pool.length)];
     greetingRef.current = { greeting, suffix: pick };
   }
   // Each tile gets a clear-center + strong bottom-right glow + soft side + near-none top
