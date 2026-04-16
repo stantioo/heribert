@@ -181,7 +181,7 @@ html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;background:var(
 .overlay{position:fixed;inset:0;background:var(--overlay-bg);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);display:flex;align-items:center;justify-content:center;z-index:100;padding:20px;}
 .modal{position:relative;background:var(--glass-modal);backdrop-filter:blur(30px) saturate(150%);-webkit-backdrop-filter:blur(30px) saturate(150%);border-radius:var(--r-xl);box-shadow:var(--sh-lg),var(--glass-inset);border:1px solid var(--glass-bdr);width:100%;max-height:90vh;overflow-y:auto;animation:scaleIn .18s ease;}
 .modal-flex{overflow-y:hidden!important;overflow-x:hidden!important;display:flex!important;flex-direction:column!important;padding-bottom:0!important;}
-@media(max-width:768px){.modal-flex{height:85dvh!important;max-height:85dvh!important;}}
+@media(max-width:768px){.modal-flex{height:92dvh!important;max-height:92dvh!important;}}
 .inline-edit{border:none;background:transparent;font:inherit;color:inherit;padding:0 4px;outline:none;border-radius:4px;}
 .inline-edit:focus{background:var(--ol);}
 
@@ -2010,20 +2010,29 @@ function MCQMode({set,cards,onExit,onGoHome,onRate,onCacheMCQ,readOnly,t}) {
   const pick=(opt,i)=>{if(picked!==null)return;setPicked(i);if(!readOnly&&onRate)onRate(card.id,mcqProgressRating(opt.ok,card.lastRating));if(opt.ok)setScore(p=>p+1);};
   const next=()=>{if(idx+1>=cards.length){setDone(true);return;}setIdx(p=>p+1);};
   if(loadingMCQ)return(<div style={{minHeight:"100vh",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",background:"var(--grad-bg)",gap:16}}><ISpin/><div style={{color:"var(--muted)",fontSize:14}}>KI generiert Antwortoptionen…</div></div>);
-  if(done){const pct=Math.round((score/cards.length)*100);return(<div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:"var(--grad-bg)",padding:20}}><div className="au" style={{textAlign:"center",maxWidth:440}}><div style={{fontSize:56,marginBottom:16}}>{pct>=80?"\ud83c\udfc6":pct>=50?"\ud83d\udcc8":"\ud83d\udcaa"}</div><h2 style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:28,marginBottom:8}}>{t.result}</h2><div style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:52,background:pct>=80?"linear-gradient(135deg,#22C55E,#16A34A)":"var(--grad)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",marginBottom:6}}>{pct}%</div><div style={{color:"var(--muted)",marginBottom:32}}>{score} {t.ofTotal} {cards.length} {t.correct}</div><div style={{display:"flex",gap:10,justifyContent:"center"}}><button className="btn-g" onClick={()=>{setIdx(0);setScore(0);setDone(false);}}>{t.again}</button><button className="btn-o" onClick={onExit}>{t.backBtn}</button></div></div></div>);}
+  if(done){const pct=Math.round((score/cards.length)*100);const resEmoji=pct>=90?"🏆":pct>=70?"🎉":pct>=50?"📈":pct>=30?"💡":pct>0?"😤":"😵";return(<div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:"var(--grad-bg)",padding:20}}><div className="au" style={{textAlign:"center",maxWidth:440}}><div style={{fontSize:56,marginBottom:16}}>{resEmoji}</div><h2 style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:28,marginBottom:8}}>{t.result}</h2><div style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:52,background:pct>=80?"linear-gradient(135deg,#22C55E,#16A34A)":"var(--grad)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",marginBottom:6}}>{pct}%</div><div style={{color:"var(--muted)",marginBottom:32}}>{score} {t.ofTotal} {cards.length} {t.correct}</div><div style={{display:"flex",gap:10,justifyContent:"center"}}><button className="btn-g" onClick={()=>{setIdx(0);setScore(0);setDone(false);}}>{t.again}</button><button className="btn-o" onClick={onExit}>{t.backBtn}</button></div></div></div>);}
   return(<div style={{minHeight:"100vh",background:"var(--grad-bg)",padding:"40px 20px",display:"flex",flexDirection:"column",alignItems:"center"}}>
     {onGoHome && <div style={{width:"100%",maxWidth:640,marginBottom:18,display:"flex",justifyContent:"center"}}><button onClick={onGoHome} title="Zur Übersicht" style={{border:"none",background:"none",padding:"4px 10px",cursor:"pointer",fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:18,letterSpacing:"-.3px",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",backgroundImage:"var(--grad)"}}>Heribert <Star spin/></button></div>}
     <div style={{width:"100%",maxWidth:640,marginBottom:28}}><div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}><button onClick={onExit} style={{display:"flex",alignItems:"center",gap:6,border:"none",background:"none",color:"var(--muted)",fontSize:14,cursor:"pointer",padding:0,fontFamily:"inherit"}}><IBack/> {set?.name}</button><span style={{fontSize:14,fontWeight:600,color:"var(--muted)"}}>{idx+1} / {cards.length} · {score} ✓</span></div><div className="prog-track"><div className="prog-fill" style={{width:`${(idx/cards.length)*100}%`}}/></div></div>
     <div style={{width:"100%",maxWidth:640,background:"var(--glass-s)",backdropFilter:"blur(26px) saturate(150%)",WebkitBackdropFilter:"blur(26px) saturate(150%)",border:"1.5px solid var(--glass-bdr)",borderRadius:"var(--r-lg)",padding:28,marginBottom:16,boxShadow:"var(--sh-md),var(--glass-inset)"}}><div style={{fontSize:11,fontWeight:600,color:"var(--muted)",textTransform:"uppercase",letterSpacing:".08em",marginBottom:12}}>{t.question} {idx+1}</div><div style={{fontSize:18,lineHeight:1.6}} dangerouslySetInnerHTML={{__html:card?.questionHtml||""}}/></div>
-    <div style={{width:"100%",maxWidth:640,display:"flex",flexDirection:"column",gap:10}}>
+    <div key={idx} style={{width:"100%",maxWidth:640,display:"flex",flexDirection:"column",gap:10}}>
       {(shuffledOpts||[]).map((opt,i)=>{
-        let bg="var(--glass)",bc="var(--glass-bdr)",color="var(--text)",shadow="0 2px 8px rgba(245,99,26,.06),var(--glass-inset)";
-        if(picked!==null){
-          if(opt.ok){bg="var(--glass)";bc="var(--gm)";color="var(--green)";shadow=`0 2px 10px rgba(22,163,74,.25),var(--glass-inset)`;}
-          else if(i===picked&&!opt.ok){bg="var(--glass)";bc="var(--red)";color="var(--red)";shadow=`0 2px 10px rgba(220,38,38,.25),var(--glass-inset)`;}
-        }
-        return(<button key={i} onClick={()=>pick(opt,i)} style={{padding:"15px 20px",border:`2px solid ${bc}`,borderRadius:14,background:bg,backdropFilter:"blur(22px) saturate(150%)",WebkitBackdropFilter:"blur(22px) saturate(150%)",color,fontSize:15,textAlign:"left",cursor:picked!==null?"default":"pointer",transition:"all .15s",fontFamily:"inherit",display:"flex",alignItems:"center",gap:10,boxShadow:shadow}} onMouseEnter={e=>{if(picked===null){e.currentTarget.style.borderColor="var(--orange)";e.currentTarget.style.background="var(--glass-hover)";}}} onMouseLeave={e=>{if(picked===null){e.currentTarget.style.borderColor=bc;e.currentTarget.style.background=bg;}}}>
-        <span style={{width:24,height:24,borderRadius:6,background:picked!==null&&opt.ok?"var(--green)":picked===i&&!opt.ok?"var(--red)":"var(--border)",color:picked!==null&&(opt.ok||i===picked)?"#fff":"var(--muted)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700,flexShrink:0,transition:"all .15s"}}>{String.fromCharCode(65+i)}</span>
+        const isCorrect = picked!==null && opt.ok;
+        const isWrong = picked!==null && i===picked && !opt.ok;
+        const isActive = isCorrect || isWrong;
+        const tint = isCorrect ? "22,163,74" : isWrong ? "220,38,38" : null;
+        return(<button key={i} onClick={()=>pick(opt,i)} style={{
+          padding:"15px 20px",
+          border:`1.5px solid ${isActive?`rgba(${tint},.55)`:"var(--glass-bdr)"}`,
+          borderRadius:14,
+          background:isActive?`rgba(${tint},.14)`:"var(--glass)",
+          backdropFilter:"blur(22px) saturate(150%)",WebkitBackdropFilter:"blur(22px) saturate(150%)",
+          color:isActive?`rgba(${tint},1)`:"var(--text)",
+          fontSize:15,textAlign:"left",cursor:picked!==null?"default":"pointer",
+          transition:"all .15s",fontFamily:"inherit",display:"flex",alignItems:"center",gap:10,
+          boxShadow:isActive?`0 2px 8px rgba(${tint},.22),var(--glass-inset)`:`0 1px 3px rgba(0,0,0,.03),var(--glass-inset)`
+        }} onMouseEnter={e=>{if(picked===null){e.currentTarget.style.borderColor="var(--orange)";e.currentTarget.style.background="var(--glass-hover)";}}} onMouseLeave={e=>{if(picked===null){e.currentTarget.style.borderColor="var(--glass-bdr)";e.currentTarget.style.background="var(--glass)";}}}>
+        <span style={{width:24,height:24,borderRadius:6,background:isCorrect?"var(--green)":isWrong?"var(--red)":"var(--border)",color:isActive?"#fff":"var(--muted)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700,flexShrink:0,transition:"all .15s"}}>{String.fromCharCode(65+i)}</span>
         {opt.text}
       </button>);})}
     </div>
