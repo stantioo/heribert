@@ -570,6 +570,16 @@ function App() {
 }
 
 // \u2500\u2500\u2500 AUTH \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+const authErrDE = msg => {
+  if (!msg) return "Unbekannter Fehler.";
+  const m = msg.toLowerCase();
+  if (m.includes("invalid login credentials")) return "E-Mail oder Passwort falsch.";
+  if (m.includes("email rate limit exceeded") || m.includes("rate limit")) return "Registrierung momentan nicht möglich. Bitte in einer Stunde erneut versuchen.";
+  if (m.includes("user already registered")) return "Diese E-Mail ist bereits registriert. Bitte anmelden.";
+  if (m.includes("signup is disabled")) return "Registrierung ist aktuell deaktiviert.";
+  if (m.includes("email not confirmed")) return "Bitte bestätige zuerst deine E-Mail.";
+  return msg;
+};
 function AuthScreen() {
   const [tab, setTab] = useState("login");
   const [f, setF] = useState({name:"",email:"",pw:""});
@@ -580,7 +590,7 @@ function AuthScreen() {
     try {
       if (tab === "login") {
         const {error} = await sb.auth.signInWithPassword({email:f.email, password:f.pw});
-        if (error) setErr(error.message === "Invalid login credentials" ? "E-Mail oder Passwort falsch." : error.message);
+        if (error) setErr(authErrDE(error.message));
       } else {
         if (!f.name.trim()) { setErr("Bitte Namen eingeben."); return; }
         if (!f.email.includes("@")) { setErr("Ung\u00fcltige E-Mail."); return; }
@@ -588,7 +598,7 @@ function AuthScreen() {
         const path = window.location.pathname;
         const emailRedirectTo = window.location.origin + path.substring(0, path.lastIndexOf("/") + 1) + "confirmed.html";
         const {error} = await sb.auth.signUp({email:f.email, password:f.pw, options:{data:{display_name:f.name.trim()}, emailRedirectTo}});
-        if (error) setErr(error.message);
+        if (error) setErr(authErrDE(error.message));
         else setInfo("\u2713 Best\u00e4tigungs-E-Mail gesendet. E-Mail best\u00e4tigen, dann anmelden.");
       }
     } finally { setBusy(false); }
@@ -627,7 +637,7 @@ function Dashboard({session, onLogout}) {
   const [data, setData] = useState({folders:[], sets:[], cards:[], shares:[]});
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(null);
-  const [queryWarning, setQueryWarning] = useState(null);
+  // queryWarning removed — was debug-only
   const [sel, setSel] = useState({folderId:null, setId:null});
   const [studyConfig, setStudyConfig] = useState(null);
   const [studyMode, setStudyMode] = useState(null);
@@ -638,6 +648,7 @@ function Dashboard({session, onLogout}) {
   const [saving, setSaving] = useState(false);
   const mobile=useMobile();
   const [menuOpen,setMenuOpen]=useState(false);
+  const [sideFilter,setSideFilter]=useState("all"); // "all"|"own"|"shared"
   // Shared-folder visibility preference (persisted in localStorage).
   const [hideShared, setHideSharedState] = useState(() => {
     try { return localStorage.getItem("heribert.hideShared") === "1"; } catch { return false; }
@@ -672,8 +683,7 @@ function Dashboard({session, onLogout}) {
     if (!loading) return;
     const t = setTimeout(() => {
       if (loading) {
-        console.warn("[Heribert] loadAll hat nach 20s nicht abgeschlossen — zeige Retry.");
-        setLoadError("Das Laden dauert ungewöhnlich lange. Möglicherweise gibt es ein Netzwerk- oder Datenbankproblem.");
+        setLoadError("Das Laden dauert ungewöhnlich lange. Bitte Seite neu laden.");
         setLoading(false);
       }
     }, 20000);
@@ -688,25 +698,13 @@ function Dashboard({session, onLogout}) {
     // on "Daten werden geladen…". Each stage logs so we can diagnose in
     // DevTools which query blew up.
     try {
-      console.log("[Heribert] loadAll: starting for", user.email);
-      const t0 = Date.now();
-      // Run core queries in parallel — one slow query can't hold the others hostage.
       const [fr,sr,cr,shr] = await Promise.all([
         sb.from("folders").select("*").order("created_at"),
         sb.from("sets").select("*").order("created_at"),
         sb.from("cards").select("*").order("created_at"),
         sb.from("set_shares").select("*"),
       ]);
-      console.log("[Heribert] loadAll: core queries done in", Date.now()-t0, "ms",
-        {folders:fr.error?"ERR":"ok", sets:sr.error?"ERR":"ok", cards:cr.error?"ERR":"ok", shares:shr.error?"ERR":"ok"});
-      if (fr.error) console.error("[Heribert] folders error:", fr.error);
-      if (sr.error) console.error("[Heribert] sets error:", sr.error);
-      if (cr.error) console.error("[Heribert] cards error:", cr.error);
-      if (shr.error) console.error("[Heribert] set_shares error:", shr.error);
 
-      const errs = [fr.error&&"Ordner", sr.error&&"Sets", cr.error&&"Karten", shr.error&&"Shares"].filter(Boolean);
-      if (errs.length) setQueryWarning(`Fehler beim Laden von: ${errs.join(", ")}. Details in der Browser-Konsole (F12).`);
-      else setQueryWarning(null);
 
       const shares = shr.data || [];
       const myEmail = (user.email || "").toLowerCase();
@@ -729,10 +727,7 @@ function Dashboard({session, onLogout}) {
         cards:(cr.data||[]).map(toCard),
         shares: shares.filter(x => x.owner_id === user.id),
       });
-      console.log("[Heribert] loadAll: done in", Date.now()-t0, "ms",
-        {folders:fr.data?.length||0, sets:sets.length, cards:cr.data?.length||0, shares:shares.length});
     } catch (e) {
-      console.error("[Heribert] loadAll crashed:", e);
       setLoadError(String(e?.message || e));
     } finally {
       setLoading(false);
@@ -918,10 +913,17 @@ function Dashboard({session, onLogout}) {
           <div style={{fontSize:13,color:"var(--muted)",marginTop:4}}>Hallo, <b style={{color:"var(--text)"}}>{userName.split(" ")[0]}</b> 👋</div>
         </div>
         <div style={{flex:1,overflowY:"auto",padding:"10px 8px"}}>
-          <div style={{fontSize:11,fontWeight:600,color:"var(--muted2)",padding:"8px 10px 6px",letterSpacing:".08em",textTransform:"uppercase"}}>Lernbereiche</div>
+          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"8px 10px 6px"}}>
+            <div style={{fontSize:11,fontWeight:600,color:"var(--muted2)",letterSpacing:".08em",textTransform:"uppercase"}}>Lernbereiche</div>
+            {sharedFolders.length>0 && <div style={{display:"flex",gap:2}}>
+              {[["all","Alle"],["own","📁"],["shared","🔗"]].map(([k,lbl])=>(
+                <button key={k} onClick={()=>setSideFilter(k)} title={k==="all"?"Alle anzeigen":k==="own"?"Nur eigene":"Nur geteilte"} style={{padding:"2px 7px",border:"none",borderRadius:6,background:sideFilter===k?"var(--glass-hover)":"transparent",color:sideFilter===k?"var(--orange)":"var(--muted2)",fontSize:10,fontWeight:600,cursor:"pointer",fontFamily:"inherit",transition:"all .15s"}}>{lbl}</button>
+              ))}
+            </div>}
+          </div>
           {loading ? <div style={{padding:"12px 10px",color:"var(--muted2)",fontSize:13,display:"flex",alignItems:"center",gap:8}}><ISpin c="var(--muted2)" s={16}/> Lädt…</div>
             : rootFolders.length===0 ? <div style={{padding:"8px 10px",fontSize:13,color:"var(--muted2)"}}>Noch keine Ordner</div>
-            : rootFolders.map(f => <SidebarFolder key={f.id} folder={f} isActive={sel.folderId===f.id} onClick={()=>openFolder(f.id)} onDelete={()=>{if(confirm(`"${f.name}" l\u00f6schen?`))removeFolder(f.id);}} onEdit={()=>{setEditFolder(f);setModal({type:"folder"});setMenuOpen(false);}}/>)
+            : (sideFilter==="all"?rootFolders:sideFilter==="own"?rootFolders.filter(f=>!f.isVirtualShared):rootFolders.filter(f=>f.isVirtualShared)).map(f => <SidebarFolder key={f.id} folder={f} isActive={sel.folderId===f.id} onClick={()=>openFolder(f.id)} onDelete={()=>{if(confirm(`"${f.name}" l\u00f6schen?`))removeFolder(f.id);}} onEdit={()=>{setEditFolder(f);setModal({type:"folder"});setMenuOpen(false);}}/>)
           }
           <button className="folder-row" onClick={()=>{setEditFolder(null);setModal({type:"folder"});setMenuOpen(false);}} style={{border:"1.5px dashed rgba(245,99,26,.3)",color:"var(--muted)",fontSize:13,marginTop:6}}>
             <IPlus/> Neuer Ordner
@@ -941,12 +943,12 @@ function Dashboard({session, onLogout}) {
       <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden"}}>
       <div className="mob-topbar"><button onClick={()=>setMenuOpen(true)} style={{background:"none",border:"none",cursor:"pointer",color:"var(--text)",padding:4,display:"flex"}}><IMenu/></button><button onClick={goHome} style={{border:"none",background:"none",padding:0,cursor:"pointer",fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:18,flex:1,textAlign:"left",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",backgroundImage:"var(--grad)"}}>Heribert ✦</button><div onClick={()=>setProfileOpen(true)} style={{cursor:"pointer"}}><Avatar url={avatarUrl} name={userName} size={32}/></div></div>
         <main className="hb-main" style={{flex:1,overflowY:"auto",padding:"40px 48px",background:"var(--grad-bg)"}}>
-        {queryWarning && <div style={{margin:"0 0 16px",padding:"10px 14px",fontSize:13,background:"var(--rl)",color:"var(--red)",borderRadius:10,border:"1px solid rgba(220,38,38,.3)"}}>{queryWarning}</div>}
+
         {loadError ? <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",height:"60vh",gap:16,padding:20,textAlign:"center"}}>
           <div style={{fontSize:42}}>⚠️</div>
           <div style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:18,color:"var(--text)"}}>Daten konnten nicht geladen werden</div>
           <div style={{fontSize:13,color:"var(--muted)",maxWidth:420,lineHeight:1.5}}>{loadError}</div>
-          <div style={{fontSize:12,color:"var(--muted2)",maxWidth:420,lineHeight:1.5}}>Öffne die Browser-Konsole (F12) für Details.</div>
+          <div style={{fontSize:12,color:"var(--muted2)",maxWidth:420,lineHeight:1.5}}>Bitte prüfe deine Internetverbindung und versuche es erneut.</div>
           <button className="btn-o" onClick={()=>loadAll()}>Nochmal versuchen</button>
         </div> : loading ? <div style={{display:"flex",alignItems:"center",justifyContent:"center",height:"60vh",gap:12,color:"var(--muted)"}}><ISpin/><span style={{fontSize:15}}>Daten werden geladen…</span></div> : <>
           {!sel.folderId && <HomeView userName={userName} data={data} rootFolders={rootFolders} onSelectFolder={openFolder}/>}
@@ -1165,6 +1167,9 @@ function CardRow({card,onEdit,onDelete,readOnly}) {
 function HomeView({userName,data,rootFolders,onSelectFolder}){
   const dark=useDarkMode();
   const overallProg=calcProgress(data.cards); const superCards=data.cards.filter(c=>c.lastRating===3).length;
+  const [folderFilter,setFolderFilter]=useState("all"); // "all" | "own" | "shared"
+  const hasShared = rootFolders.some(f=>f.isVirtualShared);
+  const filteredFolders = folderFilter==="all" ? rootFolders : folderFilter==="own" ? rootFolders.filter(f=>!f.isVirtualShared) : rootFolders.filter(f=>f.isVirtualShared);
   // Each tile gets a clear-center + strong bottom-right glow + soft side + near-none top
   const stats = [
     {label:"Lernbereiche",val:data.folders.length,icon:"📁",c:"#F5631A",rgb:"245,99,26"},
@@ -1238,9 +1243,16 @@ function HomeView({userName,data,rootFolders,onSelectFolder}){
       </div>
     </div>
     {rootFolders.length>0 && <>
-      <h2 style={{fontFamily:"Outfit,sans-serif",fontWeight:600,fontSize:20,marginBottom:14,letterSpacing:"-.2px"}}>Lernbereiche</h2>
+      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14}}>
+        <h2 style={{fontFamily:"Outfit,sans-serif",fontWeight:600,fontSize:20,letterSpacing:"-.2px"}}>Lernbereiche</h2>
+        {hasShared && <div style={{display:"flex",gap:4,background:"var(--tab-bg)",borderRadius:10,padding:3}}>
+          {[["all","Alle"],["own","Eigene"],["shared","Geteilt"]].map(([k,lbl])=>(
+            <button key={k} onClick={()=>setFolderFilter(k)} style={{padding:"5px 12px",border:"none",borderRadius:8,background:folderFilter===k?"var(--tab-active)":"transparent",color:folderFilter===k?"var(--text)":"var(--muted)",fontWeight:folderFilter===k?600:500,fontSize:12,cursor:"pointer",fontFamily:"inherit",transition:"all .15s"}}>{lbl}</button>
+          ))}
+        </div>}
+      </div>
       <div className="hb-g-folders" style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(220px,1fr))",gap:14}}>
-        {rootFolders.map(f=>{
+        {filteredFolders.map(f=>{
           const shared = f.isVirtualShared;
           // Shared virtual folders come pre-enriched with their own sets/counts/progress.
           const setsInFolder = shared
@@ -1431,11 +1443,10 @@ function ProfileModal({user,userName,onLogout,onClose,hideShared,setHideShared,o
     if (!file) return;
     setUploading(true); setErr("");
     try {
-      const dataUrl = await resizeImageDataUrl(file, 220, 0.82);
-      // ~15-40 KB per image at 220px JPEG/82% — fits comfortably in user_metadata.
+      const dataUrl = await resizeImageDataUrl(file);
       setAvatar(dataUrl);
     } catch (e) {
-      setErr("Bild konnte nicht geladen werden.");
+      setErr(e?.message || "Bild konnte nicht geladen werden.");
     } finally { setUploading(false); }
   };
   return(<div className="overlay" onClick={onClose}><div className="modal si" style={{maxWidth:460,padding:32}} onClick={e=>e.stopPropagation()}>
