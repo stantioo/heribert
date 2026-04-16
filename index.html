@@ -1486,7 +1486,6 @@ function HomeView({userName,data,rootFolders,onSelectFolder,t,lang}){
   const [folderFilter,setFolderFilter]=useState("all"); // "all" | "own" | "shared"
   const hasShared = rootFolders.some(f=>f.isVirtualShared);
   const filteredFolders = folderFilter==="all" ? rootFolders : folderFilter==="own" ? rootFolders.filter(f=>!f.isVirtualShared) : rootFolders.filter(f=>f.isVirtualShared);
-  const greetingText = greetingNames[lang]?.[greetingRef.current?.period] || greetingNames.de[greetingRef.current?.period] || "Hey";
   const greetingRef = useRef(null);
   if (!greetingRef.current) {
     const h = new Date().getHours();
@@ -1554,6 +1553,7 @@ function HomeView({userName,data,rootFolders,onSelectFolder,t,lang}){
     const pick = pool[Math.floor(Math.random() * pool.length)];
     greetingRef.current = { period, suffix: pick };
   }
+  const greetingText = greetingNames[lang]?.[greetingRef.current?.period] || greetingNames.de[greetingRef.current?.period] || "Hey";
   // Each tile gets a clear-center + strong bottom-right glow + soft side + near-none top
   const stats = [
     {label:t.learningAreas,val:data.folders.length,icon:"📁",c:"#F5631A",rgb:"245,99,26"},
