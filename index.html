@@ -1220,11 +1220,58 @@ function HomeView({userName,data,rootFolders,onSelectFolder}){
   if (!greetingRef.current) {
     const h = new Date().getHours();
     const suffixes = {
-      morning: ["Bereit zum Lernen? ☀️","Los geht's! 🚀","Frisch ans Werk! 💪","Kaffee & Karteikarten! ☕","Der frühe Vogel lernt! 🐦","Starte produktiv in den Tag! ✨","Guter Start! 🌅","Neuer Tag, neues Wissen! 📖"],
-      midday: ["Weiter geht's! 🎯","Produktiv bleiben! 💡","Auf geht's! 🔥","Mittagspause nutzen! 📚","Halbzeit — bleib dran! ⚡","Noch motiviert? Let's go! 🏃","Power through! 💥","Läuft bei dir! 🙌"],
-      afternoon: ["Weiter geht's! 🎯","Bleib dran! 💪","Du schaffst das! ✨","Nachmittags-Push! 🚀","Fast geschafft für heute! 🏁","Endspurt! 🔥","Noch eine Runde? 📝","Keep it up! ⭐"],
-      evening: ["Noch eine Runde? 🌙","Endspurt für heute! ✨","Feierabend-Session? 📚","Abend-Lernzeit! 🌆","Entspannt noch was lernen? 🧠","Guter Zeitpunkt zum Wiederholen! 🔄","Wind-down & learn! 🌟","Die Ruhe nutzen! 🎧"],
-      night: ["Späte Session? 🦉","Lernen kennt keine Uhrzeit! 🌟","Noch ein paar Karten? 💫","Night owl mode! 🌙","Die besten Ideen kommen nachts! 💡","Stille Stunde, voller Fokus! 🎯","Nacht-Runde! 🌌","Du bist unaufhaltbar! 🔥"]
+      morning: [
+        "Bereit zum Lernen? ☀️","Los geht's! 🚀","Frisch ans Werk! 💪","Kaffee & Karteikarten! ☕",
+        "Der frühe Vogel lernt! 🐦","Starte produktiv in den Tag! ✨","Guter Start! 🌅",
+        "Neuer Tag, neues Wissen! 📖","Morgens lernt's sich am besten! 🧠","Zeit für Fortschritt! 🏆",
+        "Wissen sammeln! 📚","Heute wird's produktiv! ⚡","Kopf frei, los geht's! 🌤️",
+        "Dein Gehirn ist bereit! 🧬","Erst lernen, dann chillen! 😎","Neue Runde, neues Glück! 🍀",
+        "Morgenroutine: Lernen! ✅","Was steht heute an? 📋","Schritt für Schritt! 👣",
+        "Du machst das großartig! 🌟","Wissen ist Macht! 💡","Heute schon was gelernt? 🤔",
+        "Motivation ist alles! 🔥","Ready? Set? Learn! 🏁","Ein guter Tag zum Lernen! 🎓"
+      ],
+      midday: [
+        "Weiter geht's! 🎯","Produktiv bleiben! 💡","Auf geht's! 🔥","Mittagspause nutzen! 📚",
+        "Halbzeit — bleib dran! ⚡","Noch motiviert? Let's go! 🏃","Power through! 💥",
+        "Läuft bei dir! 🙌","Kurz reinschauen lohnt sich! 👀","Mittags-Boost! ☕",
+        "Kleine Pause, großes Wissen! 🧠","Mach weiter so! 💪","Du bist on fire! 🔥",
+        "Schnell ein paar Karten? ⏱️","Jede Minute zählt! ⏰","Dranbleiben zahlt sich aus! 📈",
+        "Quick Session? 🎯","Fokus-Zeit! 🎧","Keep pushing! 💫","Schon halb geschafft! 🏅",
+        "Lunch & Learn! 🥪","Dein Future Self dankt dir! 🙏","Nicht aufhören! 🚀",
+        "Die Mitte des Tages gehört dir! ☀️","Momentum beibehalten! 🌊"
+      ],
+      afternoon: [
+        "Weiter geht's! 🎯","Bleib dran! 💪","Du schaffst das! ✨","Nachmittags-Push! 🚀",
+        "Fast geschafft für heute! 🏁","Endspurt! 🔥","Noch eine Runde? 📝","Keep it up! ⭐",
+        "Die Zielgerade! 🏆","Nachmittagskaffee & Karten! ☕","Du bist fast durch! 💫",
+        "Konsistenz schlägt alles! 🎖️","Jetzt nochmal Gas geben! ⛽","Stark bleiben! 🦾",
+        "Ein Set noch? 📚","Heute noch ein Level up! 📊","Durchziehen! 💥",
+        "Du wirst jeden Tag besser! 📈","Noch nicht fertig? Gut so! 🙌","Challenge accepted! 🏋️",
+        "Dein Einsatz wird belohnt! 🎁","Nicht nachlassen! ⚡","So nah dran! 🎯",
+        "Letzte Runde für heute? 🔔","Bald hast du's drauf! 🧠"
+      ],
+      evening: [
+        "Noch eine Runde? 🌙","Endspurt für heute! ✨","Feierabend-Session? 📚",
+        "Abend-Lernzeit! 🌆","Entspannt noch was lernen? 🧠","Guter Zeitpunkt zum Wiederholen! 🔄",
+        "Wind-down & learn! 🌟","Die Ruhe nutzen! 🎧","Abends bleibt's hängen! 💡",
+        "Gemütlich ein paar Karten? 🛋️","Der Tag war gut — mach ihn perfekt! ✅",
+        "Letzte Session? 🌅","Entspannt ins Wissen! 🧘","Kurz vor Schluss nochmal! ⏳",
+        "Abend-Routine: Lernen! 📖","Investiere in dich! 💎","Netflix kann warten! 📺",
+        "Ruhig aber effektiv! 🎯","Eine Karte mehr als gestern! 📊","Schöner Abend zum Lernen! 🌙",
+        "Du gibst nicht auf! 💪","Klug den Tag beenden! 🎓","Wissen mitnehmen in den Schlaf! 😴",
+        "Kurze Runde, großer Effekt! ⚡","Abend-Motivation! 🔥"
+      ],
+      night: [
+        "Späte Session? 🦉","Lernen kennt keine Uhrzeit! 🌟","Noch ein paar Karten? 💫",
+        "Night owl mode! 🌙","Die besten Ideen kommen nachts! 💡","Stille Stunde, voller Fokus! 🎯",
+        "Nacht-Runde! 🌌","Du bist unaufhaltbar! 🔥","Alle schlafen, du lernst! 🏆",
+        "Dedication! 💎","Nachts ist's ruhig — perfekt zum Lernen! 🤫","Schlaf ist überbewertet! 😄",
+        "Die Nacht gehört den Fleißigen! 🌃","Extra-Meile! 🏃","Respekt für den Einsatz! 👏",
+        "Geheimwaffe: Nachtlernen! 🥷","Morgen wirst du froh sein! 🌅","One more set! 🃏",
+        "Stille Nacht, kluge Nacht! 🎶","Dein Wissen wächst auch nachts! 🌱",
+        "Hustle mode: ON! 💻","Nachteule am Werk! 🦉","Focus level: Maximum! 🔮",
+        "Kein Stoppen in Sicht! 🚂","Legendärer Einsatz! ⭐"
+      ]
     };
     let period, greeting;
     if (h >= 5 && h < 11) { period = "morning"; greeting = "Guten Morgen"; }
