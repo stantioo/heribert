@@ -228,14 +228,24 @@ html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;background:var(
 }`;
 
 // \u2500\u2500\u2500 UTILS \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
-const CHANGELOG = [
-  {version:"1.5", date:"16.04.2026", items:["Komplette Sprachunterstützung Deutsch/Englisch","Sprache im Profil wählbar (sync über Geräte)","Tageszeitabhängige Begrüßung mit 125+ Varianten","Neuigkeiten ein-/ausklappbar","Fortschrittsring in beiden Modi sichtbar","Diverse Dark-Mode Fixes in Modals"]},
-  {version:"1.4", date:"16.04.2026", items:["Dark Mode (folgt System-Einstellung)","Ordner mit Emoji oder Farbe markieren","Profilbild hochladen","Bearbeitungsrechte beim Teilen","Sidebar ein-/ausklappbar","Passwort ein-/ausblenden","Stern-Animation beim Laden"]},
-  {version:"1.3", date:"15.04.2026", items:["Ordner-Level Sharing","Ordner-Level Lernen mit Smart-Mix","Rating-Filter im Lern-Dialog","MCQ-Fortschritt erreicht jetzt Super-Level"]},
-  {version:"1.2", date:"15.04.2026", items:["Glass-Morphism Design","Warmes Orange/Rot Farbschema","Geteilte Ordner zeigen Original-Namen"]},
-  {version:"1.1", date:"14.04.2026", items:["PDF Import mit KI-Kartengeneration","CSV Export","Multiple-Choice Lernmodus","Karteikarten-Lernmodus mit Bewertung"]},
-  {version:"1.0", date:"14.04.2026", items:["Ordner & Sets erstellen","Karteikarten mit Rich-Text","Fortschritts-Tracking","Teilen per E-Mail"]},
-];
+const CHANGELOG = {
+  de: [
+    {version:"1.5", date:"16.04.2026", items:["Komplette Sprachunterstützung Deutsch/Englisch","Sprache im Profil wählbar (sync über Geräte)","Tageszeitabhängige Begrüßung mit 250+ Varianten","Neuigkeiten ein-/ausklappbar","Fortschrittsring in beiden Modi sichtbar","Diverse Dark-Mode Fixes in Modals","Schärferes Profilbild (96×96)"]},
+    {version:"1.4", date:"16.04.2026", items:["Dark Mode (folgt System-Einstellung)","Ordner mit Emoji oder Farbe markieren","Profilbild hochladen","Bearbeitungsrechte beim Teilen","Sidebar ein-/ausklappbar","Passwort ein-/ausblenden","Stern-Animation beim Laden"]},
+    {version:"1.3", date:"15.04.2026", items:["Ordner-Level Sharing","Ordner-Level Lernen mit Smart-Mix","Rating-Filter im Lern-Dialog","MCQ-Fortschritt erreicht jetzt Super-Level"]},
+    {version:"1.2", date:"15.04.2026", items:["Glass-Morphism Design","Warmes Orange/Rot Farbschema","Geteilte Ordner zeigen Original-Namen"]},
+    {version:"1.1", date:"14.04.2026", items:["PDF Import mit KI-Kartengeneration","CSV Export","Multiple-Choice Lernmodus","Karteikarten-Lernmodus mit Bewertung"]},
+    {version:"1.0", date:"14.04.2026", items:["Ordner & Sets erstellen","Karteikarten mit Rich-Text","Fortschritts-Tracking","Teilen per E-Mail"]},
+  ],
+  en: [
+    {version:"1.5", date:"16.04.2026", items:["Full language support German/English","Language selectable in profile (syncs across devices)","Time-aware greetings with 250+ variations","Changelog collapsible","Progress ring visible in both modes","Various dark mode modal fixes","Sharper profile picture (96×96)"]},
+    {version:"1.4", date:"16.04.2026", items:["Dark mode (follows system setting)","Folders with emoji or color marker","Profile picture upload","Edit permissions when sharing","Collapsible sidebar","Password show/hide toggle","Star spin animation on load"]},
+    {version:"1.3", date:"15.04.2026", items:["Folder-level sharing","Folder-level learning with smart mix","Rating filter in study dialog","MCQ progress now reaches Super level"]},
+    {version:"1.2", date:"15.04.2026", items:["Glass morphism design","Warm orange/red color scheme","Shared folders show original names"]},
+    {version:"1.1", date:"14.04.2026", items:["PDF import with AI card generation","CSV export","Multiple choice study mode","Flashcard study mode with ratings"]},
+    {version:"1.0", date:"14.04.2026", items:["Create folders & sets","Flashcards with rich text","Progress tracking","Share via email"]},
+  ]
+};
 
 const T = {
   de: {
@@ -320,7 +330,7 @@ const T = {
     good: "Gut",
     super: "Super!",
     profilePic: "Profilbild",
-    profilePicSub: "Wird als kleiner Thumbnail (48×48) gespeichert.",
+    profilePicSub: "Wird als Thumbnail (96×96) gespeichert.",
     change: "Ändern",
     remove: "Entfernen",
     savedOk: "Gespeichert!",
@@ -443,7 +453,7 @@ const T = {
     good: "Good",
     super: "Great!",
     profilePic: "Profile picture",
-    profilePicSub: "Saved as small thumbnail (48×48).",
+    profilePicSub: "Saved as thumbnail (96×96).",
     change: "Change",
     remove: "Remove",
     savedOk: "Saved!",
@@ -661,10 +671,10 @@ const COLORS = ["#F5631A","#FF8A3D","#F59E0B","#D97706","#F43F5E","#DC2626","#C2
 const EMOJI_PRESETS = ["📚","📖","🧠","🔬","💼","🎨","💻","⚽","🎵","🌍","🏥","⚖️","🧮","📐","🎯","✨","🔥","🚀","💡","📊"];
 const isEmojiMark = m => !!m && typeof m === "string" && !m.startsWith("#");
 // Safely resize an image file to a TINY thumbnail for JWT-safe storage.
-// 48×48 at JPEG 50% ≈ 1-2 KB — small enough to live inside user_metadata
+// 96×96 at JPEG 35% ≈ 2-4 KB — sharper but still JWT-safe
 // without bloating the JWT token (which caused 520 errors at ~30KB+).
-const MAX_AVATAR_BYTES = 3500; // hard cap — reject if bigger
-const resizeImageDataUrl = (file, maxSize=48, quality=0.5) => new Promise((resolve, reject) => {
+const MAX_AVATAR_BYTES = 4500; // hard cap — reject if bigger
+const resizeImageDataUrl = (file, maxSize=96, quality=0.35) => new Promise((resolve, reject) => {
   const reader = new FileReader();
   reader.onload = ev => {
     const img = new Image();
@@ -1500,7 +1510,11 @@ function HomeView({userName,data,rootFolders,onSelectFolder,t,lang}){
         "Your brain is ready! 🧬","Learn first, chill later! 😎","New round, new chances! 🍀",
         "Morning routine: study! ✅","What's on the agenda? 📋","Step by step! 👣",
         "You're doing amazing! 🌟","Knowledge is power! 💡","Learned something today? 🤔",
-        "Motivation is everything! 🔥","Ready? Set? Learn! 🏁","A great day to study! 🎓"
+        "Motivation is everything! 🔥","Ready? Set? Learn! 🏁","A great day to study! 🎓",
+        "Brain: activated! 🔋","Make today count! 🗓️","Fresh day, sharp mind! 🔪","One card at a time! 🃏",
+        "Your potential is unlimited! 🌈","Build something great! 🏗️","Small steps, big results! 🪜",
+        "Focus mode: engaged! 🎯","Morning momentum! 🏄","Discipline beats talent! 🥊",
+        "You showed up — that's half the battle! 🫡","Crush it today! 🫶"
       ],
       midday: [
         "Keep going! 🎯","Stay productive! 💡","Let's do this! 🔥","Use that lunch break! 📚",
@@ -1510,7 +1524,11 @@ function HomeView({userName,data,rootFolders,onSelectFolder,t,lang}){
         "Quick card session? ⏱️","Every minute counts! ⏰","Consistency pays off! 📈",
         "Quick session? 🎯","Focus time! 🎧","Keep pushing! 💫","Halfway there! 🏅",
         "Lunch & Learn! 🥪","Your future self thanks you! 🙏","Don't stop now! 🚀",
-        "Own the midday! ☀️","Keep the momentum! 🌊"
+        "Own the midday! ☀️","Keep the momentum! 🌊",
+        "Refuel your brain! 🧃","Midday grind! 🔧","Stack those wins! 🧱","Progress over perfection! ✅",
+        "Be relentless! 🐺","Small effort, huge payoff! 🎰","You're building something! 🏗️",
+        "Lunch break hero! 🦸","Stay curious! 🔍","Just 5 more minutes! ⏳",
+        "Make it count! 💰","Brain food time! 🍕","No excuses! 💥","Midday champion! 🏆","Flow state! 🌀"
       ],
       afternoon: [
         "Keep going! 🎯","Stay with it! 💪","You got this! ✨","Afternoon push! 🚀",
@@ -1520,7 +1538,12 @@ function HomeView({userName,data,rootFolders,onSelectFolder,t,lang}){
         "One more set? 📚","Level up today! 📊","Push through! 💥",
         "You're getting better every day! 📈","Not done yet? Good! 🙌","Challenge accepted! 🏋️",
         "Your effort will pay off! 🎁","Don't let up! ⚡","So close! 🎯",
-        "Last round for today? 🔔","You'll master it soon! 🧠"
+        "Last round for today? 🔔","You'll master it soon! 🧠",
+        "Afternoon energy! ☕","The grind doesn't stop! 🔄","Peak productivity! 📊",
+        "Strong finish incoming! 🎬","You've come so far! 🛤️","Sprint to the end! 🏃‍♂️",
+        "Close out strong! 💪","Knowledge stacks up! 📚","Discipline is freedom! 🗽",
+        "Your brain says thanks! 🧠","Finish what you started! 🎯","Make yourself proud! 🥹",
+        "The results will show! 🪞","Daily progress! 📆","Afternoon warrior! ⚔️"
       ],
       evening: [
         "One more round? 🌙","Final push for today! ✨","After-work session? 📚",
@@ -1531,7 +1554,12 @@ function HomeView({userName,data,rootFolders,onSelectFolder,t,lang}){
         "Evening routine: study! 📖","Invest in yourself! 💎","Netflix can wait! 📺",
         "Calm but effective! 🎯","One more card than yesterday! 📊","Beautiful evening to learn! 🌙",
         "You never give up! 💪","End the day smart! 🎓","Take knowledge into your dreams! 😴",
-        "Short round, big impact! ⚡","Evening motivation! 🔥"
+        "Short round, big impact! ⚡","Evening motivation! 🔥",
+        "Golden hour for learning! 🌇","Reflect and grow! 🌿","Your evening reward! 🎖️",
+        "Quiet mind, sharp recall! 🧘‍♂️","Wrap it up nicely! 🎀","Perfect time to review! 📝",
+        "Evening excellence! 🌟","Slow and steady wins! 🐢","Unwind with flashcards! 🧩",
+        "Today was productive — one more? 🙏","Mental workout! 🧠","The evening is yours! 🌆",
+        "Peaceful study session! ☮️","Quality over quantity! 💫","Sweet dreams start with knowledge! 🍯"
       ],
       night: [
         "Late session? 🦉","Learning has no schedule! 🌟","A few more cards? 💫",
@@ -1542,7 +1570,12 @@ function HomeView({userName,data,rootFolders,onSelectFolder,t,lang}){
         "Secret weapon: night study! 🥷","Tomorrow you'll be glad! 🌅","One more set! 🃏",
         "Silent night, clever night! 🎶","Your knowledge grows overnight! 🌱",
         "Hustle mode: ON! 💻","Night owl at work! 🦉","Focus level: Maximum! 🔮",
-        "No stopping in sight! 🚂","Legendary effort! ⭐"
+        "No stopping in sight! 🚂","Legendary effort! ⭐",
+        "Burning the midnight oil! 🕯️","While the world sleeps! 🌍","Dark mode: learning! 🖥️",
+        "Nocturnal genius! 🧪","3 AM productivity! ⏰","Stars are out, so are you! ⭐",
+        "Night shift champion! 🏅","After hours excellence! 🌃","Moonlit study session! 🌕",
+        "The grind never sleeps! 💤","Peak quiet, peak focus! 🔇","Night warrior! ⚔️",
+        "Just you and the cards! 🃏","Midnight momentum! 🕛","Unstoppable energy! ⚡"
       ]
     } : {
       morning: [
@@ -1553,7 +1586,11 @@ function HomeView({userName,data,rootFolders,onSelectFolder,t,lang}){
         "Dein Gehirn ist bereit! 🧬","Erst lernen, dann chillen! 😎","Neue Runde, neues Glück! 🍀",
         "Morgenroutine: Lernen! ✅","Was steht heute an? 📋","Schritt für Schritt! 👣",
         "Du machst das großartig! 🌟","Wissen ist Macht! 💡","Heute schon was gelernt? 🤔",
-        "Motivation ist alles! 🔥","Ready? Set? Learn! 🏁","Ein guter Tag zum Lernen! 🎓"
+        "Motivation ist alles! 🔥","Ready? Set? Learn! 🏁","Ein guter Tag zum Lernen! 🎓",
+        "Gehirn: aktiviert! 🔋","Mach den Tag zählen! 🗓️","Frischer Tag, klarer Kopf! 🔪",
+        "Eine Karte nach der anderen! 🃏","Dein Potenzial ist grenzenlos! 🌈","Bau was Großes! 🏗️",
+        "Kleine Schritte, große Ergebnisse! 🪜","Fokus-Modus: aktiviert! 🎯","Morgen-Momentum! 🏄",
+        "Disziplin schlägt Talent! 🥊","Du bist da — das ist die halbe Miete! 🫡","Zerstör's heute! 🫶"
       ],
       midday: [
         "Weiter geht's! 🎯","Produktiv bleiben! 💡","Auf geht's! 🔥","Mittagspause nutzen! 📚",
@@ -1563,7 +1600,11 @@ function HomeView({userName,data,rootFolders,onSelectFolder,t,lang}){
         "Schnell ein paar Karten? ⏱️","Jede Minute zählt! ⏰","Dranbleiben zahlt sich aus! 📈",
         "Quick Session? 🎯","Fokus-Zeit! 🎧","Keep pushing! 💫","Schon halb geschafft! 🏅",
         "Lunch & Learn! 🥪","Dein Future Self dankt dir! 🙏","Nicht aufhören! 🚀",
-        "Die Mitte des Tages gehört dir! ☀️","Momentum beibehalten! 🌊"
+        "Die Mitte des Tages gehört dir! ☀️","Momentum beibehalten! 🌊",
+        "Tank dein Gehirn auf! 🧃","Mittags-Grind! 🔧","Siege stapeln! 🧱","Fortschritt vor Perfektion! ✅",
+        "Sei unerbittlich! 🐺","Kleiner Aufwand, riesiger Effekt! 🎰","Du baust an was! 🏗️",
+        "Mittagspausen-Held! 🦸","Bleib neugierig! 🔍","Nur noch 5 Minuten! ⏳",
+        "Mach es zählen! 💰","Brainfood-Time! 🍕","Keine Ausreden! 💥","Mittags-Champion! 🏆","Flow-State! 🌀"
       ],
       afternoon: [
         "Weiter geht's! 🎯","Bleib dran! 💪","Du schaffst das! ✨","Nachmittags-Push! 🚀",
@@ -1573,7 +1614,12 @@ function HomeView({userName,data,rootFolders,onSelectFolder,t,lang}){
         "Ein Set noch? 📚","Heute noch ein Level up! 📊","Durchziehen! 💥",
         "Du wirst jeden Tag besser! 📈","Noch nicht fertig? Gut so! 🙌","Challenge accepted! 🏋️",
         "Dein Einsatz wird belohnt! 🎁","Nicht nachlassen! ⚡","So nah dran! 🎯",
-        "Letzte Runde für heute? 🔔","Bald hast du's drauf! 🧠"
+        "Letzte Runde für heute? 🔔","Bald hast du's drauf! 🧠",
+        "Nachmittags-Energie! ☕","Der Grind hört nicht auf! 🔄","Höchste Produktivität! 📊",
+        "Starkes Finish incoming! 🎬","Du bist so weit gekommen! 🛤️","Sprint zum Ende! 🏃‍♂️",
+        "Stark abschließen! 💪","Wissen türmt sich auf! 📚","Disziplin ist Freiheit! 🗽",
+        "Dein Gehirn sagt danke! 🧠","Bring zu Ende was du angefangen hast! 🎯","Mach dich stolz! 🥹",
+        "Die Ergebnisse werden kommen! 🪞","Täglicher Fortschritt! 📆","Nachmittags-Krieger! ⚔️"
       ],
       evening: [
         "Noch eine Runde? 🌙","Endspurt für heute! ✨","Feierabend-Session? 📚",
@@ -1584,7 +1630,12 @@ function HomeView({userName,data,rootFolders,onSelectFolder,t,lang}){
         "Abend-Routine: Lernen! 📖","Investiere in dich! 💎","Netflix kann warten! 📺",
         "Ruhig aber effektiv! 🎯","Eine Karte mehr als gestern! 📊","Schöner Abend zum Lernen! 🌙",
         "Du gibst nicht auf! 💪","Klug den Tag beenden! 🎓","Wissen mitnehmen in den Schlaf! 😴",
-        "Kurze Runde, großer Effekt! ⚡","Abend-Motivation! 🔥"
+        "Kurze Runde, großer Effekt! ⚡","Abend-Motivation! 🔥",
+        "Goldene Stunde zum Lernen! 🌇","Reflektieren und wachsen! 🌿","Deine Abend-Belohnung! 🎖️",
+        "Ruhiger Geist, scharfes Gedächtnis! 🧘‍♂️","Schön abrunden! 🎀","Perfekte Zeit zum Wiederholen! 📝",
+        "Abend-Exzellenz! 🌟","Langsam und stetig gewinnt! 🐢","Entspannen mit Karteikarten! 🧩",
+        "Produktiver Tag — noch eine Runde? 🙏","Mental-Workout! 🧠","Der Abend gehört dir! 🌆",
+        "Friedliche Lernsession! ☮️","Qualität vor Quantität! 💫","Süße Träume fangen mit Wissen an! 🍯"
       ],
       night: [
         "Späte Session? 🦉","Lernen kennt keine Uhrzeit! 🌟","Noch ein paar Karten? 💫",
@@ -1595,7 +1646,12 @@ function HomeView({userName,data,rootFolders,onSelectFolder,t,lang}){
         "Geheimwaffe: Nachtlernen! 🥷","Morgen wirst du froh sein! 🌅","One more set! 🃏",
         "Stille Nacht, kluge Nacht! 🎶","Dein Wissen wächst auch nachts! 🌱",
         "Hustle mode: ON! 💻","Nachteule am Werk! 🦉","Focus level: Maximum! 🔮",
-        "Kein Stoppen in Sicht! 🚂","Legendärer Einsatz! ⭐"
+        "Kein Stoppen in Sicht! 🚂","Legendärer Einsatz! ⭐",
+        "Mitternachtsöl brennt! 🕯️","Während die Welt schläft! 🌍","Dark Mode: Lernen! 🖥️",
+        "Nächtliches Genie! 🧪","3-Uhr-Produktivität! ⏰","Sterne draußen, du auch! ⭐",
+        "Nachtschicht-Champion! 🏅","After-Hours-Exzellenz! 🌃","Mondschein-Session! 🌕",
+        "Der Grind schläft nie! 💤","Maximale Stille, maximaler Fokus! 🔇","Nacht-Krieger! ⚔️",
+        "Nur du und die Karten! 🃏","Mitternachts-Momentum! 🕛","Unaufhaltsame Energie! ⚡"
       ]
     };
     let period;
@@ -1947,7 +2003,7 @@ function ProfileModal({user,userName,onLogout,onClose,hideShared,setHideShared,o
         <div style={{fontSize:12,fontWeight:600,color:"var(--muted)",textTransform:"uppercase",letterSpacing:".06em"}}>{t.news}</div>
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--muted2)" strokeWidth="2.5" style={{transition:"transform .2s",transform:showLog?"rotate(90deg)":"rotate(0deg)"}}><path d="M9 18l6-6-6-6"/></svg>
       </button>
-      {showLog && CHANGELOG.slice(0,3).map(v => (
+      {showLog && (CHANGELOG[lang]||CHANGELOG.de).slice(0,3).map(v => (
         <div key={v.version} style={{marginBottom:12}}>
           <div style={{fontSize:13,fontWeight:600,color:"var(--text)",marginBottom:4}}>v{v.version} · {v.date}</div>
           <ul style={{margin:0,paddingLeft:18,fontSize:12,color:"var(--muted)",lineHeight:1.7}}>
