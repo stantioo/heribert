@@ -1516,24 +1516,42 @@ function SetCard({set,cardCount,progress,onClick,onLearn,onDelete,onRename,t}){
 }
 
 function CardRow({card,onEdit,onDelete,onCopy,onMove,readOnly,t}) {
-  const [open,setOpen]=useState(false); const ri=card.lastRating!=null?RATINGS[card.lastRating]:null;
-  const ICopy=()=><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>;
-  const IMove=()=><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>;
-  return (<div style={{background:"var(--glass)",backdropFilter:"blur(18px) saturate(140%)",WebkitBackdropFilter:"blur(18px) saturate(140%)",border:"1px solid rgba(245,99,26,.12)",borderRadius:"var(--r-md)",overflow:"hidden",boxShadow:"0 2px 10px rgba(245,99,26,.06),var(--glass-inset)"}}>
-    <div style={{display:"flex",alignItems:"center",gap:12,padding:"14px 16px",cursor:"pointer"}} onClick={()=>setOpen(p=>!p)}>
-      <div style={{flex:1,overflow:"hidden",fontSize:14,fontWeight:500,whiteSpace:"nowrap",textOverflow:"ellipsis"}} dangerouslySetInnerHTML={{__html:card.questionHtml||"<em style='color:var(--muted2)'>Keine Frage</em>"}}/>
-      <div style={{display:"flex",alignItems:"center",gap:6,flexShrink:0}}>
-        {ri && <span style={{fontSize:16}}>{ri.emoji}</span>}
-        {onCopy && <button className="icon-btn edit" title={t?.copy||"Kopieren"} onClick={e=>{e.stopPropagation();onCopy();}}><ICopy/></button>}
-        {onMove && <button className="icon-btn edit" title={t?.move||"Verschieben"} onClick={e=>{e.stopPropagation();onMove();}}><IMove/></button>}
-        {!readOnly && onEdit && <button className="icon-btn edit" onClick={e=>{e.stopPropagation();onEdit();}}><IEdit/></button>}
-        {!readOnly && onDelete && <button className="icon-btn" onClick={e=>{e.stopPropagation();onDelete();}}><ITrash/></button>}
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--muted2)" strokeWidth="2.5" style={{transform:open?"rotate(90deg)":"rotate(0deg)",transition:"transform .2s"}}><path d="M9 18l6-6-6-6"/></svg>
-      </div>
+  const [open,setOpen]=useState(false);
+  const [menuOpen,setMenuOpen]=useState(false);
+  const menuRef=useRef();
+  const ri=card.lastRating!=null?RATINGS[card.lastRating]:null;
+  // Close menu on outside click
+  useEffect(()=>{
+    if(!menuOpen)return;
+    const h=e=>{if(menuRef.current&&!menuRef.current.contains(e.target))setMenuOpen(false);};
+    document.addEventListener("click",h,true);
+    return()=>document.removeEventListener("click",h,true);
+  },[menuOpen]);
+  const MenuItem=({icon,label,danger,onClick})=>(
+    <button onClick={e=>{e.stopPropagation();setMenuOpen(false);onClick();}} style={{display:"flex",alignItems:"center",gap:8,width:"100%",padding:"8px 12px",border:"none",background:"none",cursor:"pointer",fontSize:13,fontWeight:500,color:danger?"var(--red)":"var(--text)",fontFamily:"inherit",borderRadius:8,transition:"background .12s",textAlign:"left"}} onMouseEnter={e=>e.currentTarget.style.background=danger?"var(--glass-danger)":"var(--glass-hover)"} onMouseLeave={e=>e.currentTarget.style.background="none"}>
+      {icon}{label}
+    </button>
+  );
+  return (<div style={{background:"var(--glass)",backdropFilter:"blur(18px) saturate(140%)",WebkitBackdropFilter:"blur(18px) saturate(140%)",border:"1px solid rgba(245,99,26,.12)",borderRadius:"var(--r-md)",overflow:"visible",boxShadow:"0 2px 10px rgba(245,99,26,.06),var(--glass-inset)"}}>
+    <div style={{display:"flex",alignItems:"center",gap:10,padding:"14px 16px",cursor:"pointer"}} onClick={()=>setOpen(p=>!p)}>
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--muted2)" strokeWidth="2.5" style={{transform:open?"rotate(90deg)":"rotate(0deg)",transition:"transform .2s",flexShrink:0}}><path d="M9 18l6-6-6-6"/></svg>
+      <div style={{flex:1,overflow:"hidden",fontSize:14,fontWeight:500,whiteSpace:"nowrap",textOverflow:"ellipsis"}} dangerouslySetInnerHTML={{__html:card.questionHtml||"<em style='color:var(--muted2)'>—</em>"}}/>
+      {ri && <span style={{fontSize:16,flexShrink:0}}>{ri.emoji}</span>}
+      {(!readOnly || onCopy) && <div ref={menuRef} style={{position:"relative",flexShrink:0}}>
+        <button onClick={e=>{e.stopPropagation();setMenuOpen(p=>!p);}} style={{width:28,height:28,borderRadius:8,border:"none",background:menuOpen?"var(--glass-hover)":"none",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",color:"var(--muted2)",transition:"all .12s"}} onMouseEnter={e=>e.currentTarget.style.color="var(--orange)"} onMouseLeave={e=>e.currentTarget.style.color="var(--muted2)"}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
+        </button>
+        {menuOpen && <div style={{position:"absolute",top:"100%",right:0,marginTop:4,minWidth:180,background:"var(--glass-modal)",backdropFilter:"blur(24px) saturate(150%)",WebkitBackdropFilter:"blur(24px) saturate(150%)",border:"1px solid var(--glass-bdr)",borderRadius:12,boxShadow:"var(--sh-lg)",padding:"4px",zIndex:20,animation:"scaleIn .12s ease"}}>
+          {onCopy && <MenuItem icon={<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>} label={t?.copy||"Kopieren"} onClick={onCopy}/>}
+          {onMove && <MenuItem icon={<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>} label={t?.move||"Verschieben"} onClick={onMove}/>}
+          {onEdit && <MenuItem icon={<IEdit/>} label={t?.editCard||"Bearbeiten"} onClick={onEdit}/>}
+          {onDelete && <MenuItem icon={<ITrash/>} label={t?.deleteConfirm?"Löschen":"Delete"} danger onClick={onDelete}/>}
+        </div>}
+      </div>}
     </div>
     {open && <div style={{borderTop:"1px solid rgba(245,99,26,.15)",padding:"14px 16px",background:"var(--glass-hover)",backdropFilter:"blur(10px)",WebkitBackdropFilter:"blur(10px)"}}>
-      <div style={{fontSize:12,fontWeight:600,color:"var(--orange)",marginBottom:8,textTransform:"uppercase",letterSpacing:".06em"}}>Antwort</div>
-      <div style={{fontSize:14,lineHeight:1.7}} dangerouslySetInnerHTML={{__html:card.answerHtml||"<em style='color:var(--muted2)'>Keine Antwort</em>"}}/>
+      <div style={{fontSize:12,fontWeight:600,color:"var(--orange)",marginBottom:8,textTransform:"uppercase",letterSpacing:".06em"}}>{t?.answer||"Antwort"}</div>
+      <div style={{fontSize:14,lineHeight:1.7}} dangerouslySetInnerHTML={{__html:card.answerHtml||"<em style='color:var(--muted2)'>—</em>"}}/>
     </div>}
   </div>);
 }
