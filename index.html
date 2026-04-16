@@ -180,6 +180,7 @@ html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;background:var(
 
 .overlay{position:fixed;inset:0;background:var(--overlay-bg);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);display:flex;align-items:center;justify-content:center;z-index:100;padding:20px;}
 .modal{position:relative;background:var(--glass-modal);backdrop-filter:blur(30px) saturate(150%);-webkit-backdrop-filter:blur(30px) saturate(150%);border-radius:var(--r-xl);box-shadow:var(--sh-lg),var(--glass-inset);border:1px solid var(--glass-bdr);width:100%;max-height:90vh;overflow-y:auto;animation:scaleIn .18s ease;}
+.modal-flex{overflow-y:hidden!important;display:flex!important;flex-direction:column!important;}
 .inline-edit{border:none;background:transparent;font:inherit;color:inherit;padding:0 4px;outline:none;border-radius:4px;}
 .inline-edit:focus{background:var(--ol);}
 
@@ -1968,9 +1969,9 @@ function StudyConfigModal({config,onStart,onClose,t}) {
     </div>
     <div style={{fontSize:13,fontWeight:600,color:"var(--muted)",marginBottom:10,textTransform:"uppercase",letterSpacing:".06em"}}>{t.cardCount}</div>
     <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:24}}>
-      <button className="btn-g" style={{padding:"6px 16px",fontSize:16}} onClick={()=>setCount(p=>Math.max(1,p-5))} disabled={total===0}>−</button>
+      <button className="btn-g" style={{padding:"6px 16px",fontSize:16}} onClick={()=>setCount(p=>Math.max(1,p-1))} disabled={total===0}>−</button>
       <div style={{flex:1,textAlign:"center",fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:22,color:total===0?"var(--muted2)":"var(--text)"}}>{count} / {total}</div>
-      <button className="btn-g" style={{padding:"6px 16px",fontSize:16}} onClick={()=>setCount(p=>Math.min(total,p+5))} disabled={total===0}>+</button>
+      <button className="btn-g" style={{padding:"6px 16px",fontSize:16}} onClick={()=>setCount(p=>Math.min(total,p+1))} disabled={total===0}>+</button>
     </div>
     {total===0 && <div style={{fontSize:12,color:"var(--red)",background:"rgba(254,226,226,.6)",border:"1px solid rgba(220,38,38,.25)",borderRadius:10,padding:"9px 12px",marginBottom:20,lineHeight:1.5}}>{t.noCardsFilter}</div>}
     <button className="btn-o" style={{width:"100%",justifyContent:"center",padding:"12px",fontSize:15,fontWeight:600}} disabled={total===0} onClick={()=>onStart({mode,count,cards:filtered})}>{t.startLearning}</button>
@@ -2056,10 +2057,10 @@ function ProfileModal({user,userName,onLogout,onClose,hideShared,setHideShared,o
       setErr(e?.message || "Bild konnte nicht geladen werden.");
     } finally { setUploading(false); }
   };
-  return(<div className="overlay" onClick={onClose}><div className="modal si" style={{maxWidth:460,padding:0,display:"flex",flexDirection:"column",overflowY:"hidden"}} onClick={e=>e.stopPropagation()}>
+  return(<div className="overlay" onClick={onClose}><div className="modal si modal-flex" style={{maxWidth:460,padding:0}} onClick={e=>e.stopPropagation()}>
     <div style={{flexShrink:0,padding:"24px 32px 12px",background:"var(--glass-modal)",borderBottom:"1px solid var(--border-soft)",display:"flex",alignItems:"flex-start",justifyContent:"space-between",borderRadius:"var(--r-xl) var(--r-xl) 0 0"}}>
       <div><h3 style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:20,marginBottom:4}}>{t.profile}</h3><p style={{color:"var(--muted)",fontSize:14}}>{user.email}</p></div>
-      <button onClick={onClose} title="Schließen" style={{width:30,height:30,borderRadius:10,border:"none",background:"var(--glass-hover)",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",color:"var(--muted)",transition:"all .15s",flexShrink:0}} onMouseEnter={e=>{e.currentTarget.style.color="var(--red)";e.currentTarget.style.background="var(--glass-danger)";}} onMouseLeave={e=>{e.currentTarget.style.color="var(--muted)";e.currentTarget.style.background="var(--glass-hover)";}}><IClose2/></button>
+      <button onClick={onClose} title="Schließen" style={{width:32,height:32,borderRadius:10,border:"1px solid var(--glass-bdr)",background:"var(--btn-sm-bg)",backdropFilter:"blur(12px)",WebkitBackdropFilter:"blur(12px)",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",color:"var(--muted)",transition:"all .15s",flexShrink:0,boxShadow:"var(--sh-sm)"}} onMouseEnter={e=>{e.currentTarget.style.color="var(--red)";e.currentTarget.style.background="var(--glass-danger)";e.currentTarget.style.borderColor="var(--red)";}} onMouseLeave={e=>{e.currentTarget.style.color="var(--muted)";e.currentTarget.style.background="var(--btn-sm-bg)";e.currentTarget.style.borderColor="var(--glass-bdr)";}}><IClose2/></button>
     </div>
     <div style={{flex:1,overflowY:"auto",padding:"16px 32px 32px",WebkitOverflowScrolling:"touch"}}>
     {ok&&<div style={{color:"var(--green)",fontWeight:500,marginBottom:16,padding:"10px 14px",background:"var(--gl)",borderRadius:10}}>✓ {t.savedOk}</div>}
@@ -2205,7 +2206,7 @@ function CardModal({card,saving,onSave,onClose,t}) {
 }
 
 function ModalX({onClose}){
-  return <button onClick={onClose} title="Schließen" style={{position:"absolute",top:16,right:16,zIndex:10,width:30,height:30,borderRadius:10,border:"none",background:"var(--glass-hover)",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",color:"var(--muted)",transition:"all .15s"}} onMouseEnter={e=>{e.currentTarget.style.color="var(--red)";e.currentTarget.style.background="var(--glass-danger)";}} onMouseLeave={e=>{e.currentTarget.style.color="var(--muted)";e.currentTarget.style.background="var(--glass-hover)";}}><IClose2/></button>;
+  return <button onClick={onClose} title="Schließen" style={{position:"absolute",top:16,right:16,zIndex:10,width:32,height:32,borderRadius:10,border:"1px solid var(--glass-bdr)",background:"var(--btn-sm-bg)",backdropFilter:"blur(12px)",WebkitBackdropFilter:"blur(12px)",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",color:"var(--muted)",transition:"all .15s",boxShadow:"var(--sh-sm)"}} onMouseEnter={e=>{e.currentTarget.style.color="var(--red)";e.currentTarget.style.background="var(--glass-danger)";e.currentTarget.style.borderColor="var(--red)";}} onMouseLeave={e=>{e.currentTarget.style.color="var(--muted)";e.currentTarget.style.background="var(--btn-sm-bg)";e.currentTarget.style.borderColor="var(--glass-bdr)";}}><IClose2/></button>;
 }
 function SimpleModal({title,onClose,children}) {
   return(<div className="overlay" onClick={onClose}><div className="modal si" style={{maxWidth:460,padding:32}} onClick={e=>e.stopPropagation()}>
