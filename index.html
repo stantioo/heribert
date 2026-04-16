@@ -1567,12 +1567,12 @@ function ProfileModal({user,userName,onLogout,onClose,hideShared,setHideShared,o
       setErr(e?.message || "Bild konnte nicht geladen werden.");
     } finally { setUploading(false); }
   };
-  return(<div className="overlay" onClick={onClose}><div className="modal si" style={{maxWidth:460,padding:0}} onClick={e=>e.stopPropagation()}>
-    <div style={{position:"sticky",top:0,zIndex:5,padding:"24px 32px 12px",background:"var(--glass-modal)",borderBottom:"1px solid var(--border-soft)",display:"flex",alignItems:"flex-start",justifyContent:"space-between"}}>
+  return(<div className="overlay" onClick={onClose}><div className="modal si" style={{maxWidth:460,padding:0,display:"flex",flexDirection:"column"}} onClick={e=>e.stopPropagation()}>
+    <div style={{flexShrink:0,padding:"24px 32px 12px",background:"var(--glass-modal)",borderBottom:"1px solid var(--border-soft)",display:"flex",alignItems:"flex-start",justifyContent:"space-between"}}>
       <div><h3 style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:20,marginBottom:4}}>Profil</h3><p style={{color:"var(--muted)",fontSize:14}}>{user.email}</p></div>
       <button onClick={onClose} title="Schließen" style={{width:30,height:30,borderRadius:10,border:"none",background:"var(--glass-hover)",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",color:"var(--muted)",transition:"all .15s",flexShrink:0}} onMouseEnter={e=>{e.currentTarget.style.color="var(--red)";e.currentTarget.style.background="var(--glass-danger)";}} onMouseLeave={e=>{e.currentTarget.style.color="var(--muted)";e.currentTarget.style.background="var(--glass-hover)";}}><IClose2/></button>
     </div>
-    <div style={{padding:"16px 32px 32px"}}>
+    <div style={{flex:1,overflowY:"auto",padding:"16px 32px 32px",WebkitOverflowScrolling:"touch"}}>
     {ok&&<div style={{color:"var(--green)",fontWeight:500,marginBottom:16,padding:"10px 14px",background:"var(--gl)",borderRadius:10}}>✓ Gespeichert!</div>}
     <div style={{display:"flex",alignItems:"center",gap:14,marginBottom:18,padding:"14px",background:"var(--glass-hover)",border:"1px solid rgba(245,99,26,.15)",borderRadius:14}}>
       <Avatar url={avatar} name={name} size={56}/>
