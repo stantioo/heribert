@@ -177,7 +177,7 @@ html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;background:var(
 .prog-fill.done{background:linear-gradient(90deg,#34D399,#16A34A);}
 
 .overlay{position:fixed;inset:0;background:var(--overlay-bg);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);display:flex;align-items:center;justify-content:center;z-index:100;padding:20px;}
-.modal{background:var(--glass-modal);backdrop-filter:blur(30px) saturate(150%);-webkit-backdrop-filter:blur(30px) saturate(150%);border-radius:var(--r-xl);box-shadow:var(--sh-lg),var(--glass-inset);border:1px solid var(--glass-bdr);width:100%;max-height:90vh;overflow-y:auto;animation:scaleIn .18s ease;}
+.modal{position:relative;background:var(--glass-modal);backdrop-filter:blur(30px) saturate(150%);-webkit-backdrop-filter:blur(30px) saturate(150%);border-radius:var(--r-xl);box-shadow:var(--sh-lg),var(--glass-inset);border:1px solid var(--glass-bdr);width:100%;max-height:90vh;overflow-y:auto;animation:scaleIn .18s ease;}
 .inline-edit{border:none;background:transparent;font:inherit;color:inherit;padding:0 4px;outline:none;border-radius:4px;}
 .inline-edit:focus{background:var(--ol);}
 
@@ -648,6 +648,7 @@ function Dashboard({session, onLogout}) {
   const [saving, setSaving] = useState(false);
   const mobile=useMobile();
   const [menuOpen,setMenuOpen]=useState(false);
+  const [sideCollapsed,setSideCollapsed]=useState(false);
   const [sideFilter,setSideFilter]=useState("all"); // "all"|"own"|"shared"
   // Shared-folder visibility preference (persisted in localStorage).
   const [hideShared, setHideSharedState] = useState(() => {
@@ -908,12 +909,17 @@ function Dashboard({session, onLogout}) {
   return (
     <div style={{display:"flex",height:"100vh",overflow:"hidden"}}>
       {mobile&&menuOpen&&<div className="mob-overlay" onClick={()=>setMenuOpen(false)}></div>}
-      <aside className={"hb-aside"+(mobile&&menuOpen?" open":"")} style={{width:"var(--sw)",minWidth:"var(--sw)",height:"100vh",background:"var(--sidebar-bg)",backdropFilter:"blur(26px) saturate(150%)",WebkitBackdropFilter:"blur(26px) saturate(150%)",borderRight:"1px solid rgba(245,99,26,.12)",display:"flex",flexDirection:"column",overflow:"hidden",boxShadow:"inset -1px 0 0 var(--glass-bdr)"}}>
-        <div style={{padding:"20px 18px 16px",borderBottom:"1px solid rgba(245,99,26,.12)",background:"var(--sidebar-hdr)"}}>
-          <button onClick={goHome} title="Zur Übersicht" style={{display:"block",border:"none",background:"none",padding:0,cursor:"pointer",fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:22,letterSpacing:"-.3px",textAlign:"left",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",backgroundImage:"var(--grad)"}}>Heribert ✦</button>
-          <div style={{fontSize:13,color:"var(--muted)",marginTop:4}}>Hallo, <b style={{color:"var(--text)"}}>{userName.split(" ")[0]}</b> 👋</div>
+      <aside className={"hb-aside"+(mobile&&menuOpen?" open":"")} style={{width:!mobile&&sideCollapsed?56:"var(--sw)",minWidth:!mobile&&sideCollapsed?56:"var(--sw)",height:"100vh",background:"var(--sidebar-bg)",backdropFilter:"blur(26px) saturate(150%)",WebkitBackdropFilter:"blur(26px) saturate(150%)",borderRight:"1px solid rgba(245,99,26,.12)",display:"flex",flexDirection:"column",overflow:"hidden",boxShadow:"inset -1px 0 0 var(--glass-bdr)",transition:mobile?"transform .28s ease":"width .2s ease,min-width .2s ease"}}>
+        <div style={{padding:!mobile&&sideCollapsed?"14px 10px 12px":"20px 18px 16px",borderBottom:"1px solid rgba(245,99,26,.12)",background:"var(--sidebar-hdr)",display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:6}}>
+          <div style={{overflow:"hidden",flex:1,minWidth:0}}>
+            <button onClick={goHome} title="Zur Übersicht" style={{display:"block",border:"none",background:"none",padding:0,cursor:"pointer",fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:!mobile&&sideCollapsed?16:22,letterSpacing:"-.3px",textAlign:"left",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",backgroundImage:"var(--grad)",whiteSpace:"nowrap"}}>{!mobile&&sideCollapsed?"H✦":"Heribert ✦"}</button>
+            {(!mobile&&sideCollapsed)?null:<div style={{fontSize:13,color:"var(--muted)",marginTop:4}}>Hallo, <b style={{color:"var(--text)"}}>{userName.split(" ")[0]}</b> 👋</div>}
+          </div>
+          {!mobile && <button onClick={()=>setSideCollapsed(p=>!p)} title={sideCollapsed?"Sidebar ausklappen":"Sidebar einklappen"} style={{border:"none",background:"none",cursor:"pointer",padding:4,display:"flex",alignItems:"center",justifyContent:"center",color:"var(--muted2)",borderRadius:6,transition:"all .15s",flexShrink:0,marginTop:2}} onMouseEnter={e=>e.currentTarget.style.color="var(--orange)"} onMouseLeave={e=>e.currentTarget.style.color="var(--muted2)"}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{transition:"transform .2s",transform:sideCollapsed?"rotate(180deg)":"rotate(0deg)"}}><path d="M15 18l-6-6 6-6"/></svg>
+          </button>}
         </div>
-        <div style={{flex:1,overflowY:"auto",padding:"10px 8px"}}>
+        <div style={{flex:1,overflowY:"auto",padding:"10px 8px",display:!mobile&&sideCollapsed?"none":"block"}}>
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"8px 10px 6px"}}>
             <div style={{fontSize:11,fontWeight:600,color:"var(--muted2)",letterSpacing:".08em",textTransform:"uppercase"}}>Lernbereiche</div>
             {sharedFolders.length>0 && <div style={{display:"flex",gap:2}}>
@@ -1317,6 +1323,7 @@ function StudyConfigModal({config,onStart,onClose}) {
   });
   const allActive = active.size === RATING_FILTERS.length;
   return (<div className="overlay" onClick={onClose}><div className="modal si" style={{maxWidth:500,padding:32}} onClick={e=>e.stopPropagation()}>
+    <ModalX onClose={onClose}/>
     <h3 style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:22,marginBottom:6}}>Lernen einrichten</h3>
     <p style={{color:"var(--muted)",fontSize:14,marginBottom:20}}>
       {isFolder ? <><b style={{color:"var(--text)"}}>{config.sourceName}</b> · </> : null}
@@ -1437,6 +1444,9 @@ function ProfileModal({user,userName,onLogout,onClose,hideShared,setHideShared,o
       const updates={data:{display_name:name.trim(),avatar_url:avatar}};if(pw)updates.password=pw;
       const {error}=await sb.auth.updateUser(updates);
       if(error){setErr(error.message);return;}
+      // Sync to public profiles table so other users can see our avatar.
+      // Best-effort: if profiles table doesn't exist, silently skip.
+      try { await sb.from("profiles").upsert({id:user.id,email:(user.email||"").toLowerCase(),display_name:name.trim(),avatar_url:avatar,updated_at:new Date().toISOString()},{onConflict:"id"}); } catch {}
       setOk(true);
     }finally{setBusy(false);}
   };
@@ -1451,6 +1461,7 @@ function ProfileModal({user,userName,onLogout,onClose,hideShared,setHideShared,o
     } finally { setUploading(false); }
   };
   return(<div className="overlay" onClick={onClose}><div className="modal si" style={{maxWidth:460,padding:32}} onClick={e=>e.stopPropagation()}>
+    <ModalX onClose={onClose}/>
     <h3 style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:20,marginBottom:4}}>Profil</h3>
     <p style={{color:"var(--muted)",fontSize:14,marginBottom:20}}>{user.email}</p>
     {ok&&<div style={{color:"var(--green)",fontWeight:500,marginBottom:16,padding:"10px 14px",background:"var(--gl)",borderRadius:10}}>✓ Gespeichert!</div>}
@@ -1498,6 +1509,7 @@ function FolderModal({onSave,onClose,initial}) {
   const [customEmoji,setCustomEmoji]=useState("");
   const submit = () => { if(name.trim()) onSave(name.trim(), mark); };
   return(<div className="overlay" onClick={onClose}><div className="modal si" style={{maxWidth:420,padding:32}} onClick={e=>e.stopPropagation()}>
+    <ModalX onClose={onClose}/>
     <h3 style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:20,marginBottom:4,display:"flex",alignItems:"center",gap:10}}>
       <FolderMark mark={mark} size={26}/>
       {editing ? "Lernbereich bearbeiten" : "Neuer Lernbereich"}
@@ -1533,6 +1545,7 @@ function FolderModal({onSave,onClose,initial}) {
 function SetModal({onSave,onClose}) {
   const [name,setName]=useState(""); const [desc,setDesc]=useState("");
   return(<div className="overlay" onClick={onClose}><div className="modal si" style={{maxWidth:400,padding:32}} onClick={e=>e.stopPropagation()}>
+    <ModalX onClose={onClose}/>
     <h3 style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:20,marginBottom:20}}>Neues Set</h3>
     <Inp label="Name" placeholder="z.B. Kapitel 3 …" value={name} onChange={setName}/>
     <Inp label="Beschreibung (optional)" placeholder="Worum geht es?" value={desc} onChange={setDesc} onEnter={()=>name.trim()&&onSave(name.trim(),desc)}/>
@@ -1552,7 +1565,7 @@ function CardModal({card,saving,onSave,onClose}) {
   </div>);
   const save=()=>{const q=qRef.current?.innerHTML||"";const a=aRef.current?.innerHTML||"";if(!strip(q)&&!strip(a))return;onSave({...(card||{}),questionHtml:q,answerHtml:a,mcqOptions:null});};
   return(<div className="overlay" onClick={onClose}><div className="modal si" style={{maxWidth:580,padding:0}} onClick={e=>e.stopPropagation()}>
-    <div style={{padding:"24px 28px 16px",borderBottom:"1px solid var(--border)",background:"linear-gradient(160deg,#FFF8F4,#FFF)"}}><h3 style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:18}}>{card?"Karte bearbeiten":"Neue Karte"}</h3></div>
+    <div style={{padding:"24px 28px 16px",borderBottom:"1px solid var(--border)",background:"linear-gradient(160deg,#FFF8F4,#FFF)",position:"relative"}}><ModalX onClose={onClose}/><h3 style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:18}}>{card?"Karte bearbeiten":"Neue Karte"}</h3></div>
     {[{label:"Frage",ref:qRef,ph:"Frage eingeben \u2026"},{label:"Antwort",ref:aRef,ph:"Antwort eingeben \u2026"}].map(({label,ref,ph})=>(<div key={label} style={{borderBottom:"1px solid var(--border)"}}>
       <div style={{fontSize:12,fontWeight:600,color:"var(--muted)",padding:"10px 14px 0",textTransform:"uppercase",letterSpacing:".06em"}}>{label}</div>
       <ToolBar targetRef={ref}/>
@@ -1565,8 +1578,12 @@ function CardModal({card,saving,onSave,onClose}) {
   </div></div>);
 }
 
+function ModalX({onClose}){
+  return <button onClick={onClose} title="Schließen" style={{position:"absolute",top:16,right:16,zIndex:10,width:30,height:30,borderRadius:10,border:"none",background:"var(--glass-hover)",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",color:"var(--muted)",transition:"all .15s"}} onMouseEnter={e=>{e.currentTarget.style.color="var(--red)";e.currentTarget.style.background="var(--glass-danger)";}} onMouseLeave={e=>{e.currentTarget.style.color="var(--muted)";e.currentTarget.style.background="var(--glass-hover)";}}><IClose2/></button>;
+}
 function SimpleModal({title,onClose,children}) {
   return(<div className="overlay" onClick={onClose}><div className="modal si" style={{maxWidth:460,padding:32}} onClick={e=>e.stopPropagation()}>
+    {onClose && <ModalX onClose={onClose}/>}
     <h3 style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:20,marginBottom:16}}>{title}</h3>
     {children}
   </div></div>);
@@ -1577,6 +1594,7 @@ function FolderShareModal({folder,folderSets,ownerEmail,ownerId,ownerAvatar,owne
   // set_shares row for E. We aggregate across all sets in the folder so the
   // user can manage sharing at the folder level.
   const [rows,setRows]=useState([]);
+  const [pMap,setPMap]=useState({});
   const [email,setEmail]=useState("");
   const [canEdit,setCanEdit]=useState(false);
   const [err,setErr]=useState("");
@@ -1590,7 +1608,17 @@ function FolderShareModal({folder,folderSets,ownerEmail,ownerId,ownerAvatar,owne
     setLoading(true);
     if (setIds.length === 0) { setRows([]); setLoading(false); return; }
     const {data, error} = await sb.from("set_shares").select("*").in("set_id", setIds).order("created_at",{ascending:false});
-    if (!error) setRows(data||[]);
+    if (!error) {
+      setRows(data||[]);
+      const emails = Array.from(new Set((data||[]).map(r=>(r.invited_email||"").toLowerCase()).filter(Boolean)));
+      if (emails.length) {
+        try {
+          const {data:pr} = await sb.from("profiles").select("email,avatar_url,display_name").in("email",emails);
+          const m = {}; for (const p of (pr||[])) m[(p.email||"").toLowerCase()] = p;
+          setPMap(m);
+        } catch {}
+      }
+    }
     setLoading(false);
   };
   useEffect(()=>{ if(folder) load(); }, [folder?.id, folderSets.length]);
@@ -1645,6 +1673,7 @@ function FolderShareModal({folder,folderSets,ownerEmail,ownerId,ownerAvatar,owne
   if (!folder) return null;
   return (<div className="overlay" onClick={onClose}><div className="modal si" style={{maxWidth:480,padding:0}} onClick={e=>e.stopPropagation()}>
     <div style={{padding:"22px 26px 14px",borderBottom:"1px solid var(--border)",background:"linear-gradient(160deg,#FFF3EC,#FFE0E4)"}}>
+      <ModalX onClose={onClose}/>
       <h3 style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:19,marginBottom:2,display:"flex",alignItems:"center",gap:8}}><FolderMark mark={folder.color} size={22}/> Ordner teilen</h3>
       <div style={{fontSize:13,color:"var(--muted)"}}>„{folder.name}" · {setIds.length} Set{setIds.length===1?"":"s"} — eingeladene Personen sehen alle Sets in diesem Ordner</div>
     </div>
@@ -1677,11 +1706,12 @@ function FolderShareModal({folder,folderSets,ownerEmail,ownerId,ownerAvatar,owne
           {grouped.length===0 ? <div style={{fontSize:13,color:"var(--muted2)",padding:"8px 2px"}}>Noch niemand eingeladen.</div>
             : grouped.map(g => {
               const partial = g.coverage < setIds.length;
+              const pr = pMap[(g.email||"").toLowerCase()]||{};
               return (
               <div key={g.email} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 12px",background:"var(--card-bg)",backdropFilter:"blur(14px)",WebkitBackdropFilter:"blur(14px)",border:"1px solid var(--glass-bdr)",borderRadius:12,boxShadow:"0 2px 6px rgba(245,99,26,.05)"}}>
-                <Avatar name={g.email} size={32}/>
+                <Avatar url={pr.avatar_url} name={pr.display_name||g.email} size={32}/>
                 <div style={{flex:1,overflow:"hidden"}}>
-                  <div style={{fontSize:13,fontWeight:600,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{g.email}</div>
+                  <div style={{fontSize:13,fontWeight:600,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{pr.display_name||g.email}</div>
                   <div style={{fontSize:11,color:partial?"var(--amber)":"var(--muted2)",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{g.canEdit ? "Kann bearbeiten" : "Nur lesen"}{!partial && ` · ${new Date(g.createdAt).toLocaleDateString("de-DE")}`}</div>
                 </div>
                 <button onClick={async()=>{const nv=!g.canEdit;const upd={can_edit:nv};await Promise.all(g.rowIds.map(id=>sb.from("set_shares").update(upd).eq("id",id)));load();}} title={g.canEdit?"Auf nur-lesen setzen":"Bearbeitungsrechte geben"} style={{width:28,height:28,borderRadius:7,border:`1.5px solid ${g.canEdit?"var(--orange)":"var(--border)"}`,background:g.canEdit?"var(--orange)":"transparent",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",transition:"all .15s",flexShrink:0}}>
