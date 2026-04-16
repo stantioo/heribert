@@ -180,7 +180,7 @@ html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;background:var(
 
 .overlay{position:fixed;inset:0;background:var(--overlay-bg);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);display:flex;align-items:center;justify-content:center;z-index:100;padding:20px;}
 .modal{position:relative;background:var(--glass-modal);backdrop-filter:blur(30px) saturate(150%);-webkit-backdrop-filter:blur(30px) saturate(150%);border-radius:var(--r-xl);box-shadow:var(--sh-lg),var(--glass-inset);border:1px solid var(--glass-bdr);width:100%;max-height:90vh;overflow-y:auto;animation:scaleIn .18s ease;}
-.modal-flex{overflow-y:hidden!important;display:flex!important;flex-direction:column!important;}
+.modal-flex{overflow-y:hidden!important;overflow-x:hidden!important;display:flex!important;flex-direction:column!important;padding-bottom:0!important;}
 .inline-edit{border:none;background:transparent;font:inherit;color:inherit;padding:0 4px;outline:none;border-radius:4px;}
 .inline-edit:focus{background:var(--ol);}
 
@@ -2062,7 +2062,7 @@ function ProfileModal({user,userName,onLogout,onClose,hideShared,setHideShared,o
       <div><h3 style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:20,marginBottom:4}}>{t.profile}</h3><p style={{color:"var(--muted)",fontSize:14}}>{user.email}</p></div>
       <button onClick={onClose} title="Schließen" style={{width:32,height:32,borderRadius:10,border:"1px solid var(--glass-bdr)",background:"var(--btn-sm-bg)",backdropFilter:"blur(12px)",WebkitBackdropFilter:"blur(12px)",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",color:"var(--muted)",transition:"all .15s",flexShrink:0,boxShadow:"var(--sh-sm)"}} onMouseEnter={e=>{e.currentTarget.style.color="var(--red)";e.currentTarget.style.background="var(--glass-danger)";e.currentTarget.style.borderColor="var(--red)";}} onMouseLeave={e=>{e.currentTarget.style.color="var(--muted)";e.currentTarget.style.background="var(--btn-sm-bg)";e.currentTarget.style.borderColor="var(--glass-bdr)";}}><IClose2/></button>
     </div>
-    <div style={{flex:1,overflowY:"auto",padding:"16px 32px 32px",WebkitOverflowScrolling:"touch"}}>
+    <div style={{flex:"1 1 0",minHeight:0,overflowY:"auto",padding:"16px 32px calc(32px + var(--safe-b))",WebkitOverflowScrolling:"touch"}}>
     {ok&&<div style={{color:"var(--green)",fontWeight:500,marginBottom:16,padding:"10px 14px",background:"var(--gl)",borderRadius:10}}>✓ {t.savedOk}</div>}
     <div style={{marginBottom:16}}>
       <label style={{display:"block",fontSize:13,fontWeight:500,color:"var(--muted)",marginBottom:6}}>{t.language}</label>
