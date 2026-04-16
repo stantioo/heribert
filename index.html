@@ -807,7 +807,8 @@ function useDarkMode(){
 function Star({spin}){
   return <span style={{display:"inline-block",background:"var(--grad)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",animation:spin?"starSpin 1.4s cubic-bezier(.4,0,.15,1) both":"none"}}>✦</span>;
 }
-function SplashScreen({name,onDone}){
+function SplashScreen({name,onDone,lang}){
+  const en = lang==="en";
   const E=["🎯","📚","⚡","🚀","✨","🧠"][Math.floor(Math.random()*6)];
   useEffect(()=>{const t=setTimeout(onDone,1900);return()=>clearTimeout(t);},[]);
   return(
@@ -815,8 +816,8 @@ function SplashScreen({name,onDone}){
       <div className="splash-in" style={{textAlign:"center"}}>
         <div style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:22,background:"var(--grad)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",marginBottom:16}}>Heribert <Star spin/></div>
         <div style={{fontSize:52,marginBottom:16}}>{E}</div>
-        <div style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:22,color:"var(--text)",marginBottom:8}}>Willkommen zurück, {name}!</div>
-        <div style={{fontSize:14,color:"var(--muted)"}}>Weiter geht's 👋</div>
+        <div style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:22,color:"var(--text)",marginBottom:8}}>{en?"Welcome back, "+name+"!":"Willkommen zurück, "+name+"!"}</div>
+        <div style={{fontSize:14,color:"var(--muted)"}}>{en?"Let's go 👋":"Weiter geht's 👋"}</div>
       </div>
     </div>
   );
@@ -844,7 +845,8 @@ function App() {
 
   if (!session) return <AuthScreen/>;
   const uname=(session.user.user_metadata?.display_name||session.user.email.split("@")[0]).split(" ")[0];
-  return(<>{splash&&<SplashScreen name={uname} onDone={()=>setSplash(false)}/>}<Dashboard key={session.user.id} session={session} onLogout={()=>sb.auth.signOut()}/></>);
+  const splashLang = session.user.user_metadata?.lang || (()=>{try{return localStorage.getItem("heribert.lang")}catch{return null}})() || "de";
+  return(<>{splash&&<SplashScreen name={uname} lang={splashLang} onDone={()=>setSplash(false)}/>}<Dashboard key={session.user.id} session={session} onLogout={()=>sb.auth.signOut()}/></>);
 }
 
 // \u2500\u2500\u2500 AUTH \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
@@ -1489,7 +1491,60 @@ function HomeView({userName,data,rootFolders,onSelectFolder,t,lang}){
   const greetingRef = useRef(null);
   if (!greetingRef.current) {
     const h = new Date().getHours();
-    const suffixes = {
+    const suffixes = lang==="en" ? {
+      morning: [
+        "Ready to learn? ☀️","Let's go! 🚀","Rise and grind! 💪","Coffee & flashcards! ☕",
+        "Early bird gets the knowledge! 🐦","Start the day strong! ✨","Great start! 🌅",
+        "New day, new knowledge! 📖","Mornings are for learning! 🧠","Time for progress! 🏆",
+        "Gather some wisdom! 📚","Today's gonna be productive! ⚡","Clear mind, fresh start! 🌤️",
+        "Your brain is ready! 🧬","Learn first, chill later! 😎","New round, new chances! 🍀",
+        "Morning routine: study! ✅","What's on the agenda? 📋","Step by step! 👣",
+        "You're doing amazing! 🌟","Knowledge is power! 💡","Learned something today? 🤔",
+        "Motivation is everything! 🔥","Ready? Set? Learn! 🏁","A great day to study! 🎓"
+      ],
+      midday: [
+        "Keep going! 🎯","Stay productive! 💡","Let's do this! 🔥","Use that lunch break! 📚",
+        "Halftime — stay focused! ⚡","Still motivated? Let's go! 🏃","Power through! 💥",
+        "You're on a roll! 🙌","A quick peek pays off! 👀","Midday boost! ☕",
+        "Short break, big knowledge! 🧠","Keep it up! 💪","You're on fire! 🔥",
+        "Quick card session? ⏱️","Every minute counts! ⏰","Consistency pays off! 📈",
+        "Quick session? 🎯","Focus time! 🎧","Keep pushing! 💫","Halfway there! 🏅",
+        "Lunch & Learn! 🥪","Your future self thanks you! 🙏","Don't stop now! 🚀",
+        "Own the midday! ☀️","Keep the momentum! 🌊"
+      ],
+      afternoon: [
+        "Keep going! 🎯","Stay with it! 💪","You got this! ✨","Afternoon push! 🚀",
+        "Almost done for today! 🏁","Final stretch! 🔥","One more round? 📝","Keep it up! ⭐",
+        "The finish line! 🏆","Afternoon coffee & cards! ☕","You're almost through! 💫",
+        "Consistency beats everything! 🎖️","One more push! ⛽","Stay strong! 🦾",
+        "One more set? 📚","Level up today! 📊","Push through! 💥",
+        "You're getting better every day! 📈","Not done yet? Good! 🙌","Challenge accepted! 🏋️",
+        "Your effort will pay off! 🎁","Don't let up! ⚡","So close! 🎯",
+        "Last round for today? 🔔","You'll master it soon! 🧠"
+      ],
+      evening: [
+        "One more round? 🌙","Final push for today! ✨","After-work session? 📚",
+        "Evening study time! 🌆","Relax and learn? 🧠","Great time to review! 🔄",
+        "Wind down & learn! 🌟","Use the quiet! 🎧","It sticks better at night! 💡",
+        "Cozy flashcard time? 🛋️","Good day — make it perfect! ✅",
+        "Last session? 🌅","Ease into knowledge! 🧘","One more before bed! ⏳",
+        "Evening routine: study! 📖","Invest in yourself! 💎","Netflix can wait! 📺",
+        "Calm but effective! 🎯","One more card than yesterday! 📊","Beautiful evening to learn! 🌙",
+        "You never give up! 💪","End the day smart! 🎓","Take knowledge into your dreams! 😴",
+        "Short round, big impact! ⚡","Evening motivation! 🔥"
+      ],
+      night: [
+        "Late session? 🦉","Learning has no schedule! 🌟","A few more cards? 💫",
+        "Night owl mode! 🌙","Best ideas come at night! 💡","Quiet hour, full focus! 🎯",
+        "Night round! 🌌","You're unstoppable! 🔥","Everyone's sleeping, you're learning! 🏆",
+        "Dedication! 💎","Quiet night — perfect for learning! 🤫","Sleep is overrated! 😄",
+        "The night belongs to the dedicated! 🌃","Going the extra mile! 🏃","Respect the hustle! 👏",
+        "Secret weapon: night study! 🥷","Tomorrow you'll be glad! 🌅","One more set! 🃏",
+        "Silent night, clever night! 🎶","Your knowledge grows overnight! 🌱",
+        "Hustle mode: ON! 💻","Night owl at work! 🦉","Focus level: Maximum! 🔮",
+        "No stopping in sight! 🚂","Legendary effort! ⭐"
+      ]
+    } : {
       morning: [
         "Bereit zum Lernen? ☀️","Los geht's! 🚀","Frisch ans Werk! 💪","Kaffee & Karteikarten! ☕",
         "Der frühe Vogel lernt! 🐦","Starte produktiv in den Tag! ✨","Guter Start! 🌅",
