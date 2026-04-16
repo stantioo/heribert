@@ -189,6 +189,7 @@ html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;background:var(
 .hb-stat-emoji{font-size:30px;flex-shrink:0;line-height:1;filter:drop-shadow(0 3px 6px rgba(245,99,26,.25));}
 .glass-card{backdrop-filter:blur(22px) saturate(140%);-webkit-backdrop-filter:blur(22px) saturate(140%);box-shadow:var(--sh-sm),var(--glass-inset);position:relative;overflow:hidden;isolation:isolate;}
 
+@keyframes starSpin{0%{transform:rotate(0deg);}60%{transform:rotate(720deg);}100%{transform:rotate(720deg);}}
 @keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
 @keyframes scaleIn{from{opacity:0;transform:scale(.95);}to{opacity:1;transform:scale(1);}}
 @keyframes spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
@@ -529,6 +530,9 @@ function useDarkMode(){
   return d;
 }
 
+function Star({spin}){
+  return <span style={{display:"inline-block",animation:spin?"starSpin 1.4s cubic-bezier(.4,0,.15,1) both":"none"}}>✦</span>;
+}
 function SplashScreen({name,onDone}){
   const E=["🎯","📚","⚡","🚀","✨","🧠"][Math.floor(Math.random()*6)];
   useEffect(()=>{const t=setTimeout(onDone,1900);return()=>clearTimeout(t);},[]);
@@ -913,7 +917,7 @@ function Dashboard({session, onLogout}) {
         {/* ── Sidebar header ── */}
         {!mobile&&sideCollapsed ? (
           <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:10,padding:"16px 8px 12px",borderBottom:"1px solid rgba(245,99,26,.12)",background:"var(--sidebar-hdr)"}}>
-            <button onClick={goHome} title="Zur Übersicht" style={{border:"none",background:"none",padding:0,cursor:"pointer",fontSize:22,lineHeight:1,display:"flex",alignItems:"center",justifyContent:"center",filter:"drop-shadow(0 2px 4px rgba(245,99,26,.3))"}}>✦</button>
+            <button onClick={goHome} title="Zur Übersicht" style={{border:"none",padding:0,cursor:"pointer",fontSize:24,lineHeight:1,display:"flex",alignItems:"center",justifyContent:"center",background:"var(--grad)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}}><Star spin/></button>
             <button onClick={()=>setSideCollapsed(false)} title="Sidebar ausklappen" style={{border:"none",background:"none",cursor:"pointer",padding:3,display:"flex",alignItems:"center",justifyContent:"center",color:"var(--muted2)",borderRadius:6,transition:"all .15s"}} onMouseEnter={e=>e.currentTarget.style.color="var(--orange)"} onMouseLeave={e=>e.currentTarget.style.color="var(--muted2)"}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M9 18l6-6-6-6"/></svg>
             </button>
@@ -921,7 +925,7 @@ function Dashboard({session, onLogout}) {
         ) : (
           <div style={{padding:"20px 18px 16px",borderBottom:"1px solid rgba(245,99,26,.12)",background:"var(--sidebar-hdr)",display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:6}}>
             <div style={{overflow:"hidden",flex:1,minWidth:0}}>
-              <button onClick={goHome} title="Zur Übersicht" style={{display:"block",border:"none",background:"none",padding:0,cursor:"pointer",fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:22,letterSpacing:"-.3px",textAlign:"left",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",backgroundImage:"var(--grad)",whiteSpace:"nowrap"}}>Heribert ✦</button>
+              <button onClick={goHome} title="Zur Übersicht" style={{display:"block",border:"none",background:"none",padding:0,cursor:"pointer",fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:22,letterSpacing:"-.3px",textAlign:"left",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",backgroundImage:"var(--grad)",whiteSpace:"nowrap"}}>Heribert <Star spin/></button>
               <div style={{fontSize:13,color:"var(--muted)",marginTop:4}}>Hallo, <b style={{color:"var(--text)"}}>{userName.split(" ")[0]}</b> 👋</div>
             </div>
             {!mobile && <button onClick={()=>setSideCollapsed(true)} title="Sidebar einklappen" style={{border:"none",background:"none",cursor:"pointer",padding:4,display:"flex",alignItems:"center",justifyContent:"center",color:"var(--muted2)",borderRadius:6,transition:"all .15s",flexShrink:0,marginTop:2}} onMouseEnter={e=>e.currentTarget.style.color="var(--orange)"} onMouseLeave={e=>e.currentTarget.style.color="var(--muted2)"}>
@@ -964,7 +968,7 @@ function Dashboard({session, onLogout}) {
         </div>
       </aside>
       <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden"}}>
-      <div className="mob-topbar"><button onClick={()=>setMenuOpen(true)} style={{background:"none",border:"none",cursor:"pointer",color:"var(--text)",padding:4,display:"flex"}}><IMenu/></button><button onClick={goHome} style={{border:"none",background:"none",padding:0,cursor:"pointer",fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:18,flex:1,textAlign:"left",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",backgroundImage:"var(--grad)"}}>Heribert ✦</button><div onClick={()=>setProfileOpen(true)} style={{cursor:"pointer"}}><Avatar url={avatarUrl} name={userName} size={32}/></div></div>
+      <div className="mob-topbar"><button onClick={()=>setMenuOpen(true)} style={{background:"none",border:"none",cursor:"pointer",color:"var(--text)",padding:4,display:"flex"}}><IMenu/></button><button onClick={goHome} style={{border:"none",background:"none",padding:0,cursor:"pointer",fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:18,flex:1,textAlign:"left",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",backgroundImage:"var(--grad)"}}>Heribert <Star spin/></button><div onClick={()=>setProfileOpen(true)} style={{cursor:"pointer"}}><Avatar url={avatarUrl} name={userName} size={32}/></div></div>
         <main className="hb-main" style={{flex:1,overflowY:"auto",padding:"40px 48px",background:"var(--grad-bg)"}}>
 
         {loadError ? <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",height:"60vh",gap:16,padding:20,textAlign:"center"}}>
