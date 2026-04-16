@@ -1997,8 +1997,8 @@ function ProfileModal({user,userName,onLogout,onClose,hideShared,setHideShared,o
       setErr(e?.message || "Bild konnte nicht geladen werden.");
     } finally { setUploading(false); }
   };
-  return(<div className="overlay" onClick={onClose}><div className="modal si" style={{maxWidth:460,padding:0,display:"flex",flexDirection:"column"}} onClick={e=>e.stopPropagation()}>
-    <div style={{flexShrink:0,padding:"24px 32px 12px",background:"var(--glass-modal)",borderBottom:"1px solid var(--border-soft)",display:"flex",alignItems:"flex-start",justifyContent:"space-between"}}>
+  return(<div className="overlay" onClick={onClose}><div className="modal si" style={{maxWidth:460,padding:0,display:"flex",flexDirection:"column",overflowY:"hidden"}} onClick={e=>e.stopPropagation()}>
+    <div style={{flexShrink:0,padding:"24px 32px 12px",background:"var(--glass-modal)",borderBottom:"1px solid var(--border-soft)",display:"flex",alignItems:"flex-start",justifyContent:"space-between",borderRadius:"var(--r-xl) var(--r-xl) 0 0"}}>
       <div><h3 style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:20,marginBottom:4}}>{t.profile}</h3><p style={{color:"var(--muted)",fontSize:14}}>{user.email}</p></div>
       <button onClick={onClose} title="Schließen" style={{width:30,height:30,borderRadius:10,border:"none",background:"var(--glass-hover)",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",color:"var(--muted)",transition:"all .15s",flexShrink:0}} onMouseEnter={e=>{e.currentTarget.style.color="var(--red)";e.currentTarget.style.background="var(--glass-danger)";}} onMouseLeave={e=>{e.currentTarget.style.color="var(--muted)";e.currentTarget.style.background="var(--glass-hover)";}}><IClose2/></button>
     </div>
