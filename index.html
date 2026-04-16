@@ -909,16 +909,26 @@ function Dashboard({session, onLogout}) {
   return (
     <div style={{display:"flex",height:"100vh",overflow:"hidden"}}>
       {mobile&&menuOpen&&<div className="mob-overlay" onClick={()=>setMenuOpen(false)}></div>}
-      <aside className={"hb-aside"+(mobile&&menuOpen?" open":"")} style={{width:!mobile&&sideCollapsed?56:"var(--sw)",minWidth:!mobile&&sideCollapsed?56:"var(--sw)",height:"100vh",background:"var(--sidebar-bg)",backdropFilter:"blur(26px) saturate(150%)",WebkitBackdropFilter:"blur(26px) saturate(150%)",borderRight:"1px solid rgba(245,99,26,.12)",display:"flex",flexDirection:"column",overflow:"hidden",boxShadow:"inset -1px 0 0 var(--glass-bdr)",transition:mobile?"transform .28s ease":"width .2s ease,min-width .2s ease"}}>
-        <div style={{padding:!mobile&&sideCollapsed?"14px 10px 12px":"20px 18px 16px",borderBottom:"1px solid rgba(245,99,26,.12)",background:"var(--sidebar-hdr)",display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:6}}>
-          <div style={{overflow:"hidden",flex:1,minWidth:0}}>
-            <button onClick={goHome} title="Zur Übersicht" style={{display:"block",border:"none",background:"none",padding:0,cursor:"pointer",fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:!mobile&&sideCollapsed?16:22,letterSpacing:"-.3px",textAlign:"left",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",backgroundImage:"var(--grad)",whiteSpace:"nowrap"}}>{!mobile&&sideCollapsed?"H✦":"Heribert ✦"}</button>
-            {(!mobile&&sideCollapsed)?null:<div style={{fontSize:13,color:"var(--muted)",marginTop:4}}>Hallo, <b style={{color:"var(--text)"}}>{userName.split(" ")[0]}</b> 👋</div>}
+      <aside className={"hb-aside"+(mobile&&menuOpen?" open":"")} style={{width:!mobile&&sideCollapsed?60:"var(--sw)",minWidth:!mobile&&sideCollapsed?60:"var(--sw)",height:"100vh",background:"var(--sidebar-bg)",backdropFilter:"blur(26px) saturate(150%)",WebkitBackdropFilter:"blur(26px) saturate(150%)",borderRight:"1px solid rgba(245,99,26,.12)",display:"flex",flexDirection:"column",overflow:"hidden",boxShadow:"inset -1px 0 0 var(--glass-bdr)",transition:mobile?"transform .28s ease":"width .2s ease,min-width .2s ease"}}>
+        {/* ── Sidebar header ── */}
+        {!mobile&&sideCollapsed ? (
+          <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:10,padding:"16px 8px 12px",borderBottom:"1px solid rgba(245,99,26,.12)",background:"var(--sidebar-hdr)"}}>
+            <button onClick={goHome} title="Zur Übersicht" style={{border:"none",background:"none",padding:0,cursor:"pointer",fontSize:22,lineHeight:1,display:"flex",alignItems:"center",justifyContent:"center",filter:"drop-shadow(0 2px 4px rgba(245,99,26,.3))"}}>✦</button>
+            <button onClick={()=>setSideCollapsed(false)} title="Sidebar ausklappen" style={{border:"none",background:"none",cursor:"pointer",padding:3,display:"flex",alignItems:"center",justifyContent:"center",color:"var(--muted2)",borderRadius:6,transition:"all .15s"}} onMouseEnter={e=>e.currentTarget.style.color="var(--orange)"} onMouseLeave={e=>e.currentTarget.style.color="var(--muted2)"}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M9 18l6-6-6-6"/></svg>
+            </button>
           </div>
-          {!mobile && <button onClick={()=>setSideCollapsed(p=>!p)} title={sideCollapsed?"Sidebar ausklappen":"Sidebar einklappen"} style={{border:"none",background:"none",cursor:"pointer",padding:4,display:"flex",alignItems:"center",justifyContent:"center",color:"var(--muted2)",borderRadius:6,transition:"all .15s",flexShrink:0,marginTop:2}} onMouseEnter={e=>e.currentTarget.style.color="var(--orange)"} onMouseLeave={e=>e.currentTarget.style.color="var(--muted2)"}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{transition:"transform .2s",transform:sideCollapsed?"rotate(180deg)":"rotate(0deg)"}}><path d="M15 18l-6-6 6-6"/></svg>
-          </button>}
-        </div>
+        ) : (
+          <div style={{padding:"20px 18px 16px",borderBottom:"1px solid rgba(245,99,26,.12)",background:"var(--sidebar-hdr)",display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:6}}>
+            <div style={{overflow:"hidden",flex:1,minWidth:0}}>
+              <button onClick={goHome} title="Zur Übersicht" style={{display:"block",border:"none",background:"none",padding:0,cursor:"pointer",fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:22,letterSpacing:"-.3px",textAlign:"left",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",backgroundImage:"var(--grad)",whiteSpace:"nowrap"}}>Heribert ✦</button>
+              <div style={{fontSize:13,color:"var(--muted)",marginTop:4}}>Hallo, <b style={{color:"var(--text)"}}>{userName.split(" ")[0]}</b> 👋</div>
+            </div>
+            {!mobile && <button onClick={()=>setSideCollapsed(true)} title="Sidebar einklappen" style={{border:"none",background:"none",cursor:"pointer",padding:4,display:"flex",alignItems:"center",justifyContent:"center",color:"var(--muted2)",borderRadius:6,transition:"all .15s",flexShrink:0,marginTop:2}} onMouseEnter={e=>e.currentTarget.style.color="var(--orange)"} onMouseLeave={e=>e.currentTarget.style.color="var(--muted2)"}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+            </button>}
+          </div>
+        )}
         <div style={{flex:1,overflowY:"auto",padding:"10px 8px",display:!mobile&&sideCollapsed?"none":"block"}}>
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"8px 10px 6px"}}>
             <div style={{fontSize:11,fontWeight:600,color:"var(--muted2)",letterSpacing:".08em",textTransform:"uppercase"}}>Lernbereiche</div>
@@ -937,14 +947,20 @@ function Dashboard({session, onLogout}) {
           </button>
         </div>
         <div className="hb-sidebar-footer">
-          <button className="folder-row" onClick={()=>setProfileOpen(true)} style={{width:"100%",justifyContent:"flex-start"}}>
-            <Avatar url={avatarUrl} name={userName} size={32}/>
-            <div style={{flex:1,overflow:"hidden"}}>
-              <div style={{fontSize:13,fontWeight:600,color:"var(--text)",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{userName}</div>
-              <div style={{fontSize:11,color:"var(--muted2)",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{user.email}</div>
+          {!mobile&&sideCollapsed ? (
+            <div style={{display:"flex",justifyContent:"center",padding:"8px 0"}}>
+              <div onClick={()=>setProfileOpen(true)} style={{cursor:"pointer"}}><Avatar url={avatarUrl} name={userName} size={36}/></div>
             </div>
-            <button className="btn-danger" onClick={e=>{e.stopPropagation();onLogout();}} style={{padding:"4px 6px"}}><ILogout/></button>
-          </button>
+          ) : (
+            <button className="folder-row" onClick={()=>setProfileOpen(true)} style={{width:"100%",justifyContent:"flex-start"}}>
+              <Avatar url={avatarUrl} name={userName} size={32}/>
+              <div style={{flex:1,overflow:"hidden"}}>
+                <div style={{fontSize:13,fontWeight:600,color:"var(--text)",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{userName}</div>
+                <div style={{fontSize:11,color:"var(--muted2)",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{user.email}</div>
+              </div>
+              <button className="btn-danger" onClick={e=>{e.stopPropagation();onLogout();}} style={{padding:"4px 6px"}}><ILogout/></button>
+            </button>
+          )}
         </div>
       </aside>
       <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden"}}>
