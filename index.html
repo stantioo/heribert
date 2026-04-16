@@ -1974,7 +1974,7 @@ function StudyConfigModal({config,onStart,onClose,t}) {
       <div style={{flex:1,textAlign:"center",fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:22,color:total===0?"var(--muted2)":"var(--text)"}}>{count} / {total}</div>
       <button className="btn-g" style={{padding:"6px 16px",fontSize:16}} onClick={()=>setCount(p=>Math.min(total,p+1))} disabled={total===0}>+</button>
     </div>
-    {total===0 && <div style={{fontSize:12,color:"var(--red)",background:"rgba(254,226,226,.6)",border:"1px solid rgba(220,38,38,.25)",borderRadius:10,padding:"9px 12px",marginBottom:20,lineHeight:1.5}}>{t.noCardsFilter}</div>}
+    {total===0 && <div style={{fontSize:12,color:"var(--red)",background:"var(--rl)",border:"1px solid rgba(220,38,38,.3)",borderRadius:10,padding:"9px 12px",marginBottom:20,lineHeight:1.5}}>{t.noCardsFilter}</div>}
     <button className="btn-o" style={{width:"100%",justifyContent:"center",padding:"12px",fontSize:15,fontWeight:600}} disabled={total===0} onClick={()=>onStart({mode,count,cards:filtered})}>{t.startLearning}</button>
   </div></div>);
 }
@@ -2030,7 +2030,7 @@ function MCQMode({set,cards,onExit,onGoHome,onRate,onCacheMCQ,readOnly,t}) {
           color:isActive?`rgba(${tint},1)`:"var(--text)",
           fontSize:15,textAlign:"left",cursor:picked!==null?"default":"pointer",
           transition:"all .15s",fontFamily:"inherit",display:"flex",alignItems:"center",gap:10,
-          boxShadow:isActive?`0 2px 8px rgba(${tint},.22),inset 0 1px 0 rgba(255,255,255,.18)`:`0 1px 3px rgba(0,0,0,.03),inset 0 1px 0 rgba(255,255,255,.18)`
+          boxShadow:isActive?`0 2px 8px rgba(${tint},.22),inset 0 1px 0 rgba(255,255,255,.9)`:`0 1px 3px rgba(0,0,0,.03),inset 0 1px 0 rgba(255,255,255,.8)`
         }} onMouseEnter={e=>{if(picked===null){e.currentTarget.style.borderColor="var(--orange)";e.currentTarget.style.background="var(--glass-hover)";}}} onMouseLeave={e=>{if(picked===null){e.currentTarget.style.borderColor="var(--glass-bdr)";e.currentTarget.style.background="var(--glass)";}}}>
         <span style={{width:24,height:24,borderRadius:6,background:isCorrect?"var(--green)":isWrong?"var(--red)":"var(--border)",color:isActive?"#fff":"var(--muted)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700,flexShrink:0,transition:"all .15s"}}>{String.fromCharCode(65+i)}</span>
         {opt.text}
