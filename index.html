@@ -515,6 +515,12 @@ function useMobile(){
   return m;
 }
 
+function useDarkMode(){
+  const [d,setD]=useState(window.matchMedia?.("(prefers-color-scheme:dark)").matches||false);
+  useEffect(()=>{const m=window.matchMedia?.("(prefers-color-scheme:dark)");if(!m)return;const h=e=>setD(e.matches);m.addEventListener?.("change",h);return()=>m.removeEventListener?.("change",h);},[]);
+  return d;
+}
+
 function SplashScreen({name,onDone}){
   const E=["🎯","📚","⚡","🚀","✨","🧠"][Math.floor(Math.random()*6)];
   useEffect(()=>{const t=setTimeout(onDone,1900);return()=>clearTimeout(t);},[]);
@@ -613,6 +619,7 @@ function Dashboard({session, onLogout}) {
   const [data, setData] = useState({folders:[], sets:[], cards:[], shares:[], profiles:{}});
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(null);
+  const [queryWarning, setQueryWarning] = useState(null);
   const [sel, setSel] = useState({folderId:null, setId:null});
   const [studyConfig, setStudyConfig] = useState(null);
   const [studyMode, setStudyMode] = useState(null);
@@ -703,6 +710,10 @@ function Dashboard({session, onLogout}) {
       if (sr.error) console.error("[Heribert] sets error:", sr.error);
       if (cr.error) console.error("[Heribert] cards error:", cr.error);
       if (shr.error) console.error("[Heribert] set_shares error:", shr.error);
+
+      const errs = [fr.error&&"Ordner", sr.error&&"Sets", cr.error&&"Karten", shr.error&&"Shares"].filter(Boolean);
+      if (errs.length) setQueryWarning(`Fehler beim Laden von: ${errs.join(", ")}. Details in der Browser-Konsole (F12).`);
+      else setQueryWarning(null);
 
       const shares = shr.data || [];
       const myEmail = (user.email || "").toLowerCase();
@@ -951,6 +962,7 @@ function Dashboard({session, onLogout}) {
       <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden"}}>
       <div className="mob-topbar"><button onClick={()=>setMenuOpen(true)} style={{background:"none",border:"none",cursor:"pointer",color:"var(--text)",padding:4,display:"flex"}}><IMenu/></button><button onClick={goHome} style={{border:"none",background:"none",padding:0,cursor:"pointer",fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:18,flex:1,textAlign:"left",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",backgroundImage:"var(--grad)"}}>Heribert ✦</button><div onClick={()=>setProfileOpen(true)} style={{cursor:"pointer"}}><Avatar url={avatarUrl} name={userName} size={32}/></div></div>
         <main className="hb-main" style={{flex:1,overflowY:"auto",padding:"40px 48px",background:"var(--grad-bg)"}}>
+        {queryWarning && <div style={{margin:"0 0 16px",padding:"10px 14px",fontSize:13,background:"var(--rl)",color:"var(--red)",borderRadius:10,border:"1px solid rgba(220,38,38,.3)"}}>{queryWarning}</div>}
         {loadError ? <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",height:"60vh",gap:16,padding:20,textAlign:"center"}}>
           <div style={{fontSize:42}}>⚠️</div>
           <div style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:18,color:"var(--text)"}}>Daten konnten nicht geladen werden</div>
@@ -1172,6 +1184,7 @@ function CardRow({card,onEdit,onDelete,readOnly}) {
 }
 
 function HomeView({userName,data,rootFolders,onSelectFolder}){
+  const dark=useDarkMode();
   const overallProg=calcProgress(data.cards); const superCards=data.cards.filter(c=>c.lastRating===3).length;
   // Each tile gets a clear-center + strong bottom-right glow + soft side + near-none top
   const stats = [
@@ -1200,13 +1213,17 @@ function HomeView({userName,data,rootFolders,onSelectFolder}){
       ))}
       <div className="hb-prog-span" style={{
         gridColumn:"span 2",
-        background:"radial-gradient(ellipse 110% 85% at 50% 130%,rgba(244,63,94,.38) 0%,transparent 55%),radial-gradient(ellipse 90% 70% at 50% 60%,rgba(245,99,26,.22) 0%,transparent 70%),linear-gradient(180deg,#FFF4EC 0%,#FFDCCB 55%,#FFB5A8 100%)",
-        border:"1px solid rgba(244,63,94,.22)",
+        background:dark
+          ?"radial-gradient(ellipse 110% 85% at 50% 130%,rgba(244,63,94,.55),transparent 55%),radial-gradient(ellipse 90% 70% at 50% 60%,rgba(245,99,26,.4),transparent 70%),linear-gradient(180deg,#2A0E0C,#3D1410 55%,#4A1A14)"
+          :"radial-gradient(ellipse 110% 85% at 50% 130%,rgba(244,63,94,.38) 0%,transparent 55%),radial-gradient(ellipse 90% 70% at 50% 60%,rgba(245,99,26,.22) 0%,transparent 70%),linear-gradient(180deg,#FFF4EC 0%,#FFDCCB 55%,#FFB5A8 100%)",
+        border:dark?"1px solid rgba(245,99,26,.4)":"1px solid rgba(244,63,94,.22)",
         borderRadius:"var(--r-hero)",
         padding:"18px 20px",
-        boxShadow:"0 14px 40px rgba(244,63,94,.16),0 4px 14px rgba(0,0,0,.04),var(--glass-inset)",
+        boxShadow:dark
+          ?"0 14px 40px rgba(0,0,0,.35),0 4px 14px rgba(0,0,0,.2),var(--glass-inset)"
+          :"0 14px 40px rgba(244,63,94,.16),0 4px 14px rgba(0,0,0,.04),var(--glass-inset)",
         display:"flex",alignItems:"center",gap:14,
-        position:"relative",overflow:"hidden",color:"var(--text)",isolation:"isolate"
+        position:"relative",overflow:"hidden",color:dark?"#F5ECE3":"var(--text)",isolation:"isolate"
       }}>
         <div style={{position:"relative",zIndex:1,display:"flex",alignItems:"center",gap:14,width:"100%"}}>
           {(() => {
@@ -1221,21 +1238,21 @@ function HomeView({userName,data,rootFolders,onSelectFolder}){
                       <stop offset="100%" stopColor="#F43F5E"/>
                     </linearGradient>
                   </defs>
-                  <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="rgba(244,63,94,.15)" strokeWidth={stroke}/>
+                  <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={dark?"rgba(255,200,180,.15)":"rgba(244,63,94,.15)"} strokeWidth={stroke}/>
                   <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="url(#heri-ring)" strokeWidth={stroke}
                     strokeDasharray={circ} strokeDashoffset={off} strokeLinecap="round"
                     transform={`rotate(-90 ${size/2} ${size/2})`}
                     style={{transition:"stroke-dashoffset .5s",filter:"drop-shadow(0 1px 3px rgba(244,63,94,.3))"}}/>
                 </svg>
                 <div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center"}}>
-                  <span style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:16,background:"var(--grad)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",letterSpacing:"-.3px"}}>{overallProg}%</span>
+                  <span style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:16,...(dark?{color:"#fff",WebkitTextFillColor:"unset"}:{background:"var(--grad)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}),letterSpacing:"-.3px"}}>{overallProg}%</span>
                 </div>
               </div>
             );
           })()}
           <div style={{flex:1,minWidth:0}}>
-            <div style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:18,color:"var(--text)",letterSpacing:"-.2px"}}>Gesamt-Fortschritt</div>
-            <div style={{fontSize:12,color:"var(--muted)",marginTop:3,fontWeight:500}}>{data.cards.length} Karten · {superCards} gemeistert</div>
+            <div style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:18,color:dark?"#F5ECE3":"var(--text)",letterSpacing:"-.2px"}}>Gesamt-Fortschritt</div>
+            <div style={{fontSize:12,color:dark?"rgba(255,230,210,.7)":"var(--muted)",marginTop:3,fontWeight:500}}>{data.cards.length} Karten · {superCards} gemeistert</div>
           </div>
           <div style={{fontSize:30,opacity:.95,filter:"drop-shadow(0 2px 4px rgba(244,63,94,.25))"}}>🎯</div>
         </div>
