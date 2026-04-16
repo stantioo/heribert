@@ -391,8 +391,11 @@ async function genMCQ(q, a) {
 const COLORS = ["#F5631A","#FF8A3D","#F59E0B","#D97706","#F43F5E","#DC2626","#C2410C","#92400E"];
 const EMOJI_PRESETS = ["📚","📖","🧠","🔬","💼","🎨","💻","⚽","🎵","🌍","🏥","⚖️","🧮","📐","🎯","✨","🔥","🚀","💡","📊"];
 const isEmojiMark = m => !!m && typeof m === "string" && !m.startsWith("#");
-// Safely resize an image file to a max dimension, return JPEG data URL.
-const resizeImageDataUrl = (file, maxSize=220, quality=0.82) => new Promise((resolve, reject) => {
+// Safely resize an image file to a TINY thumbnail for JWT-safe storage.
+// 48×48 at JPEG 50% ≈ 1-2 KB — small enough to live inside user_metadata
+// without bloating the JWT token (which caused 520 errors at ~30KB+).
+const MAX_AVATAR_BYTES = 3500; // hard cap — reject if bigger
+const resizeImageDataUrl = (file, maxSize=48, quality=0.5) => new Promise((resolve, reject) => {
   const reader = new FileReader();
   reader.onload = ev => {
     const img = new Image();
@@ -403,7 +406,12 @@ const resizeImageDataUrl = (file, maxSize=220, quality=0.82) => new Promise((res
       const cv = document.createElement("canvas");
       cv.width = w; cv.height = h;
       cv.getContext("2d").drawImage(img, 0, 0, w, h);
-      resolve(cv.toDataURL("image/jpeg", quality));
+      const dataUrl = cv.toDataURL("image/jpeg", quality);
+      if (dataUrl.length > MAX_AVATAR_BYTES) {
+        reject(new Error(`Bild zu groß (${Math.round(dataUrl.length/1024)}KB). Bitte ein kleineres Bild wählen.`));
+        return;
+      }
+      resolve(dataUrl);
     };
     img.onerror = reject;
     img.src = ev.target.result;
@@ -1438,7 +1446,7 @@ function ProfileModal({user,userName,onLogout,onClose,hideShared,setHideShared,o
       <Avatar url={avatar} name={name} size={56}/>
       <div style={{flex:1,minWidth:0}}>
         <div style={{fontSize:13,fontWeight:600,color:"var(--text)"}}>Profilbild</div>
-        <div style={{fontSize:11,color:"var(--muted)",marginTop:2,lineHeight:1.45}}>Wird beim Teilen sichtbar sein. Max. 220×220 px, wird automatisch komprimiert.</div>
+        <div style={{fontSize:11,color:"var(--muted)",marginTop:2,lineHeight:1.45}}>Wird als kleiner Thumbnail (48×48) gespeichert.</div>
       </div>
       <div style={{display:"flex",flexDirection:"column",gap:4}}>
         <button className="btn-sm" onClick={()=>fileRef.current?.click()} disabled={uploading}>{uploading?<ISpin c="var(--orange)" s={14}/>:"Ändern"}</button>
