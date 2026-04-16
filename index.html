@@ -531,7 +531,7 @@ function useDarkMode(){
 }
 
 function Star({spin}){
-  return <span style={{display:"inline-block",animation:spin?"starSpin 1.4s cubic-bezier(.4,0,.15,1) both":"none"}}>✦</span>;
+  return <span style={{display:"inline-block",background:"var(--grad)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",animation:spin?"starSpin 1.4s cubic-bezier(.4,0,.15,1) both":"none"}}>✦</span>;
 }
 function SplashScreen({name,onDone}){
   const E=["🎯","📚","⚡","🚀","✨","🧠"][Math.floor(Math.random()*6)];
@@ -539,7 +539,7 @@ function SplashScreen({name,onDone}){
   return(
     <div className="splash-out" style={{position:"fixed",inset:0,zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",background:"var(--grad-bg)"}}>
       <div className="splash-in" style={{textAlign:"center"}}>
-        <div style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:22,background:"var(--grad)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",marginBottom:16}}>Heribert ✦</div>
+        <div style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:22,background:"var(--grad)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",marginBottom:16}}>Heribert <Star spin/></div>
         <div style={{fontSize:52,marginBottom:16}}>{E}</div>
         <div style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:22,color:"var(--text)",marginBottom:8}}>Willkommen zurück, {name}!</div>
         <div style={{fontSize:14,color:"var(--muted)"}}>Weiter geht's 👋</div>
@@ -562,7 +562,7 @@ function App() {
   if (session === undefined) return (
     <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:"var(--grad-bg)"}}>
       <div style={{textAlign:"center"}}>
-        <div style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:28,background:"var(--grad)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",marginBottom:20}}>Heribert ✦</div>
+        <div style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:28,background:"var(--grad)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",marginBottom:20}}>Heribert <Star spin/></div>
         <ISpin/>
       </div>
     </div>
@@ -610,11 +610,11 @@ function AuthScreen() {
   return (
     <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",padding:20,background:"var(--grad-bg)"}}>
       <div className="au" style={{background:"var(--auth-card)",borderRadius:24,padding:"44px 40px",width:"100%",maxWidth:420,boxShadow:"0 8px 48px rgba(245,99,26,.1),0 0 0 1px rgba(245,99,26,.06)"}}>
-        <div style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:28,background:"var(--grad)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",marginBottom:4}}>Heribert ✦</div>
+        <div style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:28,background:"var(--grad)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",marginBottom:4}}>Heribert <Star spin/></div>
         <div style={{color:"var(--muted)",fontSize:14,marginBottom:30}}>Deine persönliche Lernplattform</div>
         <div style={{display:"flex",background:"var(--tab-bg)",borderRadius:10,padding:4,marginBottom:26,gap:4}}>
           {["login","register"].map(t => (
-            <button key={t} onClick={() => {setTab(t);setErr("");setInfo("");}} style={{flex:1,padding:"9px",border:"none",borderRadius:8,background:tab===t?"linear-gradient(160deg,#FFF,#FEFCFA)":"transparent",color:tab===t?"var(--text)":"var(--muted)",fontWeight:tab===t?600:400,fontSize:14,cursor:"pointer",boxShadow:tab===t?"0 1px 4px rgba(0,0,0,.08)":"none",transition:"all .15s",fontFamily:"inherit"}}>
+            <button key={t} onClick={() => {setTab(t);setErr("");setInfo("");}} style={{flex:1,padding:"9px",border:"none",borderRadius:8,background:tab===t?"var(--tab-active)":"transparent",color:tab===t?"var(--text)":"var(--muted)",fontWeight:tab===t?600:400,fontSize:14,cursor:"pointer",boxShadow:tab===t?"0 1px 4px rgba(0,0,0,.08)":"none",transition:"all .15s",fontFamily:"inherit"}}>
               {t==="login"?"Anmelden":"Registrieren"}
             </button>
           ))}
@@ -933,7 +933,7 @@ function Dashboard({session, onLogout}) {
             </button>}
           </div>
         )}
-        <div style={{flex:1,overflowY:"auto",padding:"10px 8px",display:!mobile&&sideCollapsed?"none":"block"}}>
+        <div style={{flex:1,overflowY:"auto",padding:!mobile&&sideCollapsed?0:"10px 8px",overflow:!mobile&&sideCollapsed?"hidden":"auto"}}>{(!mobile&&sideCollapsed)?null:<div>
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"8px 10px 6px"}}>
             <div style={{fontSize:11,fontWeight:600,color:"var(--muted2)",letterSpacing:".08em",textTransform:"uppercase"}}>Lernbereiche</div>
             {sharedFolders.length>0 && <div style={{display:"flex",gap:2}}>
@@ -949,7 +949,7 @@ function Dashboard({session, onLogout}) {
           <button className="folder-row" onClick={()=>{setEditFolder(null);setModal({type:"folder"});setMenuOpen(false);}} style={{border:"1.5px dashed rgba(245,99,26,.3)",color:"var(--muted)",fontSize:13,marginTop:6}}>
             <IPlus/> Neuer Ordner
           </button>
-        </div>
+        </div>}</div>
         <div className="hb-sidebar-footer">
           {!mobile&&sideCollapsed ? (
             <div style={{display:"flex",justifyContent:"center",padding:"8px 0"}}>
@@ -1410,7 +1410,7 @@ function FlashMode({set,cards,onExit,onGoHome,onRate,readOnly}) {
   const rate=r=>{if(!readOnly&&onRate)onRate(card.id,r);const nr=[...ratings,r];setRatings(nr);if(idx+1>=cards.length){setDone(true);return;}setTimeout(()=>{setFlipped(false);setIdx(p=>p+1);},200);};
   if(done){const dist=RATINGS.map((r,i)=>({...r,count:ratings.filter(x=>x===i).length}));return(<div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:"var(--grad-bg)",padding:20}}><div className="au" style={{textAlign:"center",maxWidth:480}}><div style={{fontSize:56,marginBottom:16}}>{dist[3].count>cards.length/2?"\ud83c\udfc6":"\ud83d\udcaa"}</div><h2 style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:28,marginBottom:24}}>Session abgeschlossen!</h2><div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10,marginBottom:32}}>{dist.map(r=><div key={r.label} style={{background:"linear-gradient(160deg,#FFF,#FDFCFA)",border:"1.5px solid var(--border)",borderRadius:12,padding:"14px 8px",textAlign:"center"}}><div style={{fontSize:24,marginBottom:4}}>{r.emoji}</div><div style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:22,color:r.c}}>{r.count}</div><div style={{fontSize:11,color:"var(--muted)"}}>{r.label}</div></div>)}</div><div style={{display:"flex",gap:10,justifyContent:"center"}}><button className="btn-g" onClick={()=>{setIdx(0);setFlipped(false);setRatings([]);setDone(false);}}>Nochmal</button><button className="btn-o" onClick={onExit}>Zurück</button></div></div></div>);}
   return(<div style={{minHeight:"100vh",background:"var(--grad-bg)",padding:"40px 20px",display:"flex",flexDirection:"column",alignItems:"center"}}>
-    {onGoHome && <div style={{width:"100%",maxWidth:640,marginBottom:18,display:"flex",justifyContent:"center"}}><button onClick={onGoHome} title="Zur Übersicht" style={{border:"none",background:"none",padding:"4px 10px",cursor:"pointer",fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:18,letterSpacing:"-.3px",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",backgroundImage:"var(--grad)"}}>Heribert ✦</button></div>}
+    {onGoHome && <div style={{width:"100%",maxWidth:640,marginBottom:18,display:"flex",justifyContent:"center"}}><button onClick={onGoHome} title="Zur Übersicht" style={{border:"none",background:"none",padding:"4px 10px",cursor:"pointer",fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:18,letterSpacing:"-.3px",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",backgroundImage:"var(--grad)"}}>Heribert <Star spin/></button></div>}
     <div style={{width:"100%",maxWidth:640,marginBottom:28}}><div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}><button onClick={onExit} style={{display:"flex",alignItems:"center",gap:6,border:"none",background:"none",color:"var(--muted)",fontSize:14,cursor:"pointer",padding:0,fontFamily:"inherit"}}><IBack/> {set?.name}</button><span style={{fontSize:14,fontWeight:600,color:"var(--muted)"}}>{idx+1} / {cards.length}</span></div><div className="prog-track"><div className="prog-fill" style={{width:`${(idx/cards.length)*100}%`}}/></div></div>
     <div className="flip-wrap" style={{width:"100%",maxWidth:640,marginBottom:24}} onClick={()=>setFlipped(p=>!p)}>
       <div className={`flip-inner${flipped?" flipped":""}`} style={{height:280}}>
@@ -1435,7 +1435,7 @@ function MCQMode({set,cards,onExit,onGoHome,onRate,onCacheMCQ,readOnly}) {
   if(loadingMCQ)return(<div style={{minHeight:"100vh",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",background:"var(--grad-bg)",gap:16}}><ISpin/><div style={{color:"var(--muted)",fontSize:14}}>KI generiert Antwortoptionen…</div></div>);
   if(done){const pct=Math.round((score/cards.length)*100);return(<div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:"var(--grad-bg)",padding:20}}><div className="au" style={{textAlign:"center",maxWidth:440}}><div style={{fontSize:56,marginBottom:16}}>{pct>=80?"\ud83c\udfc6":pct>=50?"\ud83d\udcc8":"\ud83d\udcaa"}</div><h2 style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:28,marginBottom:8}}>Ergebnis</h2><div style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:52,background:pct>=80?"linear-gradient(135deg,#22C55E,#16A34A)":"var(--grad)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",marginBottom:6}}>{pct}%</div><div style={{color:"var(--muted)",marginBottom:32}}>{score} von {cards.length} richtig</div><div style={{display:"flex",gap:10,justifyContent:"center"}}><button className="btn-g" onClick={()=>{setIdx(0);setScore(0);setDone(false);}}>Nochmal</button><button className="btn-o" onClick={onExit}>Zurück</button></div></div></div>);}
   return(<div style={{minHeight:"100vh",background:"var(--grad-bg)",padding:"40px 20px",display:"flex",flexDirection:"column",alignItems:"center"}}>
-    {onGoHome && <div style={{width:"100%",maxWidth:640,marginBottom:18,display:"flex",justifyContent:"center"}}><button onClick={onGoHome} title="Zur Übersicht" style={{border:"none",background:"none",padding:"4px 10px",cursor:"pointer",fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:18,letterSpacing:"-.3px",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",backgroundImage:"var(--grad)"}}>Heribert ✦</button></div>}
+    {onGoHome && <div style={{width:"100%",maxWidth:640,marginBottom:18,display:"flex",justifyContent:"center"}}><button onClick={onGoHome} title="Zur Übersicht" style={{border:"none",background:"none",padding:"4px 10px",cursor:"pointer",fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:18,letterSpacing:"-.3px",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",backgroundImage:"var(--grad)"}}>Heribert <Star spin/></button></div>}
     <div style={{width:"100%",maxWidth:640,marginBottom:28}}><div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}><button onClick={onExit} style={{display:"flex",alignItems:"center",gap:6,border:"none",background:"none",color:"var(--muted)",fontSize:14,cursor:"pointer",padding:0,fontFamily:"inherit"}}><IBack/> {set?.name}</button><span style={{fontSize:14,fontWeight:600,color:"var(--muted)"}}>{idx+1} / {cards.length} · {score} ✓</span></div><div className="prog-track"><div className="prog-fill" style={{width:`${(idx/cards.length)*100}%`}}/></div></div>
     <div style={{width:"100%",maxWidth:640,background:"var(--glass-s)",backdropFilter:"blur(26px) saturate(150%)",WebkitBackdropFilter:"blur(26px) saturate(150%)",border:"1.5px solid var(--glass-bdr)",borderRadius:"var(--r-lg)",padding:28,marginBottom:16,boxShadow:"var(--sh-md),var(--glass-inset)"}}><div style={{fontSize:11,fontWeight:600,color:"var(--muted)",textTransform:"uppercase",letterSpacing:".08em",marginBottom:12}}>Frage {idx+1}</div><div style={{fontSize:18,lineHeight:1.6}} dangerouslySetInnerHTML={{__html:card?.questionHtml||""}}/></div>
     <div style={{width:"100%",maxWidth:640,display:"flex",flexDirection:"column",gap:10}}>
