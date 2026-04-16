@@ -1277,7 +1277,7 @@ function Dashboard({session, onLogout}) {
                 if(fc.length===0) return;
                 setStudyConfig({sourceName:folder.name,cards:fc,isFolder:true});
               }}
-              onDeleteSet={sid=>{if(confirm("Set l\u00f6schen?"))removeSet(sid);}} onRenameSet={renameSet}
+              onDeleteSet={sid=>{if(confirm(t.setDelete))removeSet(sid);}} onRenameSet={renameSet}
               onShareFolder={()=>!isViewingShared && setModal({type:"folderShare",folderId:folder.id})}/>
           )}
           {sel.setId && (
@@ -1447,12 +1447,12 @@ function SetCard({set,cardCount,progress,onClick,onLearn,onDelete,onRename,t}){
       <div style={{flex:1,marginRight:10,paddingTop:2}}>
         {editing && !readOnly ? <input className="inline-edit" ref={ref} value={name} onChange={e=>setName(e.target.value)} onBlur={commit} onKeyDown={e=>{if(e.key==="Enter")commit();if(e.key==="Escape")setEditing(false);}} onClick={e=>e.stopPropagation()} style={{fontSize:15,fontWeight:600,width:"100%"}}/>
           : <div style={{fontFamily:"Outfit,sans-serif",fontWeight:600,fontSize:15,lineHeight:1.4}} onDoubleClick={readOnly?undefined:(e=>{e.stopPropagation();setEditing(true);})}>{set.name}</div>}
-        <div style={{fontSize:12,color:"var(--muted)",marginTop:5}}>{cardCount} Karten{readOnly && <span style={{marginLeft:6,color:"var(--shared-fg)",fontWeight:600}}>· nur lesen</span>}</div>
+        <div style={{fontSize:12,color:"var(--muted)",marginTop:5}}>{cardCount} {t.cardsCount}{readOnly && <span style={{marginLeft:6,color:"var(--shared-fg)",fontWeight:600}}>· {t.readOnly}</span>}</div>
       </div>
       <ProgressCircle pct={progress} size={50} stroke={5}/>
     </div>
     <div style={{display:"flex",gap:6,alignItems:"center"}} onClick={e=>e.stopPropagation()}>
-      <button className="btn-sm" style={{flex:1,justifyContent:"center",minHeight:34}} onClick={onLearn} disabled={cardCount===0}>Lernen</button>
+      <button className="btn-sm" style={{flex:1,justifyContent:"center",minHeight:34}} onClick={onLearn} disabled={cardCount===0}>{t.learn}</button>
       {!readOnly && <>
         <button className="icon-btn edit" onClick={e=>{e.stopPropagation();setEditing(true);}}><IEdit/></button>
         <button className="icon-btn" onClick={e=>{e.stopPropagation();onDelete();}}><ITrash/></button>
@@ -1745,7 +1745,7 @@ function StudyConfigModal({config,onStart,onClose,t}) {
           boxShadow:on && !empty ? `0 2px 8px ${f.color}22,inset 0 1px 0 rgba(255,255,255,.9)` : "0 1px 3px rgba(0,0,0,.03),inset 0 1px 0 rgba(255,255,255,.8)"
         }}>
           <span style={{fontSize:14,filter:on && !empty ? "none" : "grayscale(.4) opacity(.8)"}}>{f.emoji}</span>
-          <span>{f.label}</span>
+          <span>{t[f.key] || f.label}</span>
           <span style={{fontSize:11,fontWeight:500,opacity:.75,marginLeft:2}}>{c}</span>
         </button>);
       })}
