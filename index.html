@@ -1540,6 +1540,7 @@ function ProfileModal({user,userName,onLogout,onClose,hideShared,setHideShared,o
   const [err,setErr]=useState(""); const [ok,setOk]=useState(false); const [busy,setBusy]=useState(false);
   const [avatar,setAvatar]=useState(user.user_metadata?.avatar_url||null);
   const [uploading,setUploading]=useState(false);
+  const [showLog,setShowLog]=useState(false);
   const fileRef = useRef();
   const save=async()=>{
     setErr("");setBusy(true);
@@ -1604,8 +1605,11 @@ function ProfileModal({user,userName,onLogout,onClose,hideShared,setHideShared,o
       </div>
     )}
     <div style={{paddingTop:16,borderTop:"1px solid var(--border-soft)",marginBottom:12}}>
-      <div style={{fontSize:12,fontWeight:600,color:"var(--muted)",textTransform:"uppercase",letterSpacing:".06em",marginBottom:10}}>Neuigkeiten</div>
-      {CHANGELOG.slice(0,2).map(v => (
+      <button onClick={()=>setShowLog(p=>!p)} style={{display:"flex",alignItems:"center",justifyContent:"space-between",width:"100%",border:"none",background:"none",cursor:"pointer",padding:"0 0 8px",fontFamily:"inherit"}}>
+        <div style={{fontSize:12,fontWeight:600,color:"var(--muted)",textTransform:"uppercase",letterSpacing:".06em"}}>Neuigkeiten</div>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--muted2)" strokeWidth="2.5" style={{transition:"transform .2s",transform:showLog?"rotate(90deg)":"rotate(0deg)"}}><path d="M9 18l6-6-6-6"/></svg>
+      </button>
+      {showLog && CHANGELOG.slice(0,3).map(v => (
         <div key={v.version} style={{marginBottom:12}}>
           <div style={{fontSize:13,fontWeight:600,color:"var(--text)",marginBottom:4}}>v{v.version} · {v.date}</div>
           <ul style={{margin:0,paddingLeft:18,fontSize:12,color:"var(--muted)",lineHeight:1.7}}>
