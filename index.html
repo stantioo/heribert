@@ -1220,18 +1220,18 @@ function HomeView({userName,data,rootFolders,onSelectFolder}){
   if (!greetingRef.current) {
     const h = new Date().getHours();
     const suffixes = {
-      morning: ["Bereit zum Lernen?", "Los geht's! \u2600\uFE0F", "Frisch ans Werk!"],
-      midday: ["Weiter geht's!", "Auf geht's! \uD83C\uDFAF"],
-      afternoon: ["Weiter geht's \uD83C\uDFAF", "Bleib dran! \uD83D\uDCAA"],
-      evening: ["Noch eine Runde? \uD83C\uDF19", "Endspurt! \u2728"],
-      night: ["Nachtschicht? \uD83E\uDD89", "Noch wach? \uD83D\uDE34"]
+      morning: ["Bereit zum Lernen? ☀️", "Los geht's! 🚀", "Frisch ans Werk! 💪"],
+      midday: ["Weiter geht's! 🎯", "Produktiv bleiben! 💡", "Auf geht's! 🔥"],
+      afternoon: ["Weiter geht's! 🎯", "Bleib dran! 💪", "Du schaffst das! ✨"],
+      evening: ["Noch eine Runde? 🌙", "Endspurt für heute! ✨", "Feierabend-Session? 📚"],
+      night: ["Späte Session? 🦉", "Lernen kennt keine Uhrzeit! 🌟", "Noch ein paar Karten? 💫"]
     };
     let period, greeting;
     if (h >= 5 && h < 11) { period = "morning"; greeting = "Guten Morgen"; }
     else if (h >= 11 && h < 14) { period = "midday"; greeting = "Mahlzeit"; }
     else if (h >= 14 && h < 18) { period = "afternoon"; greeting = "Guten Tag"; }
     else if (h >= 18 && h < 22) { period = "evening"; greeting = "Guten Abend"; }
-    else { period = "night"; greeting = "Gute Nacht"; }
+    else { period = "night"; greeting = "Hey"; }
     const pool = suffixes[period];
     const pick = pool[Math.floor(new Date().getDate() * 7 + h) % pool.length];
     greetingRef.current = { greeting, suffix: pick };
