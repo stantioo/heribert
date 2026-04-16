@@ -332,7 +332,7 @@ const T = {
     good: "Gut",
     super: "Super!",
     profilePic: "Profilbild",
-    profilePicSub: "Wird als Thumbnail (96×96) gespeichert.",
+    profilePicSub: "Wird als Thumbnail (128×128) gespeichert.",
     change: "Ändern",
     remove: "Entfernen",
     savedOk: "Gespeichert!",
@@ -463,7 +463,7 @@ const T = {
     good: "Good",
     super: "Great!",
     profilePic: "Profile picture",
-    profilePicSub: "Saved as thumbnail (96×96).",
+    profilePicSub: "Saved as thumbnail (128×128).",
     change: "Change",
     remove: "Remove",
     savedOk: "Saved!",
@@ -689,10 +689,10 @@ const COLORS = ["#F5631A","#FF8A3D","#F59E0B","#D97706","#F43F5E","#DC2626","#C2
 const EMOJI_PRESETS = ["📚","📖","🧠","🔬","💼","🎨","💻","⚽","🎵","🌍","🏥","⚖️","🧮","📐","🎯","✨","🔥","🚀","💡","📊"];
 const isEmojiMark = m => !!m && typeof m === "string" && !m.startsWith("#");
 // Safely resize an image file to a TINY thumbnail for JWT-safe storage.
-// 96×96 at JPEG 35% ≈ 2-4 KB — sharper but still JWT-safe
+// 128×128 at JPEG 55% ≈ 4-6 KB — sharp and still JWT-safe
 // without bloating the JWT token (which caused 520 errors at ~30KB+).
-const MAX_AVATAR_BYTES = 4500; // hard cap — reject if bigger
-const resizeImageDataUrl = (file, maxSize=96, quality=0.35) => new Promise((resolve, reject) => {
+const MAX_AVATAR_BYTES = 7000; // hard cap — ~7KB keeps JWT well under danger zone (~30KB+)
+const resizeImageDataUrl = (file, maxSize=128, quality=0.55) => new Promise((resolve, reject) => {
   const reader = new FileReader();
   reader.onload = ev => {
     const img = new Image();
@@ -2013,9 +2013,14 @@ function ProfileModal({user,userName,onLogout,onClose,hideShared,setHideShared,o
       </div>
     </div>
     <div style={{display:"flex",alignItems:"center",gap:14,marginBottom:18,padding:"14px",background:"var(--glass-hover)",border:"1px solid rgba(245,99,26,.15)",borderRadius:14}}>
-      <Avatar url={avatar} name={name} size={56}/>
+      <div onClick={()=>fileRef.current?.click()} style={{cursor:"pointer",position:"relative",flexShrink:0}} title={t.change}>
+        <Avatar url={avatar} name={name} size={62}/>
+        <div style={{position:"absolute",bottom:-2,right:-2,width:22,height:22,borderRadius:"50%",background:"var(--grad)",display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 2px 6px rgba(0,0,0,.2)"}}>
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><path d="M12 5v14M5 12h14"/></svg>
+        </div>
+      </div>
       <div style={{flex:1,minWidth:0}}>
-        <div style={{fontSize:13,fontWeight:600,color:"var(--text)"}}>{ t.profilePic}</div>
+        <div style={{fontSize:13,fontWeight:600,color:"var(--text)"}}>{t.profilePic}</div>
         <div style={{fontSize:11,color:"var(--muted)",marginTop:2,lineHeight:1.45}}>{t.profilePicSub}</div>
       </div>
       <div style={{display:"flex",flexDirection:"column",gap:4}}>
