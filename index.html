@@ -181,7 +181,7 @@ html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;background:var(
 .overlay{position:fixed;inset:0;background:var(--overlay-bg);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);display:flex;align-items:center;justify-content:center;z-index:100;padding:20px;}
 .modal{position:relative;background:var(--glass-modal);backdrop-filter:blur(30px) saturate(150%);-webkit-backdrop-filter:blur(30px) saturate(150%);border-radius:var(--r-xl);box-shadow:var(--sh-lg),var(--glass-inset);border:1px solid var(--glass-bdr);width:100%;max-height:90vh;overflow-y:auto;animation:scaleIn .18s ease;}
 .modal-flex{overflow-y:hidden!important;overflow-x:hidden!important;display:flex!important;flex-direction:column!important;padding-bottom:0!important;}
-@media(max-width:768px){.modal-flex{height:92dvh!important;max-height:92dvh!important;}}
+@media(max-width:768px){.modal-flex{height:94dvh!important;max-height:94dvh!important;}}
 .inline-edit{border:none;background:transparent;font:inherit;color:inherit;padding:0 4px;outline:none;border-radius:4px;}
 .inline-edit:focus{background:var(--ol);}
 
@@ -2030,7 +2030,7 @@ function MCQMode({set,cards,onExit,onGoHome,onRate,onCacheMCQ,readOnly,t}) {
           color:isActive?`rgba(${tint},1)`:"var(--text)",
           fontSize:15,textAlign:"left",cursor:picked!==null?"default":"pointer",
           transition:"all .15s",fontFamily:"inherit",display:"flex",alignItems:"center",gap:10,
-          boxShadow:isActive?`0 2px 8px rgba(${tint},.22),var(--glass-inset)`:`0 1px 3px rgba(0,0,0,.03),var(--glass-inset)`
+          boxShadow:isActive?`0 2px 8px rgba(${tint},.22),inset 0 1px 0 rgba(255,255,255,.18)`:`0 1px 3px rgba(0,0,0,.03),inset 0 1px 0 rgba(255,255,255,.18)`
         }} onMouseEnter={e=>{if(picked===null){e.currentTarget.style.borderColor="var(--orange)";e.currentTarget.style.background="var(--glass-hover)";}}} onMouseLeave={e=>{if(picked===null){e.currentTarget.style.borderColor="var(--glass-bdr)";e.currentTarget.style.background="var(--glass)";}}}>
         <span style={{width:24,height:24,borderRadius:6,background:isCorrect?"var(--green)":isWrong?"var(--red)":"var(--border)",color:isActive?"#fff":"var(--muted)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700,flexShrink:0,transition:"all .15s"}}>{String.fromCharCode(65+i)}</span>
         {opt.text}
