@@ -229,6 +229,7 @@ html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;background:var(
 
 // \u2500\u2500\u2500 UTILS \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 const CHANGELOG = [
+  {version:"1.5", date:"16.04.2026", items:["Komplette Sprachunterstützung Deutsch/Englisch","Sprache im Profil wählbar (sync über Geräte)","Tageszeitabhängige Begrüßung mit 125+ Varianten","Neuigkeiten ein-/ausklappbar","Fortschrittsring in beiden Modi sichtbar","Diverse Dark-Mode Fixes in Modals"]},
   {version:"1.4", date:"16.04.2026", items:["Dark Mode (folgt System-Einstellung)","Ordner mit Emoji oder Farbe markieren","Profilbild hochladen","Bearbeitungsrechte beim Teilen","Sidebar ein-/ausklappbar","Passwort ein-/ausblenden","Stern-Animation beim Laden"]},
   {version:"1.3", date:"15.04.2026", items:["Ordner-Level Sharing","Ordner-Level Lernen mit Smart-Mix","Rating-Filter im Lern-Dialog","MCQ-Fortschritt erreicht jetzt Super-Level"]},
   {version:"1.2", date:"15.04.2026", items:["Glass-Morphism Design","Warmes Orange/Rot Farbschema","Geteilte Ordner zeigen Original-Namen"]},
@@ -1231,7 +1232,7 @@ function Dashboard({session, onLogout}) {
           </div>
           {loading ? <div style={{padding:"12px 10px",color:"var(--muted2)",fontSize:13,display:"flex",alignItems:"center",gap:8}}><ISpin c="var(--muted2)" s={16}/> Lädt…</div>
             : rootFolders.length===0 ? <div style={{padding:"8px 10px",fontSize:13,color:"var(--muted2)"}}>{t.noFolders}</div>
-            : (sideFilter==="all"?rootFolders:sideFilter==="own"?rootFolders.filter(f=>!f.isVirtualShared):rootFolders.filter(f=>f.isVirtualShared)).map(f => <SidebarFolder key={f.id} folder={f} isActive={sel.folderId===f.id} onClick={()=>openFolder(f.id)} onDelete={()=>{if(confirm(`"${f.name}" l\u00f6schen?`))removeFolder(f.id);}} onEdit={()=>{setEditFolder(f);setModal({type:"folder"});setMenuOpen(false);}}/>)
+            : (sideFilter==="all"?rootFolders:sideFilter==="own"?rootFolders.filter(f=>!f.isVirtualShared):rootFolders.filter(f=>f.isVirtualShared)).map(f => <SidebarFolder key={f.id} folder={f} t={t} isActive={sel.folderId===f.id} onClick={()=>openFolder(f.id)} onDelete={()=>{if(confirm(`"${f.name}" ${t.deleteConfirm}`))removeFolder(f.id);}} onEdit={()=>{setEditFolder(f);setModal({type:"folder"});setMenuOpen(false);}}/>)
           }
           <button className="folder-row" onClick={()=>{setEditFolder(null);setModal({type:"folder"});setMenuOpen(false);}} style={{border:"1.5px dashed rgba(245,99,26,.3)",color:"var(--muted)",fontSize:13,marginTop:6}}>
             <IPlus/> {t.newFolder}
@@ -1377,7 +1378,7 @@ function FolderView({folder,sets,data,onBack,onNewSet,onSelectSet,onLearnSet,onL
       {sets.length===0
         ? <EmptyState icon={isShared?"👥":"📚"} title={isShared?t.sharedWithMe:t.noSets} sub={isShared?t.sharedWithMe:t.noSetsSub} btnLabel={isShared?null:"+ "+t.newSet} onBtn={isShared?null:onNewSet}/>
         : <div className="hb-g-sets" style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(240px,1fr))",gap:16}}>
-            {sets.map(s => { const sc=data.cards.filter(c=>c.setId===s.id); return <SetCard key={s.id} set={s} cardCount={sc.length} progress={calcProgress(sc)} onClick={()=>onSelectSet(s.id)} onLearn={()=>onLearnSet(s,sc)} onDelete={()=>onDeleteSet(s.id)} onRename={name=>onRenameSet(s.id,name)}/>; })}
+            {sets.map(s => { const sc=data.cards.filter(c=>c.setId===s.id); return <SetCard key={s.id} set={s} t={t} cardCount={sc.length} progress={calcProgress(sc)} onClick={()=>onSelectSet(s.id)} onLearn={()=>onLearnSet(s,sc)} onDelete={()=>onDeleteSet(s.id)} onRename={name=>onRenameSet(s.id,name)}/>; })}
           </div>
       }
     </div>
@@ -1418,7 +1419,7 @@ function SetView({set,folder,cards,onBack,onNewCard,onEditCard,onDeleteCard,onLe
 }
 
 // \u2500\u2500\u2500 SUB-COMPONENTS \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
-function SidebarFolder({folder,isActive,onClick,onDelete,onEdit}) {
+function SidebarFolder({folder,isActive,onClick,onDelete,onEdit,t}) {
   const virtualShared = folder.isVirtualShared;
   return (<div className={`folder-row${isActive?" active":""}`} onClick={onClick}>
     <FolderMark mark={folder.color} size={18}/>
@@ -1427,14 +1428,14 @@ function SidebarFolder({folder,isActive,onClick,onDelete,onEdit}) {
         {folder.name}
         {virtualShared && <span title="Geteilt mit mir" style={{fontSize:9,color:"var(--shared-fg)",background:"var(--shared-bg)",border:"1px solid var(--shared-border)",borderRadius:99,padding:"1px 6px",fontWeight:600,textTransform:"uppercase",letterSpacing:".04em",flexShrink:0}}>🔗</span>}
       </div>
-      <div style={{fontSize:11,color:"var(--muted2)",marginTop:1}}>{folder.setCount} Sets · {folder.cardCount} Karten{folder.cardCount>0&&<span style={{marginLeft:4,color:folder.progress>=80?"var(--green)":"var(--orange)"}}>· {folder.progress}%</span>}</div>
+      <div style={{fontSize:11,color:"var(--muted2)",marginTop:1}}>{folder.setCount} {t.sets} · {folder.cardCount} {t.cardsCount}{folder.cardCount>0&&<span style={{marginLeft:4,color:folder.progress>=80?"var(--green)":"var(--orange)"}}>· {folder.progress}%</span>}</div>
     </div>
     {!virtualShared && onEdit && <button className="icon-btn edit" title="Bearbeiten" onClick={e=>{e.stopPropagation();onEdit();}}><IEdit/></button>}
     {!virtualShared && <button className="icon-btn" title="Löschen" onClick={e=>{e.stopPropagation();onDelete();}}><ITrash/></button>}
   </div>);
 }
 
-function SetCard({set,cardCount,progress,onClick,onLearn,onDelete,onRename}){
+function SetCard({set,cardCount,progress,onClick,onLearn,onDelete,onRename,t}){
   const [editing,setEditing]=useState(false); const [name,setName]=useState(set.name); const ref=useRef();
   const commit=()=>{setEditing(false);if(name.trim()&&name.trim()!==set.name)onRename(name.trim());};
   useEffect(()=>{if(editing)ref.current?.focus();},[editing]);
