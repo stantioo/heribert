@@ -27,6 +27,8 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const FONTS = "https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap";
 const PDFJS  = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
+const MAMMOTH = "https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js";
+const JSZIP   = "https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js";
 
 const CSS = `
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
@@ -230,7 +232,7 @@ html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;background:var(
 // \u2500\u2500\u2500 UTILS \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 const CHANGELOG = {
   de: [
-    {version:"1.6", date:"16.04.2026", items:["Karteikarten kopieren in andere Sets","Karteikarten verschieben zwischen Sets","Set-Picker nach Ordner gruppiert"]},
+    {version:"1.6", date:"16.04.2026", items:["Karteikarten kopieren & verschieben","Word- & PowerPoint-Import (neben PDF)","Drei-Punkte-Menü auf Karteikarten","Schärferes Profilbild (128×128)"]},
     {version:"1.5", date:"16.04.2026", items:["Komplette Sprachunterstützung Deutsch/Englisch","Sprache im Profil wählbar (sync über Geräte)","Tageszeitabhängige Begrüßung mit 400+ Varianten","Neuigkeiten ein-/ausklappbar","Fortschrittsring in beiden Modi sichtbar","Diverse Dark-Mode Fixes in Modals","Schärferes Profilbild (96×96)"]},
     {version:"1.4", date:"16.04.2026", items:["Dark Mode (folgt System-Einstellung)","Ordner mit Emoji oder Farbe markieren","Profilbild hochladen","Bearbeitungsrechte beim Teilen","Sidebar ein-/ausklappbar","Passwort ein-/ausblenden","Stern-Animation beim Laden"]},
     {version:"1.3", date:"15.04.2026", items:["Ordner-Level Sharing","Ordner-Level Lernen mit Smart-Mix","Rating-Filter im Lern-Dialog","MCQ-Fortschritt erreicht jetzt Super-Level"]},
@@ -239,7 +241,7 @@ const CHANGELOG = {
     {version:"1.0", date:"14.04.2026", items:["Ordner & Sets erstellen","Karteikarten mit Rich-Text","Fortschritts-Tracking","Teilen per E-Mail"]},
   ],
   en: [
-    {version:"1.6", date:"16.04.2026", items:["Copy flashcards to other sets","Move flashcards between sets","Set picker grouped by folder"]},
+    {version:"1.6", date:"16.04.2026", items:["Copy & move flashcards between sets","Word & PowerPoint import (alongside PDF)","Three-dot menu on flashcards","Sharper profile picture (128×128)"]},
     {version:"1.5", date:"16.04.2026", items:["Full language support German/English","Language selectable in profile (syncs across devices)","Time-aware greetings with 400+ variations","Changelog collapsible","Progress ring visible in both modes","Various dark mode modal fixes","Sharper profile picture (96×96)"]},
     {version:"1.4", date:"16.04.2026", items:["Dark mode (follows system setting)","Folders with emoji or color marker","Profile picture upload","Edit permissions when sharing","Collapsible sidebar","Password show/hide toggle","Star spin animation on load"]},
     {version:"1.3", date:"15.04.2026", items:["Folder-level sharing","Folder-level learning with smart mix","Rating filter in study dialog","MCQ progress now reaches Super level"]},
@@ -372,6 +374,8 @@ const T = {
     cardsAvailable: "Karten insgesamt",
     afterFilter: "nach Filter",
     ofTotal: "von",
+    import: "Import",
+    importNoText: "Konnte keinen auswertbaren Text extrahieren.",
     copy: "Kopieren",
     move: "Verschieben",
     copyCard: "Karte kopieren",
@@ -503,6 +507,8 @@ const T = {
     cardsAvailable: "cards total",
     afterFilter: "after filter",
     ofTotal: "of",
+    import: "Import",
+    importNoText: "Could not extract readable text.",
     copy: "Copy",
     move: "Move",
     copyCard: "Copy card",
@@ -1106,36 +1112,72 @@ function Dashboard({session, onLogout}) {
   const updateCardRating = async (cid,rating) => { await sb.from("cards").update({last_rating:rating}).eq("id",cid); setData(d=>({...d,cards:d.cards.map(c=>c.id===cid?{...c,lastRating:rating}:c)})); };
   const cacheCardMCQ = async (cid,opts) => { await sb.from("cards").update({mcq_options:opts}).eq("id",cid); setData(d=>({...d,cards:d.cards.map(c=>c.id===cid?{...c,mcqOptions:opts}:c)})); };
 
+  const loadScript = (url) => new Promise((res,rej) => {
+    if (document.querySelector(`script[src="${url}"]`)) { res(); return; }
+    const s=document.createElement("script");s.src=url;s.onload=res;s.onerror=rej;document.head.appendChild(s);
+  });
+  // Extract text from .docx using mammoth
+  const extractDocx = async (buf) => {
+    await loadScript(MAMMOTH);
+    const result = await mammoth.extractRawText({arrayBuffer:buf});
+    return result.value||"";
+  };
+  // Extract text from .pptx by reading XML slides inside the zip
+  const extractPptx = async (buf) => {
+    await loadScript(JSZIP);
+    const zip = await JSZip.loadAsync(buf);
+    const texts = [];
+    const slideFiles = Object.keys(zip.files).filter(f=>f.match(/^ppt\/slides\/slide\d+\.xml$/)).sort();
+    for (const sf of slideFiles) {
+      const xml = await zip.files[sf].async("string");
+      const stripped = xml.replace(/<[^>]+>/g," ").replace(/&[a-z]+;/g," ").replace(/\s+/g," ").trim();
+      if (stripped.length > 5) texts.push(stripped);
+    }
+    return texts.join("\n\n---\n\n");
+  };
+
   const importPDF = async (file) => {
     setModal({type:"pdfLoading", stage:"extract", info:`Lese ${file.name}…`});
     try {
-      if (!window.pdfjsLib) {
-        await new Promise((res,rej) => { const s=document.createElement("script");s.src=PDFJS;s.onload=res;s.onerror=rej;document.head.appendChild(s); });
-        window.pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
-      }
-      // 1) Extract full text from PDF (all pages concatenated, no heuristics)
+      const ext = (file.name||"").split(".").pop().toLowerCase();
       const buf = await file.arrayBuffer();
-      const pdf = await window.pdfjsLib.getDocument({data:buf}).promise;
-      const pagesTxt = [];
-      for (let p=1; p<=pdf.numPages; p++) {
-        const page = await pdf.getPage(p);
-        const tc = await page.getTextContent();
-        // Group items by y-position to rebuild lines
-        const sorted = [...tc.items].sort((a,b)=>b.transform[5]-a.transform[5]);
-        const lines=[]; let lastY=null; let cur=[];
-        for (const item of sorted) {
-          const y=Math.round(item.transform[5]);
-          if(lastY===null||Math.abs(y-lastY)>4){if(cur.length)lines.push(cur.join(" ").trim());cur=[item.str];lastY=y;}
-          else cur.push(item.str);
-        }
-        if (cur.length) lines.push(cur.join(" ").trim());
-        pagesTxt.push(lines.filter(l=>l.trim()).join("\n"));
-      }
-      const fullText = pagesTxt.filter(t=>t.length>0).join("\n\n---\n\n").trim();
-      if (fullText.length < 50) { setModal({type:"pdfError",msg:"Konnte keinen auswertbaren Text aus dem PDF extrahieren."}); return; }
+      let fullText = "";
+      let pageCount = 0;
 
-      // 2) Ask Gemini (via Edge Function) to generate Q/A cards
-      setModal({type:"pdfLoading", stage:"generate", info:`${pdf.numPages} Seite${pdf.numPages===1?"":"n"} · Gemini erstellt Karteikarten…`});
+      if (ext === "docx" || ext === "doc") {
+        fullText = await extractDocx(buf);
+        pageCount = Math.max(1, Math.ceil(fullText.length / 3000));
+      } else if (ext === "pptx" || ext === "ppt") {
+        fullText = await extractPptx(buf);
+        pageCount = Math.max(1, fullText.split("---").length);
+      } else {
+        // PDF (default)
+        if (!window.pdfjsLib) {
+          await loadScript(PDFJS);
+          window.pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+        }
+        const pdf = await window.pdfjsLib.getDocument({data:buf}).promise;
+        pageCount = pdf.numPages;
+        const pagesTxt = [];
+        for (let p=1; p<=pdf.numPages; p++) {
+          const page = await pdf.getPage(p);
+          const tc = await page.getTextContent();
+          const sorted = [...tc.items].sort((a,b)=>b.transform[5]-a.transform[5]);
+          const lines=[]; let lastY=null; let cur=[];
+          for (const item of sorted) {
+            const y=Math.round(item.transform[5]);
+            if(lastY===null||Math.abs(y-lastY)>4){if(cur.length)lines.push(cur.join(" ").trim());cur=[item.str];lastY=y;}
+            else cur.push(item.str);
+          }
+          if (cur.length) lines.push(cur.join(" ").trim());
+          pagesTxt.push(lines.filter(l=>l.trim()).join("\n"));
+        }
+        fullText = pagesTxt.filter(tx=>tx.length>0).join("\n\n---\n\n").trim();
+      }
+
+      if (fullText.length < 50) { setModal({type:"pdfError",msg:t?.importNoText||"Konnte keinen auswertbaren Text extrahieren."}); return; }
+
+      setModal({type:"pdfLoading", stage:"generate", info:`${pageCount} ${pageCount===1?"Seite":"Seiten"} · Gemini erstellt Karteikarten…`});
       const {data, error} = await sb.functions.invoke("generate-cards", {
         body: { text: fullText }
       });
@@ -1458,7 +1500,7 @@ function SetView({set,folder,cards,onBack,onNewCard,onEditCard,onDeleteCard,onCo
           </div>
         </div>
         <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
-          {!readOnly && <label className="btn-sm" style={{cursor:"pointer"}}><IPdf/> {t.pdf} <input type="file" accept=".pdf" style={{display:"none"}} onChange={e=>e.target.files[0]&&onImportPDF(e.target.files[0])}/></label>}
+          {!readOnly && <label className="btn-sm" style={{cursor:"pointer"}}><IPdf/> {t.import||"Import"} <input type="file" accept=".pdf,.docx,.pptx,.doc,.ppt" style={{display:"none"}} onChange={e=>e.target.files[0]&&onImportPDF(e.target.files[0])}/></label>}
           {cards.length>0 && <button className="btn-sm" onClick={onExport}><IDownload/> {t.export}</button>}
           {cards.length>0 && <button className="btn-o" onClick={onLearn}><IBook/> {t.learn}</button>}
           {!readOnly && <button className="btn-g" onClick={onNewCard}><IPlus/> {t.newCard}</button>}
@@ -1532,8 +1574,7 @@ function CardRow({card,onEdit,onDelete,onCopy,onMove,readOnly,t}) {
       {icon}{label}
     </button>
   );
-  return (<div style={{background:"var(--glass)",backdropFilter:"blur(18px) saturate(140%)",WebkitBackdropFilter:"blur(18px) saturate(140%)",border:"1px solid rgba(245,99,26,.12)",borderRadius:"var(--r-md)",overflow:"visible",boxShadow:"0 2px 10px rgba(245,99,26,.06),var(--glass-inset)"}}>
-    <div style={{display:"flex",alignItems:"center",gap:10,padding:"14px 16px",cursor:"pointer"}} onClick={()=>setOpen(p=>!p)}>
+  return (<div style={{background:"var(--glass)",backdropFilter:"blur(18px) saturate(140%)",WebkitBackdropFilter:"blur(18px) saturate(140%)",border:"1px solid rgba(245,99,26,.12)",borderRadius:"var(--r-md)",boxShadow:"0 2px 10px rgba(245,99,26,.06),var(--glass-inset)",position:"relative",zIndex:menuOpen?50:1}}>    <div style={{display:"flex",alignItems:"center",gap:10,padding:"14px 16px",cursor:"pointer"}} onClick={()=>setOpen(p=>!p)}>
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--muted2)" strokeWidth="2.5" style={{transform:open?"rotate(90deg)":"rotate(0deg)",transition:"transform .2s",flexShrink:0}}><path d="M9 18l6-6-6-6"/></svg>
       <div style={{flex:1,overflow:"hidden",fontSize:14,fontWeight:500,whiteSpace:"nowrap",textOverflow:"ellipsis"}} dangerouslySetInnerHTML={{__html:card.questionHtml||"<em style='color:var(--muted2)'>—</em>"}}/>
       {ri && <span style={{fontSize:16,flexShrink:0}}>{ri.emoji}</span>}
@@ -1541,7 +1582,7 @@ function CardRow({card,onEdit,onDelete,onCopy,onMove,readOnly,t}) {
         <button onClick={e=>{e.stopPropagation();setMenuOpen(p=>!p);}} style={{width:28,height:28,borderRadius:8,border:"none",background:menuOpen?"var(--glass-hover)":"none",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",color:"var(--muted2)",transition:"all .12s"}} onMouseEnter={e=>e.currentTarget.style.color="var(--orange)"} onMouseLeave={e=>e.currentTarget.style.color="var(--muted2)"}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
         </button>
-        {menuOpen && <div style={{position:"absolute",top:"100%",right:0,marginTop:4,minWidth:180,background:"var(--glass-modal)",backdropFilter:"blur(24px) saturate(150%)",WebkitBackdropFilter:"blur(24px) saturate(150%)",border:"1px solid var(--glass-bdr)",borderRadius:12,boxShadow:"var(--sh-lg)",padding:"4px",zIndex:20,animation:"scaleIn .12s ease"}}>
+        {menuOpen && <div style={{position:"absolute",top:"100%",right:0,marginTop:4,minWidth:185,background:"rgba(255,255,255,.5)",backdropFilter:"blur(30px) saturate(180%)",WebkitBackdropFilter:"blur(30px) saturate(180%)",border:"1px solid rgba(255,255,255,.65)",borderRadius:14,boxShadow:"0 14px 44px rgba(0,0,0,.18),0 2px 8px rgba(0,0,0,.08),inset 0 1px 0 rgba(255,255,255,.85)",padding:"5px",zIndex:999,animation:"scaleIn .12s ease"}}>
           {onCopy && <MenuItem icon={<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>} label={t?.copy||"Kopieren"} onClick={onCopy}/>}
           {onMove && <MenuItem icon={<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>} label={t?.move||"Verschieben"} onClick={onMove}/>}
           {onEdit && <MenuItem icon={<IEdit/>} label={t?.editCard||"Bearbeiten"} onClick={onEdit}/>}
@@ -2393,14 +2434,15 @@ function CardActionModal({card,action,sets,folders,currentSetId,onConfirm,onClos
           <div style={{display:"flex",flexDirection:"column",gap:4}}>
             {g.sets.map(s=>{
               const isCurrent = s.id===currentSetId;
+              const blockMove = !isCopy && isCurrent;
               const isSelected = s.id===selected;
-              return (<button key={s.id} disabled={isCurrent} onClick={()=>setSelected(s.id)} style={{
+              return (<button key={s.id} disabled={blockMove} onClick={()=>setSelected(s.id)} style={{
                 display:"flex",alignItems:"center",gap:10,padding:"10px 12px",
                 border:`1.5px solid ${isSelected?"var(--orange)":isCurrent?"var(--border-soft)":"var(--glass-bdr)"}`,
                 borderRadius:12,
                 background:isSelected?"var(--glass-hover)":"var(--card-bg)",
                 cursor:isCurrent?"not-allowed":"pointer",
-                opacity:isCurrent?.45:1,
+                opacity:blockMove?.45:1,
                 transition:"all .15s",fontFamily:"inherit",textAlign:"left",fontSize:13,color:"var(--text)"
               }}>
                 <IBook/> <span style={{flex:1}}>{s.name}</span>
