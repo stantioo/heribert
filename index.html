@@ -71,7 +71,7 @@ const CSS = `
   --sidebar-hdr:linear-gradient(160deg,rgba(255,245,238,.7),rgba(255,250,247,.4));
   --topbar-bg:rgba(255,253,247,.78);
   --btn-ghost-bg:rgba(255,255,255,.65);
-  --btn-ghost-bdr:rgba(255,255,255,.75);
+  --btn-ghost-bdr:rgba(245,99,26,.2);
   --btn-sm-bg:rgba(255,255,255,.6);
   --btn-sm-bdr:rgba(255,255,255,.7);
   --overlay-bg:rgba(28,20,10,.45);
@@ -209,6 +209,8 @@ html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;background:var(
 /* Loader loop: ease-out start, two spins, ease-in slowdown to a stop,
    short pause, then repeat. Spin fraction 0-55%, pause 55-100%. */
 @keyframes starLoop{0%{transform:rotate(0deg);animation-timing-function:cubic-bezier(.45,0,.55,1);}55%{transform:rotate(720deg);}100%{transform:rotate(720deg);}}
+/* Ring fill animation: progress circle draws from empty to actual value. */
+@keyframes ringDraw{from{stroke-dashoffset:160.22;}}
 @keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
 @keyframes scaleIn{from{opacity:0;transform:scale(.95);}to{opacity:1;transform:scale(1);}}
 @keyframes spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
@@ -249,6 +251,7 @@ html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;background:var(
 // \u2500\u2500\u2500 UTILS \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 const CHANGELOG = {
   de: [
+    {version:"2.0", date:"17.04.2026", items:["Fragen in Kartenliste mit Fade-Out abgeschnitten — ausklappbar in voller Länge","Fortschrittskreis mit Lade-Animation und Hover-Effekt","~15 fehlerhafte deutsche Motivationstexte korrigiert (keine Denglisch-Fragmente mehr)","Logo-Klick während Lernsession zeigt stilisierten Bestätigungsdialog","Ordnername + Farbe/Emoji direkt im Ordner-Header bearbeitbar","Neue-Karte-Button mit sichtbarer Outline im Light-Mode"]},
     {version:"1.9", date:"17.04.2026", items:["Ladesymbole einheitlich: der rotierende Heribert-Stern mit Ease-in-out-Loop","Karten-Grid vollständig responsive (auto-fill mit min. 340px pro Karte) — kein Abschneiden mehr","Zahl im Lern-Dialog jetzt gestrichelt unterstrichen als Klickhinweis"]},
     {version:"1.8", date:"17.04.2026", items:["Karten-Anzahl im Lern-Dialog direkt eintippbar (klick auf die Zahl)","Hinweis-Banner bei erschöpften Gemini-Tokens in MCQ-Modus","Lange Fragen werden in der Karten-Liste abgekürzt; ausgeklappt mit Zeilenumbrüchen","Lernen-Button auf Set-Karten jetzt mit Outline (dezenter als Ordner-Button)","Profil-Modal am Desktop wieder korrekt dargestellt"]},
     {version:"1.7", date:"17.04.2026", items:["„Lernen“-Button auf Set-Karten jetzt im Orange-Design (besser sichtbar)","Karten in 2–3 Spalten auf großen Bildschirmen","Bestätigung vor Abbruch einer laufenden Lern-Session","Stoppuhr: Session-Dauer im Ergebnis-Screen","MCQ-Bug: richtige Antwort wird nicht mehr kurz vorab markiert","MCQ-KI mit Retry + Backoff gegen Rate-Limits (weniger „Option A/B/C“)","Smart-Mix-Hinweis auch bei großen Einzel-Sets (>30 Karten)"]},
@@ -261,6 +264,7 @@ const CHANGELOG = {
     {version:"1.0", date:"14.04.2026", items:["Ordner & Sets erstellen","Karteikarten mit Rich-Text","Fortschritts-Tracking","Teilen per E-Mail"]},
   ],
   en: [
+    {version:"2.0", date:"17.04.2026", items:["Questions in card list fade-out when truncated — expand for full text","Progress circle with draw animation and hover glow","~15 broken German motivation texts fixed (no more Denglish)","Logo click during study session shows styled confirmation dialog","Folder name + color/emoji editable from folder header","New Card button with visible border in light mode"]},
     {version:"1.9", date:"17.04.2026", items:["All loaders unified: spinning Heribert star with ease-in-out loop","Card grid fully responsive (auto-fill, min 340px per card) — no more clipping","Number in study dialog now has a dotted underline to hint it's editable"]},
     {version:"1.8", date:"17.04.2026", items:["Card count in study dialog now directly editable (click the number)","Warning banner when Gemini tokens are exhausted in MCQ mode","Long questions are truncated in the card list; expanded view shows the full text with line breaks","Learn button on set cards now uses an outline style (more subtle than the folder button)","Profile modal renders correctly on desktop again"]},
     {version:"1.7", date:"17.04.2026", items:["\"Learn\" button on set cards now in orange (much more visible)","Cards shown in 2–3 columns on wide screens","Confirmation before exiting an active study session","Stopwatch: session duration on the result screen","MCQ bug: correct answer no longer flashes pre-selected","MCQ AI with retry + backoff against rate limits (fewer \"Option A/B/C\")","Smart-mix hint also on large single sets (>30 cards)"]},
@@ -1066,13 +1070,17 @@ function Dashboard({session, onLogout}) {
     setHideSharedState(v);
     try { localStorage.setItem("heribert.hideShared", v ? "1" : "0"); } catch {}
   };
-  // Close the mobile menu AND return to the home screen from anywhere —
-  // confirms first if a learn session is running.
+  const [confirmGoHome,setConfirmGoHome]=useState(false);
   const goHome = () => {
-    if (studyMode) {
-      if (!window.confirm("Lernsession noch nicht abgeschlossen — wirklich abbrechen und zur Übersicht zurück?")) return;
-      setStudyMode(null);
-    }
+    if (studyMode) { setConfirmGoHome(true); return; }
+    setStudyConfig(null);
+    setSel({folderId:null, setId:null});
+    setModal(null);
+    setMenuOpen(false);
+  };
+  const confirmGoHomeYes = () => {
+    setConfirmGoHome(false);
+    setStudyMode(null);
     setStudyConfig(null);
     setSel({folderId:null, setId:null});
     setModal(null);
@@ -1355,8 +1363,10 @@ function Dashboard({session, onLogout}) {
   if (studyMode) {
     const Exit=()=>setStudyMode(null);
     const sessionInfo = {name: studyMode.sourceName};
-    if (studyMode.mode==="flash") return <FlashMode set={sessionInfo} cards={studyMode.cards} onExit={Exit} onGoHome={goHome} onRate={updateCardRating} t={t}/>;
-    return <MCQMode set={sessionInfo} cards={studyMode.cards} onExit={Exit} onGoHome={goHome} onRate={updateCardRating} onCacheMCQ={cacheCardMCQ} t={t}/>;
+    return <>
+      {confirmGoHome && <ConfirmOverlay title={t.abortStudy} sub={t.abortStudySub} confirmLabel={t.abortStudyYes} cancelLabel={t.continueStudy} onConfirm={confirmGoHomeYes} onCancel={()=>setConfirmGoHome(false)}/>}
+      {studyMode.mode==="flash" ? <FlashMode set={sessionInfo} cards={studyMode.cards} onExit={Exit} onGoHome={goHome} onRate={updateCardRating} t={t}/> : <MCQMode set={sessionInfo} cards={studyMode.cards} onExit={Exit} onGoHome={goHome} onRate={updateCardRating} onCacheMCQ={cacheCardMCQ} t={t}/>}
+    </>;
   }
 
   return (
@@ -1439,7 +1449,8 @@ function Dashboard({session, onLogout}) {
                 setStudyConfig({sourceName:folder.name,cards:fc,isFolder:true});
               }}
               onDeleteSet={sid=>{if(confirm(t.setDelete))removeSet(sid);}} onRenameSet={renameSet}
-              onShareFolder={()=>!isViewingShared && setModal({type:"folderShare",folderId:folder.id})}/>
+              onShareFolder={()=>!isViewingShared && setModal({type:"folderShare",folderId:folder.id})}
+              onEditFolder={()=>{if(!isViewingShared){setEditFolder(folder);setModal({type:"folder"});}}}/>
           )}
           {sel.setId && (
             <SetView set={set} folder={folder} cards={setCCards} t={t}
@@ -1517,7 +1528,7 @@ function Dashboard({session, onLogout}) {
 }
 
 // \u2500\u2500\u2500 FOLDER VIEW \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
-function FolderView({folder,sets,data,onBack,onNewSet,onSelectSet,onLearnSet,onLearnFolder,onDeleteSet,onRenameSet,onShareFolder,t}) {
+function FolderView({folder,sets,data,onBack,onNewSet,onSelectSet,onLearnSet,onLearnFolder,onDeleteSet,onRenameSet,onShareFolder,onEditFolder,t}) {
   const isShared = folder?.isVirtualShared;
   const folderCards = data.cards.filter(c=>sets.some(s=>s.id===c.setId));
   const folderProg = calcProgress(folderCards);
@@ -1536,7 +1547,14 @@ function FolderView({folder,sets,data,onBack,onNewSet,onSelectSet,onLearnSet,onL
           {isShared && (
             <div style={{display:"inline-flex",alignItems:"center",gap:6,fontSize:11,fontWeight:600,color:"var(--shared-fg)",background:"var(--shared-bg)",border:"1px solid var(--shared-border)",borderRadius:99,padding:"3px 10px",marginBottom:10,textTransform:"uppercase",letterSpacing:".06em"}}>🔗 {t.sharedWithMe}</div>
           )}
-          <h1 style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:30,display:"flex",alignItems:"center",gap:12,letterSpacing:"-.5px"}}><FolderMark mark={folder?.color} size={34}/>{folder?.name}</h1>
+          <h1 style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:30,display:"flex",alignItems:"center",gap:12,letterSpacing:"-.5px"}}>
+            {!isShared && onEditFolder
+              ? <span onClick={onEditFolder} title={t.editFolder} style={{cursor:"pointer",display:"inline-flex",borderRadius:10,padding:"2px 4px",transition:"background .15s"}} onMouseEnter={e=>e.currentTarget.style.background="var(--glass-hover)"} onMouseLeave={e=>e.currentTarget.style.background="transparent"}><FolderMark mark={folder?.color} size={34}/></span>
+              : <FolderMark mark={folder?.color} size={34}/>}
+            {!isShared && onEditFolder
+              ? <span onClick={onEditFolder} title={t.editFolder} style={{cursor:"pointer",borderRadius:8,padding:"2px 6px",transition:"background .15s"}} onMouseEnter={e=>e.currentTarget.style.background="var(--glass-hover)"} onMouseLeave={e=>e.currentTarget.style.background="transparent"}>{folder?.name}</span>
+              : folder?.name}
+          </h1>
           <div style={{color:"var(--muted)",fontSize:14,marginTop:6}}>{sets.length} {t.sets} · {folderCards.length} {t.cardsCount}{folderCards.length>0 && <> · <span style={{color:"var(--rose)",fontWeight:600}}>{folderProg}%</span></>}</div>
           {isShared && sharerName && (
             <div style={{display:"inline-flex",alignItems:"center",gap:8,marginTop:10,padding:"5px 12px 5px 6px",background:"var(--shared-bg)",border:"1px solid var(--shared-border)",borderRadius:99,fontSize:12,color:"var(--shared-fg)",fontWeight:500}}>
@@ -1654,9 +1672,9 @@ function CardRow({card,onEdit,onDelete,onCopy,onMove,readOnly,t}) {
       {icon}{label}
     </button>
   );
-  return (<div style={{background:"var(--glass)",backdropFilter:"blur(18px) saturate(140%)",WebkitBackdropFilter:"blur(18px) saturate(140%)",border:"1px solid rgba(245,99,26,.12)",borderRadius:"var(--r-md)",boxShadow:"0 2px 10px rgba(245,99,26,.06),var(--glass-inset)",position:"relative",zIndex:menuOpen?100:0}}>    <div style={{display:"flex",alignItems:"center",gap:10,padding:"14px 16px",cursor:"pointer"}} onClick={()=>setOpen(p=>!p)}>
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--muted2)" strokeWidth="2.5" style={{transform:open?"rotate(90deg)":"rotate(0deg)",transition:"transform .2s",flexShrink:0}}><path d="M9 18l6-6-6-6"/></svg>
-      <div style={{flex:1,overflow:"hidden",fontSize:14,fontWeight:500,whiteSpace:"nowrap",textOverflow:"ellipsis"}} dangerouslySetInnerHTML={{__html:card.questionHtml||"<em style='color:var(--muted2)'>—</em>"}}/>
+  return (<div style={{background:"var(--glass)",backdropFilter:"blur(18px) saturate(140%)",WebkitBackdropFilter:"blur(18px) saturate(140%)",border:"1px solid rgba(245,99,26,.12)",borderRadius:"var(--r-md)",boxShadow:"0 2px 10px rgba(245,99,26,.06),var(--glass-inset)",position:"relative",zIndex:menuOpen?100:0}}>    <div style={{display:"flex",alignItems:open?"flex-start":"center",gap:10,padding:"14px 16px",cursor:"pointer"}} onClick={()=>setOpen(p=>!p)}>
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--muted2)" strokeWidth="2.5" style={{transform:open?"rotate(90deg)":"rotate(0deg)",transition:"transform .2s",flexShrink:0,marginTop:open?4:0}}><path d="M9 18l6-6-6-6"/></svg>
+      <div style={{flex:1,overflow:"hidden",fontSize:14,fontWeight:500,...(open?{whiteSpace:"normal",wordBreak:"break-word",lineHeight:1.6}:{whiteSpace:"nowrap",maskImage:"linear-gradient(to right, #000 82%, transparent 98%)",WebkitMaskImage:"linear-gradient(to right, #000 82%, transparent 98%)"})}} dangerouslySetInnerHTML={{__html:card.questionHtml||"<em style='color:var(--muted2)'>—</em>"}}/>
       {ri && <span style={{fontSize:16,flexShrink:0}}>{ri.emoji}</span>}
       {(!readOnly || onCopy) && <div ref={menuRef} style={{position:"relative",flexShrink:0}}>
         <button onClick={e=>{e.stopPropagation();setMenuOpen(p=>!p);}} style={{width:28,height:28,borderRadius:8,border:"none",background:menuOpen?"var(--glass-hover)":"none",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",color:"var(--muted2)",transition:"all .12s"}} onMouseEnter={e=>e.currentTarget.style.color="var(--orange)"} onMouseLeave={e=>e.currentTarget.style.color="var(--muted2)"}>
@@ -1671,8 +1689,6 @@ function CardRow({card,onEdit,onDelete,onCopy,onMove,readOnly,t}) {
       </div>}
     </div>
     {open && <div style={{borderTop:"1px solid rgba(245,99,26,.15)",padding:"14px 16px",background:"var(--glass-hover)",backdropFilter:"blur(10px)",WebkitBackdropFilter:"blur(10px)"}}>
-      <div style={{fontSize:12,fontWeight:600,color:"var(--muted)",marginBottom:8,textTransform:"uppercase",letterSpacing:".06em"}}>{t?.question||"Frage"}</div>
-      <div style={{fontSize:14,lineHeight:1.7,wordBreak:"break-word",whiteSpace:"normal",marginBottom:14}} dangerouslySetInnerHTML={{__html:card.questionHtml||"<em style='color:var(--muted2)'>—</em>"}}/>
       <div style={{fontSize:12,fontWeight:600,color:"var(--orange)",marginBottom:8,textTransform:"uppercase",letterSpacing:".06em"}}>{t?.answer||"Antwort"}</div>
       <div style={{fontSize:14,lineHeight:1.7,wordBreak:"break-word",whiteSpace:"normal"}} dangerouslySetInnerHTML={{__html:card.answerHtml||"<em style='color:var(--muted2)'>—</em>"}}/>
     </div>}
@@ -1773,33 +1789,33 @@ function HomeView({userName,data,rootFolders,onSelectFolder,t,lang}){
         "Dein Gehirn ist bereit! 🧬","Erst lernen, dann chillen! 😎","Neue Runde, neues Glück! 🍀",
         "Morgenroutine: Lernen! ✅","Was steht heute an? 📋","Schritt für Schritt! 👣",
         "Du machst das großartig! 🌟","Wissen ist Macht! 💡","Heute schon was gelernt? 🤔",
-        "Motivation ist alles! 🔥","Ready? Set? Learn! 🏁","Ein guter Tag zum Lernen! 🎓",
-        "Gehirn: aktiviert! 🔋","Mach den Tag zählen! 🗓️","Frischer Tag, klarer Kopf! 🔪",
+        "Motivation ist alles! 🔥","Achtung, fertig, los! 🏁","Ein guter Tag zum Lernen! 🎓",
+        "Gehirn: aktiviert! 🔋","Nutz den Tag! 🗓️","Frischer Tag, klarer Kopf! 🔪",
         "Eine Karte nach der anderen! 🃏","Dein Potenzial ist grenzenlos! 🌈","Bau was Großes! 🏗️",
         "Kleine Schritte, große Ergebnisse! 🪜","Fokus-Modus: aktiviert! 🎯","Morgen-Momentum! 🏄",
-        "Disziplin schlägt Talent! 🥊","Du bist da — das ist die halbe Miete! 🫡","Zerstör's heute! 🫶"
+        "Disziplin schlägt Talent! 🥊","Du bist da — das ist die halbe Miete! 🫡","Gib heute Vollgas! 🫶"
       ],
       midday: [
         "Weiter geht's! 🎯","Produktiv bleiben! 💡","Auf geht's! 🔥","Mittagspause nutzen! 📚",
-        "Halbzeit — bleib dran! ⚡","Noch motiviert? Let's go! 🏃","Power through! 💥",
+        "Halbzeit — bleib dran! ⚡","Noch motiviert? Weiter! 🏃","Zieh's durch! 💥",
         "Läuft bei dir! 🙌","Kurz reinschauen lohnt sich! 👀","Mittags-Boost! ☕",
         "Kleine Pause, großes Wissen! 🧠","Mach weiter so! 💪","Du bist on fire! 🔥",
         "Schnell ein paar Karten? ⏱️","Jede Minute zählt! ⏰","Dranbleiben zahlt sich aus! 📈",
-        "Quick Session? 🎯","Fokus-Zeit! 🎧","Keep pushing! 💫","Schon halb geschafft! 🏅",
+        "Schnelle Runde? 🎯","Fokus-Zeit! 🎧","Gib nicht auf! 💫","Schon halb geschafft! 🏅",
         "Lunch & Learn! 🥪","Dein Future Self dankt dir! 🙏","Nicht aufhören! 🚀",
         "Die Mitte des Tages gehört dir! ☀️","Momentum beibehalten! 🌊",
         "Tank dein Gehirn auf! 🧃","Mittags-Grind! 🔧","Siege stapeln! 🧱","Fortschritt vor Perfektion! ✅",
         "Sei unerbittlich! 🐺","Kleiner Aufwand, riesiger Effekt! 🎰","Du baust an was! 🏗️",
         "Mittagspausen-Held! 🦸","Bleib neugierig! 🔍","Nur noch 5 Minuten! ⏳",
-        "Mach es zählen! 💰","Brainfood-Time! 🍕","Keine Ausreden! 💥","Mittags-Champion! 🏆","Flow-State! 🌀"
+        "Jetzt erst recht! 💰","Brainfood-Time! 🍕","Keine Ausreden! 💥","Mittags-Champion! 🏆","Voll im Flow! 🌀"
       ],
       afternoon: [
         "Weiter geht's! 🎯","Bleib dran! 💪","Du schaffst das! ✨","Nachmittags-Push! 🚀",
-        "Fast geschafft für heute! 🏁","Endspurt! 🔥","Noch eine Runde? 📝","Keep it up! ⭐",
+        "Fast geschafft für heute! 🏁","Endspurt! 🔥","Noch eine Runde? 📝","Weiter so! ⭐",
         "Die Zielgerade! 🏆","Nachmittagskaffee & Karten! ☕","Du bist fast durch! 💫",
         "Konsistenz schlägt alles! 🎖️","Jetzt nochmal Gas geben! ⛽","Stark bleiben! 🦾",
         "Ein Set noch? 📚","Heute noch ein Level up! 📊","Durchziehen! 💥",
-        "Du wirst jeden Tag besser! 📈","Noch nicht fertig? Gut so! 🙌","Challenge accepted! 🏋️",
+        "Du wirst jeden Tag besser! 📈","Noch nicht fertig? Gut so! 🙌","Herausforderung angenommen! 🏋️",
         "Dein Einsatz wird belohnt! 🎁","Nicht nachlassen! ⚡","So nah dran! 🎯",
         "Letzte Runde für heute? 🔔","Bald hast du's drauf! 🧠",
         "Nachmittags-Energie! ☕","Der Grind hört nicht auf! 🔄","Höchste Produktivität! 📊",
@@ -1811,7 +1827,7 @@ function HomeView({userName,data,rootFolders,onSelectFolder,t,lang}){
       evening: [
         "Noch eine Runde? 🌙","Endspurt für heute! ✨","Feierabend-Session? 📚",
         "Abend-Lernzeit! 🌆","Entspannt noch was lernen? 🧠","Guter Zeitpunkt zum Wiederholen! 🔄",
-        "Wind-down & learn! 🌟","Die Ruhe nutzen! 🎧","Abends bleibt's hängen! 💡",
+        "Runterkommen & lernen! 🌟","Die Ruhe nutzen! 🎧","Abends bleibt's hängen! 💡",
         "Gemütlich ein paar Karten? 🛋️","Der Tag war gut — mach ihn perfekt! ✅",
         "Letzte Session? 🌅","Entspannt ins Wissen! 🧘","Kurz vor Schluss nochmal! ⏳",
         "Abend-Routine: Lernen! 📖","Investiere in dich! 💎","Netflix kann warten! 📺",
@@ -1826,13 +1842,13 @@ function HomeView({userName,data,rootFolders,onSelectFolder,t,lang}){
       ],
       night: [
         "Späte Session? 🦉","Lernen kennt keine Uhrzeit! 🌟","Noch ein paar Karten? 💫",
-        "Night owl mode! 🌙","Die besten Ideen kommen nachts! 💡","Stille Stunde, voller Fokus! 🎯",
+        "Nachteulen-Modus! 🌙","Die besten Ideen kommen nachts! 💡","Stille Stunde, voller Fokus! 🎯",
         "Nacht-Runde! 🌌","Du bist unaufhaltbar! 🔥","Alle schlafen, du lernst! 🏆",
-        "Dedication! 💎","Nachts ist's ruhig — perfekt zum Lernen! 🤫","Schlaf ist überbewertet! 😄",
+        "Voller Einsatz! 💎","Nachts ist's ruhig — perfekt zum Lernen! 🤫","Schlaf ist überbewertet! 😄",
         "Die Nacht gehört den Fleißigen! 🌃","Extra-Meile! 🏃","Respekt für den Einsatz! 👏",
-        "Geheimwaffe: Nachtlernen! 🥷","Morgen wirst du froh sein! 🌅","One more set! 🃏",
+        "Geheimwaffe: Nachtlernen! 🥷","Morgen wirst du froh sein! 🌅","Noch ein Set! 🃏",
         "Stille Nacht, kluge Nacht! 🎶","Dein Wissen wächst auch nachts! 🌱",
-        "Hustle mode: ON! 💻","Nachteule am Werk! 🦉","Focus level: Maximum! 🔮",
+        "Hustle-Modus: AN! 💻","Nachteule am Werk! 🦉","Fokus-Level: Maximum! 🔮",
         "Kein Stoppen in Sicht! 🚂","Legendärer Einsatz! ⭐",
         "Mitternachtsöl brennt! 🕯️","Während die Welt schläft! 🌍","Dark Mode: Lernen! 🖥️",
         "Nächtliches Genie! 🧪","3-Uhr-Produktivität! ⏰","Sterne draußen, du auch! ⭐",
@@ -1896,7 +1912,7 @@ function HomeView({userName,data,rootFolders,onSelectFolder,t,lang}){
             // Progress ring using the Heribert orange→rose gradient stroke.
             const size=62,stroke=5.5,r=(size-stroke*2)/2,circ=2*Math.PI*r,off=circ-(overallProg/100)*circ;
             return (
-              <div style={{position:"relative",width:size,height:size,flexShrink:0,borderRadius:"50%",background:"var(--glass)",backdropFilter:"blur(10px)",WebkitBackdropFilter:"blur(10px)",boxShadow:"0 4px 12px rgba(244,63,94,.18),var(--glass-inset)"}}>
+              <div style={{position:"relative",width:size,height:size,flexShrink:0,borderRadius:"50%",background:"var(--glass)",backdropFilter:"blur(10px)",WebkitBackdropFilter:"blur(10px)",boxShadow:"0 4px 12px rgba(244,63,94,.18),var(--glass-inset)",transition:"transform .25s,box-shadow .25s",cursor:"default"}} onMouseEnter={e=>{e.currentTarget.style.transform="scale(1.12)";e.currentTarget.style.boxShadow="0 8px 24px rgba(244,63,94,.35),var(--glass-inset)";}} onMouseLeave={e=>{e.currentTarget.style.transform="scale(1)";e.currentTarget.style.boxShadow="0 4px 12px rgba(244,63,94,.18),var(--glass-inset)";}}>
                 <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{position:"absolute",inset:0}}>
                   <defs>
                     <linearGradient id="heri-ring" x1="0" y1="0" x2="1" y2="1">
@@ -1908,7 +1924,7 @@ function HomeView({userName,data,rootFolders,onSelectFolder,t,lang}){
                   <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="url(#heri-ring)" strokeWidth={stroke}
                     strokeDasharray={circ} strokeDashoffset={off} strokeLinecap="round"
                     transform={`rotate(-90 ${size/2} ${size/2})`}
-                    style={{transition:"stroke-dashoffset .5s",filter:"drop-shadow(0 1px 3px rgba(244,63,94,.3))"}}/>
+                    style={{animation:"ringDraw 1.2s ease-out .3s both",filter:"drop-shadow(0 1px 3px rgba(244,63,94,.3))"}}/>
                 </svg>
                 <div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center"}}>
                   <span style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:16,...(dark?{color:"#fff",WebkitTextFillColor:"unset"}:{background:"var(--grad)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}),letterSpacing:"-.3px"}}>{overallProg}%</span>
