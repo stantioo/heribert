@@ -1071,8 +1071,12 @@ function Dashboard({session, onLogout}) {
     try { localStorage.setItem("heribert.hideShared", v ? "1" : "0"); } catch {}
   };
   const [confirmGoHome,setConfirmGoHome]=useState(false);
+  const studyHasProgress=useRef(false);
   const goHome = () => {
-    if (studyMode) { setConfirmGoHome(true); return; }
+    if (studyMode) {
+      if (studyHasProgress.current) { setConfirmGoHome(true); return; }
+      setStudyMode(null);
+    }
     setStudyConfig(null);
     setSel({folderId:null, setId:null});
     setModal(null);
@@ -1361,11 +1365,12 @@ function Dashboard({session, onLogout}) {
     : ownedSets.filter(s=>s.folderId===sel.folderId);
 
   if (studyMode) {
-    const Exit=()=>setStudyMode(null);
+    const Exit=()=>{studyHasProgress.current=false;setStudyMode(null);};
     const sessionInfo = {name: studyMode.sourceName};
+    const markProgress=()=>{studyHasProgress.current=true;};
     return <>
-      {confirmGoHome && <ConfirmOverlay title={t.abortStudy} sub={t.abortStudySub} confirmLabel={t.abortStudyYes} cancelLabel={t.continueStudy} onConfirm={confirmGoHomeYes} onCancel={()=>setConfirmGoHome(false)}/>}
-      {studyMode.mode==="flash" ? <FlashMode set={sessionInfo} cards={studyMode.cards} onExit={Exit} onGoHome={goHome} onRate={updateCardRating} t={t}/> : <MCQMode set={sessionInfo} cards={studyMode.cards} onExit={Exit} onGoHome={goHome} onRate={updateCardRating} onCacheMCQ={cacheCardMCQ} t={t}/>}
+      {confirmGoHome && <ConfirmOverlay title={t.abortStudy} sub={t.abortStudySub} confirmLabel={t.abortStudyYes} cancelLabel={t.continueStudy} onConfirm={()=>{studyHasProgress.current=false;confirmGoHomeYes();}} onCancel={()=>setConfirmGoHome(false)}/>}
+      {studyMode.mode==="flash" ? <FlashMode set={sessionInfo} cards={studyMode.cards} onExit={Exit} onGoHome={goHome} onRate={updateCardRating} onProgress={markProgress} t={t}/> : <MCQMode set={sessionInfo} cards={studyMode.cards} onExit={Exit} onGoHome={goHome} onRate={updateCardRating} onCacheMCQ={cacheCardMCQ} onProgress={markProgress} t={t}/>}
     </>;
   }
 
@@ -1460,7 +1465,8 @@ function Dashboard({session, onLogout}) {
               onMoveCard={c=>setModal({type:"cardAction",card:c,action:"move"})}
               onLearn={()=>setStudyConfig({sourceName:set.name,cards:setCCards,isFolder:false})}
               onImportPDF={importPDF}
-              onExport={()=>setModal({type:"export"})}/>
+              onExport={()=>setModal({type:"export"})}
+              onRenameSet={name=>renameSet(sel.setId,name)}/>
           )}
         </>}
       </main>
@@ -1580,9 +1586,15 @@ function FolderView({folder,sets,data,onBack,onNewSet,onSelectSet,onLearnSet,onL
 }
 
 // \u2500\u2500\u2500 SET VIEW \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
-function SetView({set,folder,cards,onBack,onNewCard,onEditCard,onDeleteCard,onCopyCard,onMoveCard,onLearn,onImportPDF,onExport,t}) {
+function SetView({set,folder,cards,onBack,onNewCard,onEditCard,onDeleteCard,onCopyCard,onMoveCard,onLearn,onImportPDF,onExport,onRenameSet,t}) {
   const prog = calcProgress(cards);
   const readOnly = set?.isSharedWithMe && !set?.canEdit;
+  const [editing,setEditing]=useState(false);
+  const [name,setName]=useState(set?.name||"");
+  const nameRef=useRef();
+  useEffect(()=>{setName(set?.name||"");},[set?.name]);
+  useEffect(()=>{if(editing)nameRef.current?.focus();},[editing]);
+  const commitName=()=>{setEditing(false);if(name.trim()&&name.trim()!==set?.name&&onRenameSet)onRenameSet(name.trim());};
   return (
     <div className="au">
       <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",marginBottom:28,flexWrap:"wrap",gap:14}}>
@@ -1590,7 +1602,14 @@ function SetView({set,folder,cards,onBack,onNewCard,onEditCard,onDeleteCard,onCo
           <button style={{display:"flex",alignItems:"center",gap:6,border:"none",background:"none",color:"var(--muted)",fontSize:14,cursor:"pointer",fontFamily:"inherit",marginBottom:10,padding:"4px 0"}} onClick={onBack}>
             <IBack/> {folder?.name}
           </button>
-          <h1 style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:26,display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}>{set?.name}{set?.isSharedWithMe && <span style={{fontSize:11,fontWeight:600,background:readOnly?"var(--shared-bg)":"var(--gl)",color:readOnly?"var(--shared-fg)":"var(--green)",padding:"3px 10px",borderRadius:99,border:`1px solid ${readOnly?"var(--shared-border)":"var(--gm)"}`,boxShadow:"0 2px 6px rgba(0,0,0,.06)"}}>{readOnly?t.readOnly:t.canEdit}</span>}</h1>
+          <h1 style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:26,display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}>
+            {!readOnly && onRenameSet ? (
+              editing
+                ? <input className="inline-edit" ref={nameRef} value={name} onChange={e=>setName(e.target.value)} onBlur={commitName} onKeyDown={e=>{if(e.key==="Enter")commitName();if(e.key==="Escape")setEditing(false);}} style={{fontSize:26,fontWeight:700,width:"100%",maxWidth:400}}/>
+                : <span onClick={()=>setEditing(true)} title={t.editFolder||"Bearbeiten"} style={{cursor:"pointer",borderRadius:8,padding:"2px 6px",transition:"background .15s"}} onMouseEnter={e=>e.currentTarget.style.background="var(--glass-hover)"} onMouseLeave={e=>e.currentTarget.style.background="transparent"}>{set?.name}</span>
+            ) : set?.name}
+            {set?.isSharedWithMe && <span style={{fontSize:11,fontWeight:600,background:readOnly?"var(--shared-bg)":"var(--gl)",color:readOnly?"var(--shared-fg)":"var(--green)",padding:"3px 10px",borderRadius:99,border:`1px solid ${readOnly?"var(--shared-border)":"var(--gm)"}`,boxShadow:"0 2px 6px rgba(0,0,0,.06)"}}>{readOnly?t.readOnly:t.canEdit}</span>}
+          </h1>
           {set?.description && <p style={{color:"var(--muted)",fontSize:14,marginTop:6}}>{set.description}</p>}
           <div style={{display:"flex",gap:16,marginTop:8,alignItems:"center"}}>
             <span style={{color:"var(--muted)",fontSize:13}}>{cards.length} {t.cardsCount}</span>
@@ -2092,14 +2111,14 @@ function StudyConfigModal({config,onStart,onClose,t}) {
   </div></div>);
 }
 
-function FlashMode({set,cards,onExit,onGoHome,onRate,readOnly,t}) {
+function FlashMode({set,cards,onExit,onGoHome,onRate,onProgress,readOnly,t}) {
   if (!t) t = T.de;
   const [idx,setIdx]=useState(0); const [flipped,setFlipped]=useState(false); const [ratings,setRatings]=useState([]); const [done,setDone]=useState(false);
   const [confirmExit,setConfirmExit]=useState(false);
   const startRef=useRef(Date.now());
   const [elapsed,setElapsed]=useState(0);
   const card=cards[idx];
-  const rate=r=>{if(!readOnly&&onRate)onRate(card.id,r);const nr=[...ratings,r];setRatings(nr);if(idx+1>=cards.length){setElapsed(Date.now()-startRef.current);setDone(true);return;}setTimeout(()=>{setFlipped(false);setIdx(p=>p+1);},200);};
+  const rate=r=>{if(onProgress)onProgress();if(!readOnly&&onRate)onRate(card.id,r);const nr=[...ratings,r];setRatings(nr);if(idx+1>=cards.length){setElapsed(Date.now()-startRef.current);setDone(true);return;}setTimeout(()=>{setFlipped(false);setIdx(p=>p+1);},200);};
   const tryExit=()=>{if(!done&&(idx>0||flipped||ratings.length>0)){setConfirmExit(true);}else{onExit();}};
   const restart=()=>{setIdx(0);setFlipped(false);setRatings([]);setDone(false);startRef.current=Date.now();setElapsed(0);};
   if(done){const dist=RATINGS.map((r,i)=>({...r,count:ratings.filter(x=>x===i).length}));return(<div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:"var(--grad-bg)",padding:20}}><div className="au" style={{textAlign:"center",maxWidth:480}}><div style={{fontSize:56,marginBottom:16}}>{dist[3].count>cards.length/2?"\ud83c\udfc6":"\ud83d\udcaa"}</div><h2 style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:28,marginBottom:10}}>{t.sessionDone}</h2><div style={{display:"inline-flex",alignItems:"center",gap:8,padding:"6px 14px",background:"var(--glass)",border:"1px solid var(--glass-bdr)",borderRadius:99,fontSize:13,color:"var(--muted)",marginBottom:22}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>{t.studyTime} · <span style={{fontWeight:600,color:"var(--orange)"}}>{fmtDur(elapsed)}</span></div><div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10,marginBottom:32}}>{dist.map(r=><div key={r.label} style={{background:"var(--glass)",border:"1.5px solid var(--border)",borderRadius:12,padding:"14px 8px",textAlign:"center"}}><div style={{fontSize:24,marginBottom:4}}>{r.emoji}</div><div style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:22,color:r.c}}>{r.count}</div><div style={{fontSize:11,color:"var(--muted)"}}>{r.label}</div></div>)}</div><div style={{display:"flex",gap:10,justifyContent:"center"}}><button className="btn-g" onClick={restart}>{t.again}</button><button className="btn-o" onClick={onExit}>{t.backBtn}</button></div></div></div>);}
@@ -2119,7 +2138,7 @@ function FlashMode({set,cards,onExit,onGoHome,onRate,readOnly,t}) {
   </div>);
 }
 
-function MCQMode({set,cards,onExit,onGoHome,onRate,onCacheMCQ,readOnly,t}) {
+function MCQMode({set,cards,onExit,onGoHome,onRate,onCacheMCQ,onProgress,readOnly,t}) {
   if (!t) t = T.de;
   const [idx,setIdx]=useState(0); const [optsMap,setOptsMap]=useState({}); const [loadingMCQ,setLoadingMCQ]=useState(true);
   const [loadProgress,setLoadProgress]=useState({done:0,total:0});
@@ -2159,7 +2178,7 @@ function MCQMode({set,cards,onExit,onGoHome,onRate,onCacheMCQ,readOnly,t}) {
     startRef.current=Date.now();
   })();},[]);
   useEffect(()=>{if(optsMap[card?.id]){const correct=strip(card.answerHtml)||"Richtige Antwort";const all=[...optsMap[card.id].map(w=>({text:w,ok:false})),{text:correct,ok:true}];for(let i=all.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[all[i],all[j]]=[all[j],all[i]];}setShuffledOpts(all);setPicked(null);}},[idx,optsMap]);
-  const pick=(opt,i)=>{if(picked!==null)return;setPicked(i);if(!readOnly&&onRate)onRate(card.id,mcqProgressRating(opt.ok,card.lastRating));if(opt.ok)setScore(p=>p+1);};
+  const pick=(opt,i)=>{if(picked!==null)return;if(onProgress)onProgress();setPicked(i);if(!readOnly&&onRate)onRate(card.id,mcqProgressRating(opt.ok,card.lastRating));if(opt.ok)setScore(p=>p+1);};
   const next=()=>{setPicked(null);setShuffledOpts(null);if(idx+1>=cards.length){setElapsed(Date.now()-startRef.current);setDone(true);return;}setIdx(p=>p+1);};
   const tryExit=()=>{if(!done&&(idx>0||picked!==null||score>0)){setConfirmExit(true);}else{onExit();}};
   const restart=()=>{setIdx(0);setScore(0);setDone(false);setPicked(null);setShuffledOpts(null);startRef.current=Date.now();setElapsed(0);};
