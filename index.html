@@ -2413,8 +2413,8 @@ function ConfirmOverlay({title,sub,confirmLabel,cancelLabel,onConfirm,onCancel})
     <h3 style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:19,marginBottom:8}}>{title}</h3>
     {sub&&<p style={{color:"var(--muted)",fontSize:14,marginBottom:22,lineHeight:1.5}}>{sub}</p>}
     <div style={{display:"flex",gap:10,justifyContent:"flex-end"}}>
-      <button className="btn-g" onClick={onCancel}>{cancelLabel}</button>
-      <button className="btn-o" onClick={onConfirm}>{confirmLabel}</button>
+      <button className="btn-g" onClick={onConfirm}>{confirmLabel}</button>
+      <button className="btn-o" onClick={onCancel}>{cancelLabel}</button>
     </div>
   </div></div>);
 }
