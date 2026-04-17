@@ -1188,7 +1188,7 @@ function Dashboard({session, onLogout}) {
       if (!cards.length) { setModal({type:"pdfError",msg:data?.error||"Gemini hat keine Karten generiert."}); return; }
 
       // 3) Show preview modal; user confirms → insert into DB
-      setModal({type:"pdfPreview", cards, sourceName:file.name, pages:pdf.numPages});
+      setModal({type:"pdfPreview", cards, sourceName:file.name, pages:pageCount});
     } catch(e) {
       setModal({type:"pdfError",msg:e.message});
     }
