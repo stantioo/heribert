@@ -189,9 +189,11 @@ html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;background:var(
    Mobile overrides with height:94dvh to pin the sheet to the viewport. */
 .modal-flex{overflow-y:hidden!important;overflow-x:hidden!important;display:flex!important;flex-direction:column!important;padding-bottom:0!important;height:min(90vh,680px)!important;max-height:90vh!important;}
 @media(max-width:768px){.modal-flex{height:94dvh!important;max-height:94dvh!important;}}
-.card-grid{display:grid;grid-template-columns:1fr;gap:10px;align-items:start;}
-@media(min-width:1024px){.card-grid{grid-template-columns:repeat(2,1fr);gap:12px;}}
-@media(min-width:1500px){.card-grid{grid-template-columns:repeat(3,1fr);gap:12px;}}
+/* Fluid card grid: cards shrink to share row width; spill to next row
+   only once they would drop below ~340px. min() keeps single column
+   from overflowing when the container itself is narrower than 340px. */
+.card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,340px),1fr));gap:10px;align-items:start;}
+@media(min-width:1024px){.card-grid{gap:12px;}}
 .inline-edit{border:none;background:transparent;font:inherit;color:inherit;padding:0 4px;outline:none;border-radius:4px;}
 .inline-edit:focus{background:var(--ol);}
 
@@ -204,6 +206,9 @@ html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;background:var(
 .glass-card{backdrop-filter:blur(22px) saturate(140%);-webkit-backdrop-filter:blur(22px) saturate(140%);box-shadow:var(--sh-sm),var(--glass-inset);position:relative;overflow:hidden;isolation:isolate;}
 
 @keyframes starSpin{0%{transform:rotate(0deg);}60%{transform:rotate(720deg);}100%{transform:rotate(720deg);}}
+/* Loader loop: ease-out start, two spins, ease-in slowdown to a stop,
+   short pause, then repeat. Spin fraction 0-55%, pause 55-100%. */
+@keyframes starLoop{0%{transform:rotate(0deg);animation-timing-function:cubic-bezier(.45,0,.55,1);}55%{transform:rotate(720deg);}100%{transform:rotate(720deg);}}
 @keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
 @keyframes scaleIn{from{opacity:0;transform:scale(.95);}to{opacity:1;transform:scale(1);}}
 @keyframes spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
@@ -244,6 +249,7 @@ html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;background:var(
 // \u2500\u2500\u2500 UTILS \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 const CHANGELOG = {
   de: [
+    {version:"1.9", date:"17.04.2026", items:["Ladesymbole einheitlich: der rotierende Heribert-Stern mit Ease-in-out-Loop","Karten-Grid vollständig responsive (auto-fill mit min. 340px pro Karte) — kein Abschneiden mehr","Zahl im Lern-Dialog jetzt gestrichelt unterstrichen als Klickhinweis"]},
     {version:"1.8", date:"17.04.2026", items:["Karten-Anzahl im Lern-Dialog direkt eintippbar (klick auf die Zahl)","Hinweis-Banner bei erschöpften Gemini-Tokens in MCQ-Modus","Lange Fragen werden in der Karten-Liste abgekürzt; ausgeklappt mit Zeilenumbrüchen","Lernen-Button auf Set-Karten jetzt mit Outline (dezenter als Ordner-Button)","Profil-Modal am Desktop wieder korrekt dargestellt"]},
     {version:"1.7", date:"17.04.2026", items:["„Lernen“-Button auf Set-Karten jetzt im Orange-Design (besser sichtbar)","Karten in 2–3 Spalten auf großen Bildschirmen","Bestätigung vor Abbruch einer laufenden Lern-Session","Stoppuhr: Session-Dauer im Ergebnis-Screen","MCQ-Bug: richtige Antwort wird nicht mehr kurz vorab markiert","MCQ-KI mit Retry + Backoff gegen Rate-Limits (weniger „Option A/B/C“)","Smart-Mix-Hinweis auch bei großen Einzel-Sets (>30 Karten)"]},
     {version:"1.6", date:"16.04.2026", items:["Karteikarten kopieren & verschieben","Word- & PowerPoint-Import (neben PDF)","Drei-Punkte-Menü auf Karteikarten","Schärferes Profilbild (128×128)"]},
@@ -255,6 +261,7 @@ const CHANGELOG = {
     {version:"1.0", date:"14.04.2026", items:["Ordner & Sets erstellen","Karteikarten mit Rich-Text","Fortschritts-Tracking","Teilen per E-Mail"]},
   ],
   en: [
+    {version:"1.9", date:"17.04.2026", items:["All loaders unified: spinning Heribert star with ease-in-out loop","Card grid fully responsive (auto-fill, min 340px per card) — no more clipping","Number in study dialog now has a dotted underline to hint it's editable"]},
     {version:"1.8", date:"17.04.2026", items:["Card count in study dialog now directly editable (click the number)","Warning banner when Gemini tokens are exhausted in MCQ mode","Long questions are truncated in the card list; expanded view shows the full text with line breaks","Learn button on set cards now uses an outline style (more subtle than the folder button)","Profile modal renders correctly on desktop again"]},
     {version:"1.7", date:"17.04.2026", items:["\"Learn\" button on set cards now in orange (much more visible)","Cards shown in 2–3 columns on wide screens","Confirmation before exiting an active study session","Stopwatch: session duration on the result screen","MCQ bug: correct answer no longer flashes pre-selected","MCQ AI with retry + backoff against rate limits (fewer \"Option A/B/C\")","Smart-mix hint also on large single sets (>30 cards)"]},
     {version:"1.6", date:"16.04.2026", items:["Copy & move flashcards between sets","Word & PowerPoint import (alongside PDF)","Three-dot menu on flashcards","Sharper profile picture (128×128)"]},
@@ -881,7 +888,22 @@ const ILogout = () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none
 const IBook   = () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>;
 const IPdf    = () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>;
 const IDownload=()=><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>;
-const ISpin   = ({c="var(--orange)",s=22}) => <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2.5" style={{animation:"spin .9s linear infinite"}}><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" opacity=".4"/><path d="M12 2v4"/></svg>;
+// Branded loader: spinning Heribert star with ease-in-out cadence.
+// `c` forces a solid color (e.g. "#fff" on filled buttons); when omitted
+// we render the warm orange/rose gradient used in the logo.
+const ISpin = ({c,s=22}) => {
+  const gradient = !c;
+  const style = {
+    display:"inline-block",
+    width:s, height:s, lineHeight:`${s}px`, fontSize:Math.round(s*1.05),
+    textAlign:"center",
+    animation:"starLoop 1.8s ease-in-out infinite",
+    ...(gradient
+      ? { background:"var(--grad)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent", backgroundClip:"text" }
+      : { color:c, WebkitTextFillColor:c })
+  };
+  return <span style={style} aria-label="Lädt…">✦</span>;
+};
 
 // \u2500\u2500\u2500 APP ROOT \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 function useMobile(){
@@ -2041,9 +2063,9 @@ function StudyConfigModal({config,onStart,onClose,t}) {
           onBlur={()=>{if(total>0&&count<1)setCount(1);}}
           onKeyDown={e=>{if(e.key==="Enter")e.currentTarget.blur();}}
           title={t.editCardCount||"Anzahl anpassen"}
-          style={{width:`${Math.max(String(count||0).length,2)}ch`,minWidth:"2ch",maxWidth:"5ch",textAlign:"right",border:"none",background:"transparent",fontFamily:"inherit",fontWeight:"inherit",fontSize:"inherit",color:"inherit",padding:"2px 4px",borderRadius:6,outline:"none",cursor:total===0?"not-allowed":"text",transition:"background .12s"}}
-          onMouseEnter={e=>{if(total>0)e.currentTarget.style.background="var(--glass-hover)";}}
-          onMouseLeave={e=>{e.currentTarget.style.background="transparent";}}
+          style={{width:`${Math.max(String(count||0).length,2)}ch`,minWidth:"2ch",maxWidth:"5ch",textAlign:"right",border:"none",background:"transparent",fontFamily:"inherit",fontWeight:"inherit",fontSize:"inherit",color:"inherit",padding:"2px 4px",borderRadius:6,outline:"none",cursor:total===0?"not-allowed":"text",transition:"background .12s",textDecoration:total===0?"none":"underline dotted var(--orange)",textDecorationThickness:"2px",textUnderlineOffset:"4px"}}
+          onMouseEnter={e=>{if(total>0){e.currentTarget.style.background="var(--glass-hover)";e.currentTarget.style.textDecoration="underline solid var(--orange)";}}}
+          onMouseLeave={e=>{e.currentTarget.style.background="transparent";if(total>0)e.currentTarget.style.textDecoration="underline dotted var(--orange)";}}
         />
         <span style={{color:"var(--muted)"}}>/ {total}</span>
       </div>
