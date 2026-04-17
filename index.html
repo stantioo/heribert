@@ -146,6 +146,9 @@ html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;background:var(
 .btn-o:hover{background:linear-gradient(135deg,#E05515,#E11D48);transform:translateY(-1px);box-shadow:0 12px 32px rgba(244,63,94,.48),inset 0 1px 0 rgba(255,255,255,.28);}
 .btn-o:active{transform:translateY(0);}
 .btn-o:disabled{opacity:.55;cursor:not-allowed;transform:none;}
+.btn-o-sm{display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:7px 12px;background:var(--grad);color:#fff;border:none;border-radius:11px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s;box-shadow:0 3px 12px rgba(244,63,94,.28),inset 0 1px 0 rgba(255,255,255,.22);}
+.btn-o-sm:hover{background:linear-gradient(135deg,#E05515,#E11D48);box-shadow:0 6px 18px rgba(244,63,94,.4),inset 0 1px 0 rgba(255,255,255,.28);}
+.btn-o-sm:disabled{opacity:.55;cursor:not-allowed;}
 .btn-g{display:inline-flex;align-items:center;gap:6px;padding:10px 18px;background:var(--btn-ghost-bg);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);color:var(--text);border:1.5px solid var(--btn-ghost-bdr);border-radius:13px;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit;transition:all .15s;box-shadow:0 2px 10px rgba(245,99,26,.08);}
 .btn-g:hover{background:var(--glass-hover);border-color:var(--ob);color:var(--orange);transform:translateY(-1px);box-shadow:0 6px 16px rgba(245,99,26,.15);}
 .btn-sm{display:inline-flex;align-items:center;gap:5px;padding:7px 12px;background:var(--btn-sm-bg);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);color:var(--muted);border:1.5px solid var(--btn-sm-bdr);border-radius:11px;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;transition:all .15s;box-shadow:0 1px 4px rgba(245,99,26,.05);}
@@ -182,6 +185,9 @@ html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;background:var(
 .modal{position:relative;background:var(--glass-modal);backdrop-filter:blur(30px) saturate(150%);-webkit-backdrop-filter:blur(30px) saturate(150%);border-radius:var(--r-xl);box-shadow:var(--sh-lg),var(--glass-inset);border:1px solid var(--glass-bdr);width:100%;max-height:90vh;overflow-y:auto;animation:scaleIn .18s ease;}
 .modal-flex{overflow-y:hidden!important;overflow-x:hidden!important;display:flex!important;flex-direction:column!important;padding-bottom:0!important;}
 @media(max-width:768px){.modal-flex{height:94dvh!important;max-height:94dvh!important;}}
+.card-grid{display:grid;grid-template-columns:1fr;gap:10px;align-items:start;}
+@media(min-width:1024px){.card-grid{grid-template-columns:repeat(2,1fr);gap:12px;}}
+@media(min-width:1500px){.card-grid{grid-template-columns:repeat(3,1fr);gap:12px;}}
 .inline-edit{border:none;background:transparent;font:inherit;color:inherit;padding:0 4px;outline:none;border-radius:4px;}
 .inline-edit:focus{background:var(--ol);}
 
@@ -234,6 +240,7 @@ html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;background:var(
 // \u2500\u2500\u2500 UTILS \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 const CHANGELOG = {
   de: [
+    {version:"1.7", date:"17.04.2026", items:["„Lernen“-Button auf Set-Karten jetzt im Orange-Design (besser sichtbar)","Karten in 2–3 Spalten auf großen Bildschirmen","Bestätigung vor Abbruch einer laufenden Lern-Session","Stoppuhr: Session-Dauer im Ergebnis-Screen","MCQ-Bug: richtige Antwort wird nicht mehr kurz vorab markiert","MCQ-KI mit Retry + Backoff gegen Rate-Limits (weniger „Option A/B/C“)","Smart-Mix-Hinweis auch bei großen Einzel-Sets (>30 Karten)"]},
     {version:"1.6", date:"16.04.2026", items:["Karteikarten kopieren & verschieben","Word- & PowerPoint-Import (neben PDF)","Drei-Punkte-Menü auf Karteikarten","Schärferes Profilbild (128×128)"]},
     {version:"1.5", date:"16.04.2026", items:["Komplette Sprachunterstützung Deutsch/Englisch","Sprache im Profil wählbar (sync über Geräte)","Tageszeitabhängige Begrüßung mit 400+ Varianten","Neuigkeiten ein-/ausklappbar","Fortschrittsring in beiden Modi sichtbar","Diverse Dark-Mode Fixes in Modals","Schärferes Profilbild (96×96)"]},
     {version:"1.4", date:"16.04.2026", items:["Dark Mode (folgt System-Einstellung)","Ordner mit Emoji oder Farbe markieren","Profilbild hochladen","Bearbeitungsrechte beim Teilen","Sidebar ein-/ausklappbar","Passwort ein-/ausblenden","Stern-Animation beim Laden"]},
@@ -243,6 +250,7 @@ const CHANGELOG = {
     {version:"1.0", date:"14.04.2026", items:["Ordner & Sets erstellen","Karteikarten mit Rich-Text","Fortschritts-Tracking","Teilen per E-Mail"]},
   ],
   en: [
+    {version:"1.7", date:"17.04.2026", items:["\"Learn\" button on set cards now in orange (much more visible)","Cards shown in 2–3 columns on wide screens","Confirmation before exiting an active study session","Stopwatch: session duration on the result screen","MCQ bug: correct answer no longer flashes pre-selected","MCQ AI with retry + backoff against rate limits (fewer \"Option A/B/C\")","Smart-mix hint also on large single sets (>30 cards)"]},
     {version:"1.6", date:"16.04.2026", items:["Copy & move flashcards between sets","Word & PowerPoint import (alongside PDF)","Three-dot menu on flashcards","Sharper profile picture (128×128)"]},
     {version:"1.5", date:"16.04.2026", items:["Full language support German/English","Language selectable in profile (syncs across devices)","Time-aware greetings with 400+ variations","Changelog collapsible","Progress ring visible in both modes","Various dark mode modal fixes","Sharper profile picture (96×96)"]},
     {version:"1.4", date:"16.04.2026", items:["Dark mode (follows system setting)","Folders with emoji or color marker","Profile picture upload","Edit permissions when sharing","Collapsible sidebar","Password show/hide toggle","Star spin animation on load"]},
@@ -386,6 +394,11 @@ const T = {
     moveHere: "Hierhin verschieben",
     targetSet: "Ziel-Set wählen",
     currentSet: "aktuell",
+    abortStudy: "Lernen abbrechen?",
+    abortStudySub: "Dein Fortschritt in dieser Session geht verloren.",
+    abortStudyYes: "Ja, abbrechen",
+    continueStudy: "Weiter lernen",
+    studyTime: "Zeit",
   },
   en: {
     overview: "Overview",
@@ -519,6 +532,11 @@ const T = {
     moveHere: "Move here",
     targetSet: "Choose target set",
     currentSet: "current",
+    abortStudy: "End session?",
+    abortStudySub: "Your progress in this session will be lost.",
+    abortStudyYes: "Yes, end",
+    continueStudy: "Keep studying",
+    studyTime: "Time",
   }
 };
 
@@ -529,6 +547,7 @@ const greetingNames = {
 
 const uid = () => Math.random().toString(36).slice(2,8) + Date.now().toString(36).slice(-4);
 const strip = s => (s||"").replace(/<[^>]*>/g,"").replace(/&nbsp;/g," ").trim();
+const fmtDur = ms => { const s=Math.max(0,Math.round(ms/1000)); const m=Math.floor(s/60); const ss=s%60; return `${m}:${String(ss).padStart(2,"0")}`; };
 const ratingScore = r => r==null ? 0 : [0,.33,.66,1][r] ?? 0;
 const calcProgress = cards => {
   if(!cards.length) return 0;
@@ -671,25 +690,50 @@ ${pages}
 
 // Generate 3 plausible wrong answers for MCQ mode.
 // Calls the "generate-mcq" Supabase Edge Function (Gemini under the hood).
+// Retries up to 2x with exponential backoff on failure (handles Gemini rate-limiting).
 async function genMCQ(q, a) {
-  try {
-    const url = `${SUPABASE_URL}/functions/v1/generate-mcq`;
-    const r = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "apikey": SUPABASE_KEY },
-      body: JSON.stringify({ question: strip(q).slice(0, 180), answer: strip(a).slice(0, 180) })
-    });
-    const body = await r.json().catch(() => ({}));
-    if (!r.ok) {
-      console.warn("MCQ-Generation fehlgeschlagen:", r.status, body);
-      return null;
+  const url = `${SUPABASE_URL}/functions/v1/generate-mcq`;
+  const body = JSON.stringify({ question: strip(q).slice(0, 180), answer: strip(a).slice(0, 180) });
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const r = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "apikey": SUPABASE_KEY },
+        body
+      });
+      const resp = await r.json().catch(() => ({}));
+      if (r.ok && resp && Array.isArray(resp.answers) && resp.answers.length >= 3) {
+        return resp.answers.slice(0, 3).map(x => String(x));
+      }
+      // 429 / 5xx → wait and retry. Other failures still get one more shot.
+      if (attempt < 2) {
+        const delay = r.status === 429 ? 1500 * (attempt + 1) : 600 * (attempt + 1);
+        await new Promise(res => setTimeout(res, delay));
+        continue;
+      }
+      console.warn("MCQ-Generation fehlgeschlagen:", r.status, resp);
+    } catch (e) {
+      if (attempt < 2) { await new Promise(res => setTimeout(res, 600 * (attempt + 1))); continue; }
+      console.warn("MCQ-Generation fehlgeschlagen:", e);
     }
-    if (body && Array.isArray(body.answers) && body.answers.length >= 3) {
-      return body.answers.slice(0, 3).map(x => String(x));
-    }
-    console.warn("MCQ-Generation: unerwartete Antwort:", body);
-  } catch (e) { console.warn("MCQ-Generation fehlgeschlagen:", e); }
+  }
   return null;
+}
+
+// Generate a plausible wrong-answer set locally when the AI is rate-limited.
+// Much better than the old "Option A / B / C" fallback — uses the correct
+// answer's own word pool so the distractors at least look topical.
+function localMCQFallback(q, a) {
+  const aText = strip(a);
+  const qText = strip(q);
+  const pool = (aText + " " + qText).split(/[\s,.;:!?()\[\]"'–—-]+/).filter(w => w.length >= 4);
+  const uniq = [...new Set(pool)];
+  const pick = () => uniq.length ? uniq.splice(Math.floor(Math.random() * uniq.length), 1)[0] : null;
+  const base = aText.slice(0, 40);
+  const w1 = pick() || "unklar";
+  const w2 = pick() || "keine Angabe";
+  const w3 = pick() || "unbekannt";
+  return [`Nicht ${w1}`, `Eher ${w2}`, `Vielleicht ${w3}`].slice(0, 3);
 }
 
 
@@ -1510,7 +1554,7 @@ function SetView({set,folder,cards,onBack,onNewCard,onEditCard,onDeleteCard,onCo
       </div>
       {cards.length===0
         ? <EmptyState icon="🎴" title={t.noCards} sub={readOnly?t.noCardsSub:t.noCardsSub} btnLabel={readOnly?null:"+ "+t.newCard} onBtn={readOnly?null:onNewCard}/>
-        : <div style={{display:"flex",flexDirection:"column",gap:10}}>{cards.map(c=><CardRow key={c.id} card={c} readOnly={readOnly} onEdit={readOnly?null:(()=>onEditCard(c))} onDelete={readOnly?null:(()=>onDeleteCard(c.id))} onCopy={readOnly?null:(()=>onCopyCard(c))} onMove={readOnly?null:(()=>onMoveCard(c))} t={t}/>)}</div>
+        : <div className="card-grid">{cards.map(c=><CardRow key={c.id} card={c} readOnly={readOnly} onEdit={readOnly?null:(()=>onEditCard(c))} onDelete={readOnly?null:(()=>onDeleteCard(c.id))} onCopy={readOnly?null:(()=>onCopyCard(c))} onMove={readOnly?null:(()=>onMoveCard(c))} t={t}/>)}</div>
       }
     </div>
   );
@@ -1550,7 +1594,7 @@ function SetCard({set,cardCount,progress,onClick,onLearn,onDelete,onRename,t}){
       <ProgressCircle pct={progress} size={50} stroke={5}/>
     </div>
     <div style={{display:"flex",gap:6,alignItems:"center"}} onClick={e=>e.stopPropagation()}>
-      <button className="btn-sm" style={{flex:1,justifyContent:"center",minHeight:34}} onClick={onLearn} disabled={cardCount===0}>{t.learn}</button>
+      <button className="btn-o-sm" style={{flex:1,minHeight:34}} onClick={onLearn} disabled={cardCount===0}>{t.learn}</button>
       {!readOnly && <>
         <button className="icon-btn edit" onClick={e=>{e.stopPropagation();setEditing(true);}}><IEdit/></button>
         <button className="icon-btn" onClick={e=>{e.stopPropagation();onDelete();}}><ITrash/></button>
@@ -1924,7 +1968,7 @@ function StudyConfigModal({config,onStart,onClose,t}) {
       {isFolder ? <><b style={{color:"var(--text)"}}>{config.sourceName}</b> · </> : null}
       {config.cards.length} {t.cardsAvailable}{!allActive && total !== config.cards.length && <> · <b style={{color:"var(--orange)"}}>{total} {t.afterFilter}</b></>}
     </p>
-    {isFolder && total > 30 && (
+    {total > 30 && (
       <div style={{fontSize:12,color:"var(--shared-fg)",background:"var(--shared-bg)",backdropFilter:"blur(10px)",WebkitBackdropFilter:"blur(10px)",border:"1px solid var(--shared-border)",borderRadius:12,padding:"10px 13px",marginBottom:20,lineHeight:1.5,boxShadow:"0 2px 8px rgba(146,64,14,.08)"}}>
         <b>✨ {t.smartMix}</b> {t.smartMixSub.replace("{count}", count)}
       </div>
@@ -1982,12 +2026,18 @@ function StudyConfigModal({config,onStart,onClose,t}) {
 function FlashMode({set,cards,onExit,onGoHome,onRate,readOnly,t}) {
   if (!t) t = T.de;
   const [idx,setIdx]=useState(0); const [flipped,setFlipped]=useState(false); const [ratings,setRatings]=useState([]); const [done,setDone]=useState(false);
+  const [confirmExit,setConfirmExit]=useState(false);
+  const startRef=useRef(Date.now());
+  const [elapsed,setElapsed]=useState(0);
   const card=cards[idx];
-  const rate=r=>{if(!readOnly&&onRate)onRate(card.id,r);const nr=[...ratings,r];setRatings(nr);if(idx+1>=cards.length){setDone(true);return;}setTimeout(()=>{setFlipped(false);setIdx(p=>p+1);},200);};
-  if(done){const dist=RATINGS.map((r,i)=>({...r,count:ratings.filter(x=>x===i).length}));return(<div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:"var(--grad-bg)",padding:20}}><div className="au" style={{textAlign:"center",maxWidth:480}}><div style={{fontSize:56,marginBottom:16}}>{dist[3].count>cards.length/2?"\ud83c\udfc6":"\ud83d\udcaa"}</div><h2 style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:28,marginBottom:24}}>{t.sessionDone}</h2><div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10,marginBottom:32}}>{dist.map(r=><div key={r.label} style={{background:"var(--glass)",border:"1.5px solid var(--border)",borderRadius:12,padding:"14px 8px",textAlign:"center"}}><div style={{fontSize:24,marginBottom:4}}>{r.emoji}</div><div style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:22,color:r.c}}>{r.count}</div><div style={{fontSize:11,color:"var(--muted)"}}>{r.label}</div></div>)}</div><div style={{display:"flex",gap:10,justifyContent:"center"}}><button className="btn-g" onClick={()=>{setIdx(0);setFlipped(false);setRatings([]);setDone(false);}}>{t.again}</button><button className="btn-o" onClick={onExit}>{t.backBtn}</button></div></div></div>);}
+  const rate=r=>{if(!readOnly&&onRate)onRate(card.id,r);const nr=[...ratings,r];setRatings(nr);if(idx+1>=cards.length){setElapsed(Date.now()-startRef.current);setDone(true);return;}setTimeout(()=>{setFlipped(false);setIdx(p=>p+1);},200);};
+  const tryExit=()=>{if(!done&&(idx>0||flipped||ratings.length>0)){setConfirmExit(true);}else{onExit();}};
+  const restart=()=>{setIdx(0);setFlipped(false);setRatings([]);setDone(false);startRef.current=Date.now();setElapsed(0);};
+  if(done){const dist=RATINGS.map((r,i)=>({...r,count:ratings.filter(x=>x===i).length}));return(<div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:"var(--grad-bg)",padding:20}}><div className="au" style={{textAlign:"center",maxWidth:480}}><div style={{fontSize:56,marginBottom:16}}>{dist[3].count>cards.length/2?"\ud83c\udfc6":"\ud83d\udcaa"}</div><h2 style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:28,marginBottom:10}}>{t.sessionDone}</h2><div style={{display:"inline-flex",alignItems:"center",gap:8,padding:"6px 14px",background:"var(--glass)",border:"1px solid var(--glass-bdr)",borderRadius:99,fontSize:13,color:"var(--muted)",marginBottom:22}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>{t.studyTime} · <span style={{fontWeight:600,color:"var(--orange)"}}>{fmtDur(elapsed)}</span></div><div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10,marginBottom:32}}>{dist.map(r=><div key={r.label} style={{background:"var(--glass)",border:"1.5px solid var(--border)",borderRadius:12,padding:"14px 8px",textAlign:"center"}}><div style={{fontSize:24,marginBottom:4}}>{r.emoji}</div><div style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:22,color:r.c}}>{r.count}</div><div style={{fontSize:11,color:"var(--muted)"}}>{r.label}</div></div>)}</div><div style={{display:"flex",gap:10,justifyContent:"center"}}><button className="btn-g" onClick={restart}>{t.again}</button><button className="btn-o" onClick={onExit}>{t.backBtn}</button></div></div></div>);}
   return(<div style={{minHeight:"100vh",background:"var(--grad-bg)",padding:"40px 20px",display:"flex",flexDirection:"column",alignItems:"center"}}>
+    {confirmExit && <ConfirmOverlay title={t.abortStudy} sub={t.abortStudySub} confirmLabel={t.abortStudyYes} cancelLabel={t.continueStudy} onConfirm={()=>{setConfirmExit(false);onExit();}} onCancel={()=>setConfirmExit(false)}/>}
     {onGoHome && <div style={{width:"100%",maxWidth:640,marginBottom:18,display:"flex",justifyContent:"center"}}><button onClick={onGoHome} title="Zur Übersicht" style={{border:"none",background:"none",padding:"4px 10px",cursor:"pointer",fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:18,letterSpacing:"-.3px",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",backgroundImage:"var(--grad)"}}>Heribert <Star spin/></button></div>}
-    <div style={{width:"100%",maxWidth:640,marginBottom:28}}><div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}><button onClick={onExit} style={{display:"flex",alignItems:"center",gap:6,border:"none",background:"none",color:"var(--muted)",fontSize:14,cursor:"pointer",padding:0,fontFamily:"inherit"}}><IBack/> {set?.name}</button><span style={{fontSize:14,fontWeight:600,color:"var(--muted)"}}>{idx+1} / {cards.length}</span></div><div className="prog-track"><div className="prog-fill" style={{width:`${(idx/cards.length)*100}%`}}/></div></div>
+    <div style={{width:"100%",maxWidth:640,marginBottom:28}}><div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}><button onClick={tryExit} style={{display:"flex",alignItems:"center",gap:6,border:"none",background:"none",color:"var(--muted)",fontSize:14,cursor:"pointer",padding:0,fontFamily:"inherit"}}><IBack/> {set?.name}</button><span style={{fontSize:14,fontWeight:600,color:"var(--muted)"}}>{idx+1} / {cards.length}</span></div><div className="prog-track"><div className="prog-fill" style={{width:`${(idx/cards.length)*100}%`}}/></div></div>
     <div className="flip-wrap" style={{width:"100%",maxWidth:640,marginBottom:24}} onClick={()=>setFlipped(p=>!p)}>
       <div className={`flip-inner${flipped?" flipped":""}`} style={{height:280}}>
         <div className="flip-f" style={{position:"absolute",inset:0,background:"var(--glass-s)",backdropFilter:"blur(26px) saturate(150%)",WebkitBackdropFilter:"blur(26px) saturate(150%)",border:"2px solid var(--glass-bdr)",display:"flex",flexDirection:"column",justifyContent:"center",alignItems:"center",padding:32,boxShadow:"var(--sh-md),var(--glass-inset)"}}><div style={{fontSize:11,fontWeight:600,color:"var(--muted)",textTransform:"uppercase",letterSpacing:".08em",marginBottom:16}}>{t.question}</div><div style={{fontSize:18,lineHeight:1.6,textAlign:"center"}} dangerouslySetInnerHTML={{__html:card?.questionHtml||""}}/></div>
@@ -2003,17 +2053,47 @@ function FlashMode({set,cards,onExit,onGoHome,onRate,readOnly,t}) {
 function MCQMode({set,cards,onExit,onGoHome,onRate,onCacheMCQ,readOnly,t}) {
   if (!t) t = T.de;
   const [idx,setIdx]=useState(0); const [optsMap,setOptsMap]=useState({}); const [loadingMCQ,setLoadingMCQ]=useState(true);
+  const [loadProgress,setLoadProgress]=useState({done:0,total:0});
   const [picked,setPicked]=useState(null); const [score,setScore]=useState(0); const [done,setDone]=useState(false); const [shuffledOpts,setShuffledOpts]=useState(null);
+  const [confirmExit,setConfirmExit]=useState(false);
+  const startRef=useRef(Date.now());
+  const [elapsed,setElapsed]=useState(0);
   const card=cards[idx];
-  useEffect(()=>{(async()=>{setLoadingMCQ(true);const map={};for(const c of cards){if(c.mcqOptions){map[c.id]=c.mcqOptions;}else{const w=await genMCQ(c.questionHtml,c.answerHtml);if(w){map[c.id]=w;if(!readOnly&&onCacheMCQ)onCacheMCQ(c.id,w);}else{map[c.id]=["Option A","Option B","Option C"];}}}setOptsMap(map);setLoadingMCQ(false);})();},[]);
+  useEffect(()=>{(async()=>{
+    setLoadingMCQ(true);
+    const map={};
+    const needsGen=cards.filter(c=>!c.mcqOptions);
+    setLoadProgress({done:0,total:needsGen.length});
+    let genCount=0;
+    for(const c of cards){
+      if(c.mcqOptions){map[c.id]=c.mcqOptions;continue;}
+      const w=await genMCQ(c.questionHtml,c.answerHtml);
+      if(w){
+        map[c.id]=w;
+        if(!readOnly&&onCacheMCQ)onCacheMCQ(c.id,w);
+      } else {
+        map[c.id]=localMCQFallback(c.questionHtml,c.answerHtml);
+      }
+      genCount++;
+      setLoadProgress({done:genCount,total:needsGen.length});
+      // Small delay between calls to avoid Gemini rate-limits (429) on larger sets.
+      if(genCount<needsGen.length) await new Promise(r=>setTimeout(r,180));
+    }
+    setOptsMap(map);
+    setLoadingMCQ(false);
+    startRef.current=Date.now();
+  })();},[]);
   useEffect(()=>{if(optsMap[card?.id]){const correct=strip(card.answerHtml)||"Richtige Antwort";const all=[...optsMap[card.id].map(w=>({text:w,ok:false})),{text:correct,ok:true}];for(let i=all.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[all[i],all[j]]=[all[j],all[i]];}setShuffledOpts(all);setPicked(null);}},[idx,optsMap]);
   const pick=(opt,i)=>{if(picked!==null)return;setPicked(i);if(!readOnly&&onRate)onRate(card.id,mcqProgressRating(opt.ok,card.lastRating));if(opt.ok)setScore(p=>p+1);};
-  const next=()=>{if(idx+1>=cards.length){setDone(true);return;}setIdx(p=>p+1);};
-  if(loadingMCQ)return(<div style={{minHeight:"100vh",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",background:"var(--grad-bg)",gap:16}}><ISpin/><div style={{color:"var(--muted)",fontSize:14}}>KI generiert Antwortoptionen…</div></div>);
-  if(done){const pct=Math.round((score/cards.length)*100);const resEmoji=pct>=90?"🏆":pct>=70?"🎉":pct>=50?"📈":pct>=30?"💡":pct>0?"😤":"😵";return(<div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:"var(--grad-bg)",padding:20}}><div className="au" style={{textAlign:"center",maxWidth:440}}><div style={{fontSize:56,marginBottom:16}}>{resEmoji}</div><h2 style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:28,marginBottom:8}}>{t.result}</h2><div style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:52,background:pct>=80?"linear-gradient(135deg,#22C55E,#16A34A)":"var(--grad)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",marginBottom:6}}>{pct}%</div><div style={{color:"var(--muted)",marginBottom:32}}>{score} {t.ofTotal} {cards.length} {t.correct}</div><div style={{display:"flex",gap:10,justifyContent:"center"}}><button className="btn-g" onClick={()=>{setIdx(0);setScore(0);setDone(false);}}>{t.again}</button><button className="btn-o" onClick={onExit}>{t.backBtn}</button></div></div></div>);}
+  const next=()=>{setPicked(null);setShuffledOpts(null);if(idx+1>=cards.length){setElapsed(Date.now()-startRef.current);setDone(true);return;}setIdx(p=>p+1);};
+  const tryExit=()=>{if(!done&&(idx>0||picked!==null||score>0)){setConfirmExit(true);}else{onExit();}};
+  const restart=()=>{setIdx(0);setScore(0);setDone(false);setPicked(null);setShuffledOpts(null);startRef.current=Date.now();setElapsed(0);};
+  if(loadingMCQ)return(<div style={{minHeight:"100vh",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",background:"var(--grad-bg)",gap:16,padding:20}}><ISpin/><div style={{color:"var(--muted)",fontSize:14,textAlign:"center"}}>KI generiert Antwortoptionen…{loadProgress.total>0&&<div style={{fontSize:12,marginTop:4}}>{loadProgress.done} / {loadProgress.total}</div>}</div></div>);
+  if(done){const pct=Math.round((score/cards.length)*100);const resEmoji=pct>=90?"🏆":pct>=70?"🎉":pct>=50?"📈":pct>=30?"💡":pct>0?"😤":"😵";return(<div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:"var(--grad-bg)",padding:20}}><div className="au" style={{textAlign:"center",maxWidth:440}}><div style={{fontSize:56,marginBottom:16}}>{resEmoji}</div><h2 style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:28,marginBottom:8}}>{t.result}</h2><div style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:52,background:pct>=80?"linear-gradient(135deg,#22C55E,#16A34A)":"var(--grad)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",marginBottom:6}}>{pct}%</div><div style={{color:"var(--muted)",marginBottom:14}}>{score} {t.ofTotal} {cards.length} {t.correct}</div><div style={{display:"inline-flex",alignItems:"center",gap:8,padding:"6px 14px",background:"var(--glass)",border:"1px solid var(--glass-bdr)",borderRadius:99,fontSize:13,color:"var(--muted)",marginBottom:28}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>{t.studyTime} · <span style={{fontWeight:600,color:"var(--orange)"}}>{fmtDur(elapsed)}</span></div><div style={{display:"flex",gap:10,justifyContent:"center"}}><button className="btn-g" onClick={restart}>{t.again}</button><button className="btn-o" onClick={onExit}>{t.backBtn}</button></div></div></div>);}
   return(<div style={{minHeight:"100vh",background:"var(--grad-bg)",padding:"40px 20px",display:"flex",flexDirection:"column",alignItems:"center"}}>
+    {confirmExit && <ConfirmOverlay title={t.abortStudy} sub={t.abortStudySub} confirmLabel={t.abortStudyYes} cancelLabel={t.continueStudy} onConfirm={()=>{setConfirmExit(false);onExit();}} onCancel={()=>setConfirmExit(false)}/>}
     {onGoHome && <div style={{width:"100%",maxWidth:640,marginBottom:18,display:"flex",justifyContent:"center"}}><button onClick={onGoHome} title="Zur Übersicht" style={{border:"none",background:"none",padding:"4px 10px",cursor:"pointer",fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:18,letterSpacing:"-.3px",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",backgroundImage:"var(--grad)"}}>Heribert <Star spin/></button></div>}
-    <div style={{width:"100%",maxWidth:640,marginBottom:28}}><div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}><button onClick={onExit} style={{display:"flex",alignItems:"center",gap:6,border:"none",background:"none",color:"var(--muted)",fontSize:14,cursor:"pointer",padding:0,fontFamily:"inherit"}}><IBack/> {set?.name}</button><span style={{fontSize:14,fontWeight:600,color:"var(--muted)"}}>{idx+1} / {cards.length} · {score} ✓</span></div><div className="prog-track"><div className="prog-fill" style={{width:`${(idx/cards.length)*100}%`}}/></div></div>
+    <div style={{width:"100%",maxWidth:640,marginBottom:28}}><div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}><button onClick={tryExit} style={{display:"flex",alignItems:"center",gap:6,border:"none",background:"none",color:"var(--muted)",fontSize:14,cursor:"pointer",padding:0,fontFamily:"inherit"}}><IBack/> {set?.name}</button><span style={{fontSize:14,fontWeight:600,color:"var(--muted)"}}>{idx+1} / {cards.length} · {score} ✓</span></div><div className="prog-track"><div className="prog-fill" style={{width:`${(idx/cards.length)*100}%`}}/></div></div>
     <div style={{width:"100%",maxWidth:640,background:"var(--glass-s)",backdropFilter:"blur(26px) saturate(150%)",WebkitBackdropFilter:"blur(26px) saturate(150%)",border:"1.5px solid var(--glass-bdr)",borderRadius:"var(--r-lg)",padding:28,marginBottom:16,boxShadow:"var(--sh-md),var(--glass-inset)"}}><div style={{fontSize:11,fontWeight:600,color:"var(--muted)",textTransform:"uppercase",letterSpacing:".08em",marginBottom:12}}>{t.question} {idx+1}</div><div style={{fontSize:18,lineHeight:1.6}} dangerouslySetInnerHTML={{__html:card?.questionHtml||""}}/></div>
     <div key={idx} style={{width:"100%",maxWidth:640,display:"flex",flexDirection:"column",gap:10}}>
       {(shuffledOpts||[]).map((opt,i)=>{
@@ -2223,6 +2303,16 @@ function CardModal({card,saving,onSave,onClose,t}) {
 
 function ModalX({onClose}){
   return <button onClick={onClose} title="Schließen" style={{position:"absolute",top:16,right:16,zIndex:10,width:32,height:32,borderRadius:10,border:"1px solid var(--glass-bdr)",background:"var(--btn-sm-bg)",backdropFilter:"blur(12px)",WebkitBackdropFilter:"blur(12px)",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",color:"var(--muted)",transition:"all .15s",boxShadow:"var(--sh-sm)"}} onMouseEnter={e=>{e.currentTarget.style.color="var(--red)";e.currentTarget.style.background="var(--glass-danger)";e.currentTarget.style.borderColor="var(--red)";}} onMouseLeave={e=>{e.currentTarget.style.color="var(--muted)";e.currentTarget.style.background="var(--btn-sm-bg)";e.currentTarget.style.borderColor="var(--glass-bdr)";}}><IClose2/></button>;
+}
+function ConfirmOverlay({title,sub,confirmLabel,cancelLabel,onConfirm,onCancel}){
+  return(<div className="overlay" onClick={onCancel} style={{zIndex:2000}}><div className="modal si" style={{maxWidth:400,padding:28}} onClick={e=>e.stopPropagation()}>
+    <h3 style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:19,marginBottom:8}}>{title}</h3>
+    {sub&&<p style={{color:"var(--muted)",fontSize:14,marginBottom:22,lineHeight:1.5}}>{sub}</p>}
+    <div style={{display:"flex",gap:10,justifyContent:"flex-end"}}>
+      <button className="btn-g" onClick={onCancel}>{cancelLabel}</button>
+      <button className="btn-o" onClick={onConfirm}>{confirmLabel}</button>
+    </div>
+  </div></div>);
 }
 function SimpleModal({title,onClose,children}) {
   return(<div className="overlay" onClick={onClose}><div className="modal si" style={{maxWidth:460,padding:32}} onClick={e=>e.stopPropagation()}>
