@@ -95,7 +95,7 @@ const CSS = `
 /* ═══ DARK MODE (system preference) ═══════════════════════════════════ */
 @media(prefers-color-scheme:dark){
   :root{
-    --bg:#140808;--surface:#1E0C0C;--border:rgba(180,140,120,.2);--border-soft:rgba(245,99,26,.12);
+    --bg:#140808;--surface:#1E0C0C;--border:rgba(245,99,26,.22);--border-soft:rgba(245,99,26,.12);
     --text:#F5ECE3;--muted:#A89080;--muted2:#6B5848;
     --ol:rgba(245,99,26,.15);--ob:rgba(245,99,26,.3);
     --rl:rgba(220,38,38,.25);--gl:rgba(22,163,74,.18);
@@ -2441,7 +2441,7 @@ function ProfileModal({user,userName,onLogout,onClose,hideShared,setHideShared,o
             <span style={{position:"absolute",top:2,left:hideShared?22:2,width:20,height:20,borderRadius:"50%",background:"#fff",transition:"all .18s",boxShadow:"0 1px 3px rgba(0,0,0,.2)"}}/>
           </button>
         </div>
-        <button onClick={()=>{if(confirm(t.removeAllShared+"?")){onRemoveAllShared();onClose();}}} style={{width:"100%",padding:"9px 12px",fontSize:12,fontWeight:500,background:"rgba(254,242,242,.6)",color:"var(--red)",border:"1px solid rgba(220,38,38,.2)",borderRadius:10,cursor:"pointer",fontFamily:"inherit",transition:"all .15s"}}>{t.removeAllShared}</button>
+        <button onClick={()=>{if(confirm(t.removeAllShared+"?")){onRemoveAllShared();onClose();}}} style={{width:"100%",padding:"9px 12px",fontSize:12,fontWeight:500,background:"var(--glass-danger)",color:"var(--red)",border:"1px solid rgba(220,38,38,.2)",borderRadius:10,cursor:"pointer",fontFamily:"inherit",transition:"all .15s"}}>{t.removeAllShared}</button>
       </div>
     )}
     <div style={{paddingTop:16,borderTop:"1px solid var(--border-soft)",marginBottom:12}}>
