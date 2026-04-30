@@ -403,6 +403,15 @@ const T = {
     ofTotal: "von",
     import: "Import",
     importNoText: "Konnte keinen auswertbaren Text extrahieren.",
+    importOldDoc: "Das alte .doc-Format wird nicht unterstützt.\n\nBitte speichere die Datei zuerst als .docx\n(Word → Datei → Speichern unter → Format: .docx).",
+    importOldPpt: "Das alte .ppt-Format wird nicht unterstützt.\n\nBitte speichere die Datei zuerst als .pptx\n(PowerPoint → Datei → Speichern unter → Format: .pptx).",
+    search: "Suche",
+    searchPlaceholder: "Karten durchsuchen…",
+    searchResults: "Ergebnisse",
+    forQuery: "für",
+    noSearchResults: "Keine Karten gefunden.",
+    parentFolder: "Überordner (optional)",
+    noParent: "Keiner (Hauptebene)",
     copy: "Kopieren",
     move: "Verschieben",
     copyCard: "Karte kopieren",
@@ -544,6 +553,15 @@ const T = {
     ofTotal: "of",
     import: "Import",
     importNoText: "Could not extract readable text.",
+    importOldDoc: "The old .doc format is not supported.\n\nPlease save the file as .docx first\n(Word → File → Save As → Format: .docx).",
+    importOldPpt: "The old .ppt format is not supported.\n\nPlease save the file as .pptx first\n(PowerPoint → File → Save As → Format: .pptx).",
+    search: "Search",
+    searchPlaceholder: "Search cards…",
+    searchResults: "Results",
+    forQuery: "for",
+    noSearchResults: "No cards found.",
+    parentFolder: "Parent folder (optional)",
+    noParent: "None (top level)",
     copy: "Copy",
     move: "Move",
     copyCard: "Copy card",
@@ -1051,6 +1069,7 @@ function Dashboard({session, onLogout}) {
   const [loadError, setLoadError] = useState(null);
   // queryWarning removed — was debug-only
   const [sel, setSel] = useState({folderId:null, setId:null});
+  const [searchQuery, setSearchQuery] = useState("");
   const [studyConfig, setStudyConfig] = useState(null);
   const [studyMode, setStudyMode] = useState(null);
   const [modal, setModal] = useState(null);
@@ -1140,6 +1159,8 @@ function Dashboard({session, onLogout}) {
           s.sourceFolderId = sh?.folder_id || null;
           s.sourceFolderName = sh?.folder_name || null;
           s.sourceFolderColor = sh?.folder_color || null;
+          s.parentFolderName = sh?.parent_folder_name || null;
+          s.parentFolderColor = sh?.parent_folder_color || null;
         }
         return s;
       });
@@ -1156,10 +1177,16 @@ function Dashboard({session, onLogout}) {
     }
   };
 
-  const createFolder = async (name,color) => { const id=uid(); await sb.from("folders").insert({id,user_id:user.id,name,color,parent_id:null}); setData(d=>({...d,folders:[...d.folders,{id,name,color,parentId:null}]})); setModal(null); };
-  const removeFolder = async (fid) => { await sb.from("folders").delete().eq("id",fid); setData(d=>{const sids=d.sets.filter(s=>s.folderId===fid).map(s=>s.id);return{folders:d.folders.filter(f=>f.id!==fid),sets:d.sets.filter(s=>s.folderId!==fid),cards:d.cards.filter(c=>!sids.includes(c.setId))};});if(sel.folderId===fid)setSel({folderId:null,setId:null}); };
+  const createFolder = async (name,color,parentId) => { const id=uid(); await sb.from("folders").insert({id,user_id:user.id,name,color,parent_id:parentId||null}); setData(d=>({...d,folders:[...d.folders,{id,name,color,parentId:parentId||null}]})); setModal(null); };
+  const removeFolder = async (fid) => {
+    // Also reassign children to top-level
+    setData(d=>{const sids=d.sets.filter(s=>s.folderId===fid).map(s=>s.id);return{...d,folders:d.folders.filter(f=>f.id!==fid).map(f=>f.parentId===fid?{...f,parentId:null}:f),sets:d.sets.filter(s=>s.folderId!==fid),cards:d.cards.filter(c=>!sids.includes(c.setId))};});
+    await sb.from("folders").update({parent_id:null}).eq("parent_id",fid);
+    await sb.from("folders").delete().eq("id",fid);
+    if(sel.folderId===fid)setSel({folderId:null,setId:null});
+  };
   const renameFolder = async (fid,name) => { await sb.from("folders").update({name}).eq("id",fid); setData(d=>({...d,folders:d.folders.map(f=>f.id===fid?{...f,name}:f)})); };
-  const updateFolder = async (fid,name,color) => { await sb.from("folders").update({name,color}).eq("id",fid); setData(d=>({...d,folders:d.folders.map(f=>f.id===fid?{...f,name,color}:f)})); setModal(null); };
+  const updateFolder = async (fid,name,color,parentId) => { await sb.from("folders").update({name,color,parent_id:parentId===undefined?undefined:(parentId||null)}).eq("id",fid); setData(d=>({...d,folders:d.folders.map(f=>f.id===fid?{...f,name,color,...(parentId!==undefined?{parentId:parentId||null}:{})}:f)})); setModal(null); };
   const createSet = async (name,desc) => {
     const id=uid(); const now=new Date().toISOString();
     await sb.from("sets").insert({id,user_id:user.id,folder_id:sel.folderId,name,description:desc,created_at:now});
@@ -1232,14 +1259,17 @@ function Dashboard({session, onLogout}) {
     setModal({type:"pdfLoading", stage:"extract", info:`Lese ${file.name}…`});
     try {
       const ext = (file.name||"").split(".").pop().toLowerCase();
+      // Old binary formats (.doc, .ppt) are not supported — guide users.
+      if (ext === "doc") { setModal({type:"pdfError",msg:t?.importOldDoc||"The old .doc format is not supported. Please save as .docx first."}); return; }
+      if (ext === "ppt") { setModal({type:"pdfError",msg:t?.importOldPpt||"The old .ppt format is not supported. Please save as .pptx first."}); return; }
       const buf = await file.arrayBuffer();
       let fullText = "";
       let pageCount = 0;
 
-      if (ext === "docx" || ext === "doc") {
+      if (ext === "docx") {
         fullText = await extractDocx(buf);
         pageCount = Math.max(1, Math.ceil(fullText.length / 3000));
-      } else if (ext === "pptx" || ext === "ppt") {
+      } else if (ext === "pptx") {
         fullText = await extractPptx(buf);
         pageCount = Math.max(1, fullText.split("---").length);
       } else {
@@ -1318,10 +1348,19 @@ function Dashboard({session, onLogout}) {
   const ownedSets = data.sets.filter(s => !s.isSharedWithMe);
   const set = data.sets.find(s=>s.id===sel.setId);
   const setCCards = data.cards.filter(c=>c.setId===sel.setId);
-  const rootFolders = data.folders.filter(f=>!f.parentId).map(f=>{
-    const fs=ownedSets.filter(s=>s.folderId===f.id); const fc=data.cards.filter(c=>fs.some(s=>s.id===c.setId));
-    return {...f, setCount:fs.length, cardCount:fc.length, progress:calcProgress(fc)};
-  });
+  const enrichFolder = f => {
+    const children = data.folders.filter(cf=>cf.parentId===f.id);
+    const childSets = children.flatMap(cf=>ownedSets.filter(s=>s.folderId===cf.id));
+    const directSets = ownedSets.filter(s=>s.folderId===f.id);
+    const allSets = [...directSets, ...childSets];
+    const fc = data.cards.filter(c=>allSets.some(s=>s.id===c.setId));
+    const enrichedChildren = children.map(cf=>{
+      const cfs=ownedSets.filter(s=>s.folderId===cf.id); const cfc=data.cards.filter(c=>cfs.some(s=>s.id===c.setId));
+      return {...cf, setCount:cfs.length, cardCount:cfc.length, progress:calcProgress(cfc), children:[]};
+    });
+    return {...f, setCount:allSets.length, cardCount:fc.length, progress:calcProgress(fc), children:enrichedChildren};
+  };
+  const rootFolders = data.folders.filter(f=>!f.parentId).map(enrichFolder);
   const sharedFolders = [];
   if (sharedSets.length > 0 && !hideShared) {
     const groups = new Map();
@@ -1333,6 +1372,8 @@ function Dashboard({session, onLogout}) {
           name: s.sourceFolderName || "Geteilt mit mir",
           color: s.sourceFolderColor || "#C2410C",
           parentId: null,
+          parentFolderName: s.parentFolderName || null,
+          parentFolderColor: s.parentFolderColor || null,
           isVirtualShared: true,
           sourceFolderId: s.sourceFolderId || null,
           sets: [],
@@ -1347,13 +1388,43 @@ function Dashboard({session, onLogout}) {
       const fc = data.cards.filter(c => g.sets.some(s => s.id === c.setId));
       sharedFolders.push({...g, sharers: Array.from(g.sharers), setCount: g.sets.length, cardCount: fc.length, progress: calcProgress(fc)});
     }
-    // Sort: named shared folders first (alphabetical), legacy "Geteilt mit mir" last
+    // Group shared folders by parent folder name (if present).
+    // Folders with a parentFolderName get nested under a virtual parent group;
+    // those without appear at root level.
     sharedFolders.sort((a,b) => {
       if (a.sourceFolderId && !b.sourceFolderId) return -1;
       if (!a.sourceFolderId && b.sourceFolderId) return 1;
       return a.name.localeCompare(b.name, "de");
     });
-    rootFolders.push(...sharedFolders);
+    const parentGroups = new Map();
+    const topLevelShared = [];
+    for (const sf of sharedFolders) {
+      if (sf.parentFolderName) {
+        if (!parentGroups.has(sf.parentFolderName)) {
+          parentGroups.set(sf.parentFolderName, {
+            id:"__sparent_"+sf.parentFolderName,
+            name:sf.parentFolderName,
+            color:sf.parentFolderColor||"#C2410C",
+            isVirtualShared:true,
+            isParentGroup:true,
+            children:[], sets:[], sharers:[],
+            setCount:0, cardCount:0, progress:0
+          });
+        }
+        parentGroups.get(sf.parentFolderName).children.push(sf);
+      } else {
+        topLevelShared.push(sf);
+      }
+    }
+    for (const pg of parentGroups.values()) {
+      const allCards = data.cards.filter(c=>pg.children.some(sf=>sf.sets.some(s=>s.id===c.setId)));
+      pg.setCount = pg.children.reduce((s,f)=>s+f.setCount,0);
+      pg.cardCount = allCards.length;
+      pg.progress = calcProgress(allCards);
+      pg.sharers = [...new Set(pg.children.flatMap(f=>f.sharers))];
+      rootFolders.push(pg);
+    }
+    rootFolders.push(...topLevelShared);
   }
   const isViewingShared = sel.folderId && String(sel.folderId).startsWith("__shared_");
   const currentSharedFolder = isViewingShared ? sharedFolders.find(f => f.id === sel.folderId) : null;
@@ -1398,6 +1469,13 @@ function Dashboard({session, onLogout}) {
           </div>
         )}
         <div style={{flex:1,overflowY:"auto",padding:!mobile&&sideCollapsed?0:"10px 8px",overflow:!mobile&&sideCollapsed?"hidden":"auto"}}>{(!mobile&&sideCollapsed)?null:<div>
+          <div style={{padding:"4px 8px 8px"}}>
+            <div style={{position:"relative"}}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--muted2)" strokeWidth="2.5" style={{position:"absolute",left:10,top:"50%",transform:"translateY(-50%)",pointerEvents:"none"}}><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input value={searchQuery} onChange={e=>{setSearchQuery(e.target.value);}} placeholder={t.searchPlaceholder} style={{width:"100%",padding:"8px 10px 8px 32px",border:"1.5px solid var(--glass-bdr)",borderRadius:10,background:"var(--glass)",backdropFilter:"blur(12px)",WebkitBackdropFilter:"blur(12px)",fontSize:12,fontFamily:"inherit",color:"var(--text)",outline:"none",transition:"border-color .15s"}} onFocus={e=>e.currentTarget.style.borderColor="var(--orange)"} onBlur={e=>e.currentTarget.style.borderColor="var(--glass-bdr)"}/>
+              {searchQuery && <button onClick={()=>setSearchQuery("")} style={{position:"absolute",right:6,top:"50%",transform:"translateY(-50%)",border:"none",background:"none",cursor:"pointer",color:"var(--muted2)",padding:4,display:"flex",alignItems:"center",justifyContent:"center",borderRadius:6}} onMouseEnter={e=>e.currentTarget.style.color="var(--orange)"} onMouseLeave={e=>e.currentTarget.style.color="var(--muted2)"}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg></button>}
+            </div>
+          </div>
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"8px 10px 6px"}}>
             <div style={{fontSize:11,fontWeight:600,color:"var(--muted2)",letterSpacing:".08em",textTransform:"uppercase"}}>{t.learningAreas}</div>
             {sharedFolders.length>0 && <div style={{display:"flex",gap:2}}>
@@ -1408,7 +1486,10 @@ function Dashboard({session, onLogout}) {
           </div>
           {loading ? <div style={{padding:"12px 10px",color:"var(--muted2)",fontSize:13,display:"flex",alignItems:"center",gap:8}}><ISpin c="var(--muted2)" s={16}/> Lädt…</div>
             : rootFolders.length===0 ? <div style={{padding:"8px 10px",fontSize:13,color:"var(--muted2)"}}>{t.noFolders}</div>
-            : (sideFilter==="all"?rootFolders:sideFilter==="own"?rootFolders.filter(f=>!f.isVirtualShared):rootFolders.filter(f=>f.isVirtualShared)).map(f => <SidebarFolder key={f.id} folder={f} t={t} isActive={sel.folderId===f.id} onClick={()=>openFolder(f.id)} onDelete={()=>{if(confirm(`"${f.name}" ${t.deleteConfirm}`))removeFolder(f.id);}} onEdit={()=>{setEditFolder(f);setModal({type:"folder"});setMenuOpen(false);}}/>)
+            : (sideFilter==="all"?rootFolders:sideFilter==="own"?rootFolders.filter(f=>!f.isVirtualShared):rootFolders.filter(f=>f.isVirtualShared)).map(f => <React.Fragment key={f.id}>
+                <SidebarFolder folder={f} t={t} isActive={sel.folderId===f.id} onClick={()=>openFolder(f.id)} onDelete={()=>{if(confirm(`"${f.name}" ${t.deleteConfirm}`))removeFolder(f.id);}} onEdit={()=>{setEditFolder(f);setModal({type:"folder"});setMenuOpen(false);}}/>
+                {(f.children||[]).map(cf=><div key={cf.id} style={{paddingLeft:16}}><SidebarFolder folder={cf} t={t} isActive={sel.folderId===cf.id} onClick={()=>openFolder(cf.id)} onDelete={()=>{if(confirm(`"${cf.name}" ${t.deleteConfirm}`))removeFolder(cf.id);}} onEdit={()=>{setEditFolder(cf);setModal({type:"folder"});setMenuOpen(false);}}/></div>)}
+              </React.Fragment>)
           }
           <button className="folder-row" onClick={()=>{setEditFolder(null);setModal({type:"folder"});setMenuOpen(false);}} style={{border:"1.5px dashed rgba(245,99,26,.3)",color:"var(--muted)",fontSize:13,marginTop:6}}>
             <IPlus/> {t.newFolder}
@@ -1441,7 +1522,35 @@ function Dashboard({session, onLogout}) {
           <div style={{fontSize:13,color:"var(--muted)",maxWidth:420,lineHeight:1.5}}>{loadError}</div>
           <div style={{fontSize:12,color:"var(--muted2)",maxWidth:420,lineHeight:1.5}}>{t.loadErrorSub}</div>
           <button className="btn-o" onClick={()=>loadAll()}>{t.retry}</button>
-        </div> : loading ? <div style={{display:"flex",alignItems:"center",justifyContent:"center",height:"60vh",gap:12,color:"var(--muted)"}}><ISpin/><span style={{fontSize:15}}>{t.loading}</span></div> : <>
+        </div> : loading ? <div style={{display:"flex",alignItems:"center",justifyContent:"center",height:"60vh",gap:12,color:"var(--muted)"}}><ISpin/><span style={{fontSize:15}}>{t.loading}</span></div> : searchQuery.trim().length>=2 ? (()=>{
+          const q=searchQuery.trim().toLowerCase();
+          const hits=data.cards.filter(c=>(strip(c.questionHtml)+" "+strip(c.answerHtml)).toLowerCase().includes(q));
+          const grouped=new Map();
+          for(const c of hits){
+            const s=data.sets.find(s=>s.id===c.setId);
+            if(!s)continue;
+            if(!grouped.has(s.id))grouped.set(s.id,{set:s,folder:data.folders.find(f=>f.id===s.folderId)||(sharedFolders.find(sf=>sf.sets?.some(ss=>ss.id===s.id)))||null,cards:[]});
+            grouped.get(s.id).cards.push(c);
+          }
+          const groups=[...grouped.values()];
+          return <div className="au">
+            <h2 style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:22,marginBottom:6}}>{t.search}</h2>
+            <div style={{color:"var(--muted)",fontSize:13,marginBottom:24}}>{hits.length} {t.searchResults} {t.forQuery||"für"} „{searchQuery.trim()}"</div>
+            {groups.length===0 ? <EmptyState icon="🔍" title={t.noSearchResults}/>
+            : groups.map(g=><div key={g.set.id} style={{marginBottom:24}}>
+              <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
+                {g.folder && <FolderMark mark={g.folder.color} size={16}/>}
+                <span style={{fontSize:12,color:"var(--muted)",fontWeight:500}}>{g.folder?.name||"?"}</span>
+                <span style={{color:"var(--muted2)",fontSize:12}}>›</span>
+                <button onClick={()=>{setSearchQuery("");setSel({folderId:g.set.folderId,setId:g.set.id});}} style={{fontSize:13,fontWeight:600,color:"var(--orange)",background:"none",border:"none",cursor:"pointer",fontFamily:"inherit",padding:0}}>{g.set.name}</button>
+              </div>
+              <div className="card-grid">{g.cards.map(c=><div key={c.id} onClick={()=>{setSearchQuery("");setSel({folderId:g.set.folderId,setId:g.set.id});}} style={{background:"var(--glass)",backdropFilter:"blur(18px) saturate(140%)",WebkitBackdropFilter:"blur(18px) saturate(140%)",border:"1px solid rgba(245,99,26,.12)",borderRadius:"var(--r-md)",padding:"12px 16px",cursor:"pointer",transition:"all .15s",boxShadow:"0 2px 8px rgba(245,99,26,.05),var(--glass-inset)"}} onMouseEnter={e=>{e.currentTarget.style.borderColor="var(--orange)";e.currentTarget.style.transform="translateY(-2px)";}} onMouseLeave={e=>{e.currentTarget.style.borderColor="rgba(245,99,26,.12)";e.currentTarget.style.transform="none";}}>
+                <div style={{fontSize:13,fontWeight:500,marginBottom:6,lineHeight:1.5}} dangerouslySetInnerHTML={{__html:c.questionHtml||""}}/>
+                <div style={{fontSize:12,color:"var(--muted)",lineHeight:1.5,maskImage:"linear-gradient(to bottom,#000 60%,transparent)",WebkitMaskImage:"linear-gradient(to bottom,#000 60%,transparent)",maxHeight:50,overflow:"hidden"}} dangerouslySetInnerHTML={{__html:c.answerHtml||""}}/>
+              </div>)}</div>
+            </div>)}
+          </div>;
+        })() : <>
           {!sel.folderId && <HomeView userName={userName} data={data} rootFolders={rootFolders} onSelectFolder={openFolder} t={t} lang={lang}/>}
           {sel.folderId && !sel.setId && (
             <FolderView folder={folder} sets={folderSets} data={data} t={t}
@@ -1488,11 +1597,12 @@ function Dashboard({session, onLogout}) {
         hasSharedFolders={sharedSets.length > 0}
         onRemoveAllShared={removeAllSharedAccess}
         t={t} lang={lang} setLang={setLang}/>}
-      {modal?.type==="folder" && <FolderModal initial={editFolder} t={t} onSave={(name,color)=>{editFolder?updateFolder(editFolder.id,name,color):createFolder(name,color);setEditFolder(null);}} onClose={()=>{setModal(null);setEditFolder(null);}}/>}
+      {modal?.type==="folder" && <FolderModal initial={editFolder} folders={data.folders} t={t} onSave={(name,color,parentId)=>{editFolder?updateFolder(editFolder.id,name,color,parentId):createFolder(name,color,parentId);setEditFolder(null);}} onClose={()=>{setModal(null);setEditFolder(null);}}/>}
       {modal?.type==="set" && <SetModal onSave={createSet} onClose={()=>setModal(null)} t={t}/>}
       {modal?.type==="card" && <CardModal card={editCard} saving={saving} t={t} onSave={c=>{saveCard(c);setEditCard(null);}} onClose={()=>{setModal(null);setEditCard(null);}}/>}
       {modal?.type==="folderShare" && <FolderShareModal t={t}
         folder={data.folders.find(x=>x.id===modal.folderId)}
+        allFolders={data.folders}
         folderSets={data.sets.filter(s=>!s.isSharedWithMe && s.folderId===modal.folderId)}
         ownerEmail={user.email}
         ownerId={user.id}
@@ -1617,7 +1727,7 @@ function SetView({set,folder,cards,onBack,onNewCard,onEditCard,onDeleteCard,onCo
           </div>
         </div>
         <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
-          {!readOnly && <label className="btn-sm" style={{cursor:"pointer"}}><IPdf/> {t.import||"Import"} <input type="file" accept=".pdf,.docx,.pptx,.doc,.ppt" style={{display:"none"}} onChange={e=>e.target.files[0]&&onImportPDF(e.target.files[0])}/></label>}
+          {!readOnly && <label className="btn-sm" style={{cursor:"pointer"}}><IPdf/> {t.import||"Import"} <input type="file" accept=".pdf,.docx,.pptx" style={{display:"none"}} onChange={e=>e.target.files[0]&&onImportPDF(e.target.files[0])}/></label>}
           {cards.length>0 && <button className="btn-sm" onClick={onExport}><IDownload/> {t.export}</button>}
           {cards.length>0 && <button className="btn-o" onClick={onLearn}><IBook/> {t.learn}</button>}
           {!readOnly && <button className="btn-g" onClick={onNewCard}><IPlus/> {t.newCard}</button>}
@@ -2328,13 +2438,15 @@ function ProfileModal({user,userName,onLogout,onClose,hideShared,setHideShared,o
   </div></div>);
 }
 
-function FolderModal({onSave,onClose,initial,t}) {
+function FolderModal({onSave,onClose,initial,folders,t}) {
   const editing = !!initial;
   const [name,setName]=useState(initial?.name||"");
   const [mark,setMark]=useState(initial?.color||COLORS[0]);
+  const [parentId,setParentId]=useState(initial?.parentId||"");
   const [tab,setTab]=useState(isEmojiMark(initial?.color)?"emoji":"color");
   const [customEmoji,setCustomEmoji]=useState("");
-  const submit = () => { if(name.trim()) onSave(name.trim(), mark); };
+  const parentOptions = (folders||[]).filter(f=>!f.parentId && f.id!==initial?.id);
+  const submit = () => { if(name.trim()) onSave(name.trim(), mark, parentId||null); };
   return(<div className="overlay" onClick={onClose}><div className="modal si" style={{maxWidth:420,padding:32}} onClick={e=>e.stopPropagation()}>
     <ModalX onClose={onClose}/>
     <h3 style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:20,marginBottom:4,display:"flex",alignItems:"center",gap:10}}>
@@ -2343,6 +2455,13 @@ function FolderModal({onSave,onClose,initial,t}) {
     </h3>
     <div style={{fontSize:13,color:"var(--muted)",marginBottom:20}}>{t.folderMarkerSub}</div>
     <Inp label={t.folderName} placeholder={t.folderNamePlaceholder} value={name} onChange={setName} onEnter={submit}/>
+    {parentOptions.length>0 && <div style={{marginBottom:16}}>
+      <label style={{display:"block",fontSize:13,fontWeight:500,color:"var(--muted)",marginBottom:6}}>{t.parentFolder}</label>
+      <select value={parentId||""} onChange={e=>setParentId(e.target.value||null)} style={{width:"100%",padding:"10px 14px",border:"1.5px solid rgba(245,99,26,.2)",borderRadius:10,fontSize:14,background:"var(--card-bg)",color:"var(--text)",outline:"none",fontFamily:"inherit",cursor:"pointer"}} onFocus={e=>e.target.style.borderColor="var(--orange)"} onBlur={e=>e.target.style.borderColor="rgba(245,99,26,.2)"}>
+        <option value="">{t.noParent}</option>
+        {parentOptions.map(f=><option key={f.id} value={f.id}>{isEmojiMark(f.color)?f.color+" ":""}{f.name}</option>)}
+      </select>
+    </div>}
     <div style={{marginBottom:20}}>
       <div style={{display:"flex",gap:4,background:"var(--tab-bg)",borderRadius:10,padding:3,marginBottom:12}}>
         {[["color",t.color],["emoji",t.emoji]].map(([k,lbl])=>(
@@ -2426,7 +2545,7 @@ function SimpleModal({title,onClose,children}) {
   </div></div>);
 }
 
-function FolderShareModal({folder,folderSets,ownerEmail,ownerId,ownerAvatar,ownerName,onClose,t}) {
+function FolderShareModal({folder,allFolders,folderSets,ownerEmail,ownerId,ownerAvatar,ownerName,onClose,t}) {
   // A folder is "shared with email E" if any set in the folder has a
   // set_shares row for E. We aggregate across all sets in the folder so the
   // user can manage sharing at the folder level.
@@ -2487,7 +2606,8 @@ function FolderShareModal({folder,folderSets,ownerEmail,ownerId,ownerAvatar,owne
     // If these columns don't exist yet, we retry without them.
     const baseRows = setIds.filter(sid => !existingSetIds.has(sid)).map(sid => ({set_id:sid, invited_email:e, owner_email:ownerEmail, owner_id:ownerId, can_edit:canEdit}));
     if (baseRows.length === 0) { setBusy(false); setErr("Diese E-Mail hat bereits Zugriff."); return; }
-    const withMeta = baseRows.map(r => ({...r, folder_id:folder.id, folder_name:folder.name, folder_color:folder.color}));
+    const parentFolder = folder.parentId ? allFolders.find(f=>f.id===folder.parentId) : null;
+    const withMeta = baseRows.map(r => ({...r, folder_id:folder.id, folder_name:folder.name, folder_color:folder.color, ...(parentFolder ? {parent_folder_name:parentFolder.name, parent_folder_color:parentFolder.color} : {})}));
     let {error} = await sb.from("set_shares").insert(withMeta);
     if (error) {
       // Fallback: schema without folder_* columns
