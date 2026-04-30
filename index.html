@@ -2527,6 +2527,9 @@ function CardModal({card,saving,onSave,onClose,t}) {
   const insImg=async(file,ref)=>{const reader=new FileReader();reader.onload=e=>{ref.current?.focus();document.execCommand("insertImage",false,e.target.result);};reader.readAsDataURL(file);};
   const ToolBar=({targetRef})=>{
     const [showColors,setShowColors]=useState(false);
+    const [hexInput,setHexInput]=useState("#F5631A");
+    const [activeColor,setActiveColor]=useState("#F5631A");
+    const applyColor=(c)=>{fmt("foreColor",c);setActiveColor(c);setShowColors(false);};
     const TB=({cmd,lbl,style:s})=><button onMouseDown={e=>{e.preventDefault();fmt(cmd);}} style={{width:26,height:26,border:"1px solid var(--border)",borderRadius:5,background:"var(--btn-sm-bg)",fontFamily:cmd==="bold"?"serif":"inherit",fontWeight:cmd==="bold"?700:400,fontStyle:cmd==="italic"?"italic":"normal",textDecoration:cmd==="underline"?"underline":"none",fontSize:12,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",color:"var(--text)",...s}}>{lbl}</button>;
     const colors=["#18170F","#6B7280","#374151","#1E40AF","#2563EB","#0891B2","#059669","#16A34A","#CA8A04","#F59E0B","#F5631A","#EA580C","#DC2626","#E11D48","#F43F5E","#9333EA","#7C3AED","#A855F7"];
     return(<div style={{display:"flex",flexWrap:"wrap",gap:4,padding:"8px 10px",borderBottom:"1px solid var(--border)",background:"var(--glass)",alignItems:"center"}}>
@@ -2538,10 +2541,17 @@ function CardModal({card,saving,onSave,onClose,t}) {
       <div style={{position:"relative"}}>
         <button onMouseDown={e=>{e.preventDefault();setShowColors(p=>!p);}} style={{width:26,height:26,border:"1px solid var(--border)",borderRadius:5,background:"var(--btn-sm-bg)",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,fontWeight:700,position:"relative"}}>
           <span style={{color:"var(--text)"}}>A</span>
-          <span style={{position:"absolute",bottom:3,left:5,right:5,height:3,borderRadius:2,background:"var(--orange)"}}/>
+          <span style={{position:"absolute",bottom:3,left:5,right:5,height:3,borderRadius:2,background:activeColor}}/>
         </button>
-        {showColors && <div style={{position:"absolute",top:"100%",left:0,marginTop:4,padding:6,background:"var(--glass-modal)",backdropFilter:"blur(30px) saturate(150%)",WebkitBackdropFilter:"blur(30px) saturate(150%)",border:"1px solid var(--glass-bdr)",borderRadius:10,boxShadow:"0 8px 24px rgba(0,0,0,.2)",zIndex:10,display:"grid",gridTemplateColumns:"repeat(6,1fr)",gap:4,minWidth:120}}>
-          {colors.map(c=><button key={c} onMouseDown={e=>{e.preventDefault();fmt("foreColor",c);setShowColors(false);}} style={{width:18,height:18,borderRadius:4,background:c,border:"2px solid rgba(0,0,0,.1)",cursor:"pointer",transition:"transform .1s"}} onMouseEnter={e=>e.currentTarget.style.transform="scale(1.25)"} onMouseLeave={e=>e.currentTarget.style.transform="scale(1)"}/>)}
+        {showColors && <div onMouseDown={e=>e.preventDefault()} style={{position:"absolute",top:"100%",left:0,marginTop:4,padding:10,background:"var(--glass-modal)",backdropFilter:"blur(30px) saturate(150%)",WebkitBackdropFilter:"blur(30px) saturate(150%)",border:"1px solid var(--glass-bdr)",borderRadius:12,boxShadow:"0 12px 32px rgba(0,0,0,.25)",zIndex:10,minWidth:170}}>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(6,1fr)",gap:5,marginBottom:10}}>
+            {colors.map(c=><button key={c} onMouseDown={e=>{e.preventDefault();applyColor(c);setHexInput(c);}} style={{width:20,height:20,borderRadius:5,background:c,border:activeColor===c?"2.5px solid var(--text)":"2px solid rgba(0,0,0,.1)",cursor:"pointer",transition:"transform .1s"}} onMouseEnter={e=>e.currentTarget.style.transform="scale(1.2)"} onMouseLeave={e=>e.currentTarget.style.transform="scale(1)"}/>)}
+          </div>
+          <div style={{borderTop:"1px solid var(--border)",paddingTop:8,display:"flex",alignItems:"center",gap:6}}>
+            <input type="color" value={hexInput} onChange={e=>{setHexInput(e.target.value);setActiveColor(e.target.value);}} style={{width:28,height:28,border:"1.5px solid var(--border)",borderRadius:6,padding:0,cursor:"pointer",background:"none"}}/>
+            <input type="text" value={hexInput} onChange={e=>{const v=e.target.value;setHexInput(v);if(/^#[0-9a-fA-F]{6}$/.test(v))setActiveColor(v);}} onKeyDown={e=>{if(e.key==="Enter"&&/^#[0-9a-fA-F]{6}$/.test(hexInput)){applyColor(hexInput);}}} placeholder="#FF0000" style={{flex:1,padding:"5px 8px",border:"1.5px solid var(--glass-bdr)",borderRadius:7,fontSize:12,fontFamily:"monospace",background:"var(--card-bg)",color:"var(--text)",outline:"none",minWidth:0}} onFocus={e=>e.currentTarget.style.borderColor="var(--orange)"} onBlur={e=>e.currentTarget.style.borderColor="var(--glass-bdr)"}/>
+            <button onMouseDown={e=>{e.preventDefault();if(/^#[0-9a-fA-F]{6}$/.test(hexInput))applyColor(hexInput);}} style={{padding:"5px 10px",border:"none",borderRadius:7,background:"var(--grad)",color:"#fff",fontSize:11,fontWeight:600,cursor:"pointer",fontFamily:"inherit",whiteSpace:"nowrap"}}>OK</button>
+          </div>
         </div>}
       </div>
       <label style={{width:26,height:26,border:"1px solid var(--border)",borderRadius:5,background:"var(--btn-sm-bg)",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",fontSize:14}}>🖼️<input type="file" accept="image/*" style={{display:"none"}} onChange={e=>e.target.files[0]&&insImg(e.target.files[0],targetRef)}/></label>
