@@ -407,6 +407,9 @@ const T = {
     importOldPpt: "Das alte .ppt-Format wird nicht unterstützt.\n\nBitte speichere die Datei zuerst als .pptx\n(PowerPoint → Datei → Speichern unter → Format: .pptx).",
     search: "Suche",
     searchPlaceholder: "Karten durchsuchen…",
+    searchSets: "Lernsets durchsuchen…",
+    searchFolders: "Ordner durchsuchen…",
+    searchCards: "Karteikarten durchsuchen…",
     searchResults: "Ergebnisse",
     forQuery: "für",
     noSearchResults: "Keine Karten gefunden.",
@@ -557,6 +560,9 @@ const T = {
     importOldPpt: "The old .ppt format is not supported.\n\nPlease save the file as .pptx first\n(PowerPoint → File → Save As → Format: .pptx).",
     search: "Search",
     searchPlaceholder: "Search cards…",
+    searchSets: "Search sets…",
+    searchFolders: "Search folders…",
+    searchCards: "Search flashcards…",
     searchResults: "Results",
     forQuery: "for",
     noSearchResults: "No cards found.",
@@ -1156,7 +1162,7 @@ function Dashboard({session, onLogout}) {
           const sh = shares.find(x => x.set_id === s.id && (x.invited_email || "").toLowerCase() === myEmail);
           s.sharedBy = sh?.owner_email || null;
           s.canEdit = !!sh?.can_edit;
-          s.sourceFolderId = sh?.folder_id || null;
+          s.sourceFolderId = sh?.folder_id || s.folderId || null;
           s.sourceFolderName = sh?.folder_name || null;
           s.sourceFolderColor = sh?.folder_color || null;
           s.parentFolderName = sh?.parent_folder_name || null;
@@ -1164,6 +1170,31 @@ function Dashboard({session, onLogout}) {
         }
         return s;
       });
+
+      // For shared sets missing folder metadata: look up the original folders
+      // from the DB. This works even when set_shares doesn't have folder_* columns.
+      const sharedMissingInfo = sets.filter(s=>s.isSharedWithMe && s.sourceFolderId && !s.sourceFolderName);
+      if (sharedMissingInfo.length > 0) {
+        const folderIds = [...new Set(sharedMissingInfo.map(s=>s.sourceFolderId).filter(Boolean))];
+        try {
+          const {data:fdata} = await sb.from("folders").select("id,name,color,parent_id").in("id", folderIds);
+          if (fdata && fdata.length) {
+            const fmap = new Map(fdata.map(f=>[f.id,f]));
+            for (const s of sharedMissingInfo) {
+              const f = fmap.get(s.sourceFolderId);
+              if (f) {
+                s.sourceFolderName = f.name;
+                s.sourceFolderColor = f.color;
+                if (f.parent_id) {
+                  const pf = fdata.find(x=>x.id===f.parent_id) || fmap.get(f.parent_id);
+                  if (pf) { s.parentFolderName = pf.name; s.parentFolderColor = pf.color; }
+                }
+              }
+            }
+          }
+        } catch {}
+      }
+
       setData({
         folders:(fr.data||[]).map(toFolder),
         sets,
@@ -1472,7 +1503,7 @@ function Dashboard({session, onLogout}) {
           <div style={{padding:"4px 8px 8px"}}>
             <div style={{position:"relative"}}>
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--muted2)" strokeWidth="2.5" style={{position:"absolute",left:10,top:"50%",transform:"translateY(-50%)",pointerEvents:"none"}}><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-              <input value={searchQuery} onChange={e=>{setSearchQuery(e.target.value);}} placeholder={t.searchPlaceholder} style={{width:"100%",padding:"8px 10px 8px 32px",border:"1.5px solid var(--glass-bdr)",borderRadius:10,background:"var(--glass)",backdropFilter:"blur(12px)",WebkitBackdropFilter:"blur(12px)",fontSize:12,fontFamily:"inherit",color:"var(--text)",outline:"none",transition:"border-color .15s"}} onFocus={e=>e.currentTarget.style.borderColor="var(--orange)"} onBlur={e=>e.currentTarget.style.borderColor="var(--glass-bdr)"}/>
+              <input value={searchQuery} onChange={e=>{setSearchQuery(e.target.value);}} placeholder={t.searchFolders} style={{width:"100%",padding:"8px 10px 8px 32px",border:"1.5px solid var(--glass-bdr)",borderRadius:10,background:"var(--glass)",backdropFilter:"blur(12px)",WebkitBackdropFilter:"blur(12px)",fontSize:12,fontFamily:"inherit",color:"var(--text)",outline:"none",transition:"border-color .15s"}} onFocus={e=>e.currentTarget.style.borderColor="var(--orange)"} onBlur={e=>e.currentTarget.style.borderColor="var(--glass-bdr)"}/>
               {searchQuery && <button onClick={()=>setSearchQuery("")} style={{position:"absolute",right:6,top:"50%",transform:"translateY(-50%)",border:"none",background:"none",cursor:"pointer",color:"var(--muted2)",padding:4,display:"flex",alignItems:"center",justifyContent:"center",borderRadius:6}} onMouseEnter={e=>e.currentTarget.style.color="var(--orange)"} onMouseLeave={e=>e.currentTarget.style.color="var(--muted2)"}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg></button>}
             </div>
           </div>
@@ -1658,7 +1689,7 @@ function FolderView({folder,sets,data,onBack,onNewSet,onSelectSet,onLearnSet,onL
           )}
         </div>
         <div style={{display:"flex",gap:8,flexWrap:"wrap",alignItems:"center"}}>
-          {sets.length>0 && <SearchInput value={setSearch} onChange={setSetSearch} placeholder={t.searchPlaceholder} inline/>}
+          {sets.length>0 && <SearchInput value={setSearch} onChange={setSetSearch} placeholder={t.searchSets} inline/>}
           {folderCards.length>0 && <button className="btn-o" onClick={onLearnFolder}><IBook/> {t.learnFolder}</button>}
           {!isShared && <button className="btn-sm" onClick={onShareFolder}><IShare/> {t.share}</button>}
           {!isShared && <button className="btn-g" onClick={onNewSet}><IPlus/> {t.newSet}</button>}
@@ -1711,7 +1742,7 @@ function SetView({set,folder,cards,onBack,onNewCard,onEditCard,onDeleteCard,onCo
           </div>
         </div>
         <div style={{display:"flex",gap:8,flexWrap:"wrap",alignItems:"center"}}>
-          {cards.length>0 && <SearchInput value={cardSearch} onChange={setCardSearch} placeholder={t.searchPlaceholder} inline/>}
+          {cards.length>0 && <SearchInput value={cardSearch} onChange={setCardSearch} placeholder={t.searchCards} inline/>}
           {!readOnly && <label className="btn-sm" style={{cursor:"pointer"}}><IPdf/> {t.import||"Import"} <input type="file" accept=".pdf,.docx,.pptx" style={{display:"none"}} onChange={e=>e.target.files[0]&&onImportPDF(e.target.files[0])}/></label>}
           {cards.length>0 && <button className="btn-sm" onClick={onExport}><IDownload/> {t.export}</button>}
           {cards.length>0 && <button className="btn-o" onClick={onLearn}><IBook/> {t.learn}</button>}
