@@ -789,7 +789,7 @@ function localMCQFallback(q, a) {
 }
 
 
-const COLORS = ["#F5631A","#FF8A3D","#F59E0B","#D97706","#F43F5E","#DC2626","#C2410C","#92400E"];
+const COLORS = ["#F5631A","#FF8A3D","#F59E0B","#D97706","#DC2626","#F43F5E","#9333EA","#7C3AED","#2563EB","#0891B2","#059669","#16A34A","#92400E","#6B7280","#374151","#1E40AF"];
 const EMOJI_PRESETS = ["📚","📖","🧠","🔬","💼","🎨","💻","⚽","🎵","🌍","🏥","⚖️","🧮","📐","🎯","✨","🔥","🚀","💡","📊"];
 const isEmojiMark = m => !!m && typeof m === "string" && !m.startsWith("#");
 // Safely resize an image file to a TINY thumbnail for JWT-safe storage.
@@ -2471,6 +2471,8 @@ function FolderModal({onSave,onClose,initial,folders,t}) {
   const [parentId,setParentId]=useState(initial?.parentId||"");
   const [tab,setTab]=useState(isEmojiMark(initial?.color)?"emoji":"color");
   const [customEmoji,setCustomEmoji]=useState("");
+  const [showCustomColor,setShowCustomColor]=useState(false);
+  const [hexInput,setHexInput]=useState(isEmojiMark(initial?.color)?"#F5631A":(initial?.color||"#F5631A"));
   const parentOptions = (folders||[]).filter(f=>!f.parentId && f.id!==initial?.id);
   const submit = () => { if(name.trim()) onSave(name.trim(), mark, parentId||null); };
   return(<div className="overlay" onClick={onClose}><div className="modal si" style={{maxWidth:420,padding:32}} onClick={e=>e.stopPropagation()}>
@@ -2494,11 +2496,23 @@ function FolderModal({onSave,onClose,initial,folders,t}) {
           <button key={k} onClick={()=>setTab(k)} style={{flex:1,padding:"7px",border:"none",borderRadius:8,background:tab===k?"var(--tab-active)":"transparent",color:tab===k?"var(--text)":"var(--muted)",fontWeight:tab===k?600:500,fontSize:13,cursor:"pointer",fontFamily:"inherit",boxShadow:tab===k?"0 1px 3px rgba(0,0,0,.06)":"none",transition:"all .15s"}}>{lbl}</button>
         ))}
       </div>
-      {tab==="color" && (
-        <div style={{display:"flex",flexWrap:"wrap",gap:8}}>{COLORS.map(c=>(
-          <button key={c} onClick={()=>setMark(c)} style={{width:32,height:32,borderRadius:11,background:c,border:mark===c?`3px solid ${c}`:"3px solid transparent",outline:mark===c?`2px solid ${c}`:"none",outlineOffset:2,cursor:"pointer",boxShadow:mark===c?`0 4px 10px ${c}55`:"0 1px 3px rgba(0,0,0,.06)"}}/>
+      {tab==="color" && (<div>
+        <div style={{display:"flex",flexWrap:"wrap",gap:8,marginBottom:12}}>{COLORS.map(c=>(
+          <button key={c} onClick={()=>{setMark(c);setHexInput(c);}} style={{width:32,height:32,borderRadius:11,background:c,border:mark===c?`3px solid ${c}`:"3px solid transparent",outline:mark===c?`2px solid ${c}`:"none",outlineOffset:2,cursor:"pointer",boxShadow:mark===c?`0 4px 10px ${c}55`:"0 1px 3px rgba(0,0,0,.06)",transition:"transform .1s"}} onMouseEnter={e=>e.currentTarget.style.transform="scale(1.12)"} onMouseLeave={e=>e.currentTarget.style.transform="scale(1)"}/>
         ))}</div>
-      )}
+        <div style={{borderTop:"1px solid var(--border)",paddingTop:10}}>
+          <div style={{fontSize:11,fontWeight:600,color:"var(--muted)",marginBottom:6,display:"flex",alignItems:"center",gap:5}}>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>
+            Eigene Farbe
+          </div>
+          <div style={{display:"flex",alignItems:"center",gap:6}}>
+            <label style={{width:32,height:32,borderRadius:8,border:"1.5px solid var(--border)",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",background:hexInput,flexShrink:0,position:"relative",overflow:"hidden"}}>
+              <input type="color" value={hexInput} onChange={e=>{setHexInput(e.target.value);setMark(e.target.value);}} style={{position:"absolute",inset:0,width:"100%",height:"100%",opacity:0,cursor:"pointer"}}/>
+            </label>
+            <input type="text" value={hexInput} onChange={e=>{const v=e.target.value;setHexInput(v);if(/^#[0-9a-fA-F]{6}$/.test(v))setMark(v);}} placeholder="#FF0000" style={{flex:1,padding:"7px 10px",border:"1.5px solid var(--glass-bdr)",borderRadius:8,fontSize:13,fontFamily:"monospace",background:"var(--card-bg)",color:"var(--text)",outline:"none",minWidth:0}} onFocus={e=>e.currentTarget.style.borderColor="var(--orange)"} onBlur={e=>e.currentTarget.style.borderColor="var(--glass-bdr)"}/>
+          </div>
+        </div>
+      </div>)}
       {tab==="emoji" && (
         <div>
           <div style={{display:"flex",flexWrap:"wrap",gap:6,marginBottom:12}}>
