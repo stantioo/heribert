@@ -351,7 +351,7 @@ const T = {
     question: "Frage",
     answer: "Antwort",
     showAnswer: "Antwort zeigen",
-    skipCard: "Überspringen →",
+    skipCard: "Frage zeigen",
     howWell: "Wie gut kennst du das?",
     sessionDone: "Session abgeschlossen!",
     result: "Ergebnis",
@@ -506,7 +506,7 @@ const T = {
     question: "Question",
     answer: "Answer",
     showAnswer: "Show answer",
-    skipCard: "Skip →",
+    skipCard: "Show question",
     howWell: "How well do you know this?",
     sessionDone: "Session complete!",
     result: "Result",
@@ -2292,7 +2292,9 @@ function FlashMode({set,cards,onExit,onGoHome,onRate,onProgress,onEditCard,readO
   const [elapsed,setElapsed]=useState(0);
   const card=cards[idx];
   const openEdit=()=>{setEditQ(card?.questionHtml||"");setEditA(card?.answerHtml||"");setEditingCard(true);};
-  const saveEdit=()=>{if(onEditCard&&card){onEditCard(card,editQ,editA);card.questionHtml=editQ;card.answerHtml=editA;}setEditingCard(false);};
+  const saveEdit=()=>{if(onEditCard&&card){onEditCard(card,editQ,editA);card.questionHtml=editQ;card.answerHtml=editA;}setEditingCard(false);setShowFormatBar(false);};
+  const touchRef=useRef({y:0,moved:false});
+  const onFlipTap=()=>{if(!touchRef.current.moved)setFlipped(p=>!p);};
   const rate=r=>{if(onProgress)onProgress();if(!readOnly&&onRate)onRate(card.id,r);const nr=[...ratings,r];setRatings(nr);if(idx+1>=cards.length){setElapsed(Date.now()-startRef.current);setDone(true);return;}setTimeout(()=>{setFlipped(false);setIdx(p=>p+1);},200);};
   const tryExit=()=>{if(!done&&(idx>0||flipped||ratings.length>0)){setConfirmExit(true);}else{onExit();}};
   const restart=()=>{setIdx(0);setFlipped(false);setRatings([]);setDone(false);startRef.current=Date.now();setElapsed(0);};
@@ -2318,7 +2320,7 @@ function FlashMode({set,cards,onExit,onGoHome,onRate,onProgress,onEditCard,readO
         <div style={{display:"flex",gap:8,justifyContent:"flex-end",padding:"10px 16px 14px"}}><button className="btn-g" onClick={()=>{setEditingCard(false);setShowFormatBar(false);}}>{t.cancel}</button><button className="btn-o" onClick={saveEdit}>{t.save}</button></div>
       </div>
     </div> : <>
-    <div className="flip-wrap" style={{width:"100%",maxWidth:640,marginBottom:24}} onClick={()=>setFlipped(p=>!p)}>
+    <div className="flip-wrap" style={{width:"100%",maxWidth:640,marginBottom:24}} onTouchStart={e=>{touchRef.current={y:e.touches[0].clientY,moved:false};}} onTouchMove={e=>{if(Math.abs(e.touches[0].clientY-touchRef.current.y)>10)touchRef.current.moved=true;}} onClick={onFlipTap}>
       <div className={`flip-inner${flipped?" flipped":""}`} style={{height:320}}>
         <div className="flip-f" style={{position:"absolute",inset:0,background:"var(--glass-s)",backdropFilter:"blur(26px) saturate(150%)",WebkitBackdropFilter:"blur(26px) saturate(150%)",border:"2px solid var(--glass-bdr)",display:"flex",flexDirection:"column",alignItems:"center",padding:"28px 32px",boxShadow:"var(--sh-md),var(--glass-inset)",overflowY:"auto",WebkitOverflowScrolling:"touch"}}><div style={{fontSize:11,fontWeight:600,color:"var(--muted)",textTransform:"uppercase",letterSpacing:".08em",marginBottom:16,flexShrink:0}}>{t.question}</div><div style={{fontSize:18,lineHeight:1.6,textAlign:"center",flex:1}} dangerouslySetInnerHTML={{__html:card?.questionHtml||""}}/></div>
         <div className="flip-b" style={{position:"absolute",inset:0,background:"var(--tint-orange)",border:"2px solid var(--ob)",display:"flex",flexDirection:"column",alignItems:"center",padding:"28px 32px",overflowY:"auto",WebkitOverflowScrolling:"touch"}}><div style={{fontSize:11,fontWeight:600,color:"var(--rose)",textTransform:"uppercase",letterSpacing:".08em",marginBottom:16,flexShrink:0}}>{t.answer}</div><div style={{fontSize:17,lineHeight:1.7,textAlign:"center",color:"var(--text)",flex:1}} dangerouslySetInnerHTML={{__html:card?.answerHtml||""}}/></div>
@@ -2330,7 +2332,7 @@ function FlashMode({set,cards,onExit,onGoHome,onRate,onProgress,onEditCard,readO
       </button>
       {!flipped
         ? <button className="btn-o" style={{flex:1,maxWidth:280,justifyContent:"center"}} onClick={()=>setFlipped(true)}>{t.showAnswer}</button>
-        : <button className="btn-sm" style={{flex:1,maxWidth:280,justifyContent:"center"}} onClick={()=>{setFlipped(false);if(idx+1<cards.length)setIdx(p=>p+1);}}>{t.skipCard||"Überspringen"}</button>
+        : <button className="btn-sm" style={{flex:1,maxWidth:280,justifyContent:"center"}} onClick={()=>setFlipped(false)}>{t.skipCard}</button>
       }
       <button onClick={()=>{if(idx+1<cards.length){setFlipped(false);setIdx(p=>p+1);}}} disabled={idx+1>=cards.length} style={{width:36,height:36,borderRadius:10,border:"1.5px solid var(--glass-bdr)",background:"var(--glass)",cursor:idx+1>=cards.length?"not-allowed":"pointer",display:"flex",alignItems:"center",justifyContent:"center",color:idx+1>=cards.length?"var(--muted2)":"var(--text)",transition:"all .15s",opacity:idx+1>=cards.length?.4:1}} onMouseEnter={e=>{if(idx+1<cards.length){e.currentTarget.style.borderColor="var(--orange)";e.currentTarget.style.background="var(--glass-hover)";}}} onMouseLeave={e=>{e.currentTarget.style.borderColor="var(--glass-bdr)";e.currentTarget.style.background="var(--glass)";}}>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M9 18l6-6-6-6"/></svg>
@@ -2620,9 +2622,14 @@ function RichToolBar({targetRef,compact}){
     const wrapSelection=(styleProp,value)=>{
       const sel=window.getSelection();
       if(!sel||sel.rangeCount===0||sel.getRangeAt(0).collapsed)return;
+      const range=sel.getRangeAt(0);
       const span=document.createElement("span");
       span.style[styleProp]=value;
-      sel.getRangeAt(0).surroundContents(span);
+      range.surroundContents(span);
+      const nr=document.createRange();
+      nr.selectNodeContents(span);
+      sel.removeAllRanges();
+      sel.addRange(nr);
     };
     const applyFontSize=(px)=>{setFontSize(px);wrapSelection("fontSize",px+"px");};
     const applyFontFamily=(ff)=>{setFontFamily(ff);wrapSelection("fontFamily",ff);};
