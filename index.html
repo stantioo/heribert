@@ -171,11 +171,13 @@ html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;background:var(
 .rich ul,.rich ol{padding-left:22px;}
 .rich img{max-width:100%;border-radius:10px;display:block;margin:6px 0;}
 
-.flip-wrap{perspective:1200px;}
-.flip-inner{position:relative;transform-style:preserve-3d;transition:transform .5s cubic-bezier(.4,0,.2,1);}
-.flip-inner.flipped{transform:rotateY(180deg);}
-.flip-f,.flip-b{backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:var(--r-xl);overflow-x:hidden;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;}
-.flip-b{transform:rotateY(180deg);}
+.flip-wrap{position:relative;}
+.flip-inner{position:relative;}
+.flip-f,.flip-b{border-radius:var(--r-xl);overflow-x:hidden;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;transition:opacity .25s ease,transform .25s ease;}
+.flip-f{opacity:1;transform:scale(1);}
+.flip-inner.flipped .flip-f{opacity:0;transform:scale(.95);pointer-events:none;position:absolute;inset:0;}
+.flip-b{opacity:0;transform:scale(.95);pointer-events:none;position:absolute;inset:0;}
+.flip-inner.flipped .flip-b{opacity:1;transform:scale(1);pointer-events:auto;position:relative;}
 
 .prog-track{height:8px;background:var(--prog-track);border-radius:99px;overflow:hidden;backdrop-filter:blur(4px);}
 .prog-fill{height:100%;background:var(--grad);border-radius:99px;transition:width .4s ease;box-shadow:0 1px 6px rgba(244,63,94,.4);}
@@ -2320,19 +2322,15 @@ function FlashMode({set,cards,onExit,onGoHome,onRate,onProgress,onEditCard,readO
         <div style={{display:"flex",gap:8,justifyContent:"flex-end",padding:"10px 16px 14px"}}><button className="btn-g" onClick={()=>{setEditingCard(false);setShowFormatBar(false);}}>{t.cancel}</button><button className="btn-o" onClick={saveEdit}>{t.save}</button></div>
       </div>
     </div> : <>
-    <div className="flip-wrap" style={{width:"100%",maxWidth:640,marginBottom:24}} onTouchStart={e=>{touchRef.current={y:e.touches[0].clientY,moved:false};}} onTouchMove={e=>{if(Math.abs(e.touches[0].clientY-touchRef.current.y)>10)touchRef.current.moved=true;}} onClick={onFlipTap}>
-      <div className={`flip-inner${flipped?" flipped":""}`} style={{height:320}}>
-        <div className="flip-f" style={{position:"absolute",inset:0,background:"var(--glass-s)",backdropFilter:"blur(26px) saturate(150%)",WebkitBackdropFilter:"blur(26px) saturate(150%)",border:"2px solid var(--glass-bdr)",boxShadow:"var(--sh-md),var(--glass-inset)"}}>
-          <div style={{position:"absolute",inset:0,overflowY:"auto",WebkitOverflowScrolling:"touch",touchAction:"pan-y",display:"flex",flexDirection:"column",alignItems:"center",padding:"28px 32px"}}>
-            <div style={{fontSize:11,fontWeight:600,color:"var(--muted)",textTransform:"uppercase",letterSpacing:".08em",marginBottom:16,flexShrink:0}}>{t.question}</div>
-            <div style={{fontSize:18,lineHeight:1.6,textAlign:"center"}} dangerouslySetInnerHTML={{__html:card?.questionHtml||""}}/>
-          </div>
+    <div className="flip-wrap" style={{width:"100%",maxWidth:640,marginBottom:24}}>
+      <div className={`flip-inner${flipped?" flipped":""}`} style={{minHeight:320}}>
+        <div className="flip-f" onClick={onFlipTap} onTouchStart={e=>{touchRef.current={y:e.touches[0].clientY,moved:false};}} onTouchMove={e=>{if(Math.abs(e.touches[0].clientY-touchRef.current.y)>10)touchRef.current.moved=true;}} style={{minHeight:320,maxHeight:"60vh",background:"var(--glass-s)",backdropFilter:"blur(26px) saturate(150%)",WebkitBackdropFilter:"blur(26px) saturate(150%)",border:"2px solid var(--glass-bdr)",display:"flex",flexDirection:"column",alignItems:"center",padding:"28px 32px",boxShadow:"var(--sh-md),var(--glass-inset)",cursor:"pointer"}}>
+          <div style={{fontSize:11,fontWeight:600,color:"var(--muted)",textTransform:"uppercase",letterSpacing:".08em",marginBottom:16,flexShrink:0}}>{t.question}</div>
+          <div style={{fontSize:18,lineHeight:1.6,textAlign:"center",overflowY:"auto",WebkitOverflowScrolling:"touch",flex:1,width:"100%"}} dangerouslySetInnerHTML={{__html:card?.questionHtml||""}}/>
         </div>
-        <div className="flip-b" style={{position:"absolute",inset:0,background:"var(--tint-orange)",border:"2px solid var(--ob)"}}>
-          <div style={{position:"absolute",inset:0,overflowY:"auto",WebkitOverflowScrolling:"touch",touchAction:"pan-y",display:"flex",flexDirection:"column",alignItems:"center",padding:"28px 32px"}}>
-            <div style={{fontSize:11,fontWeight:600,color:"var(--rose)",textTransform:"uppercase",letterSpacing:".08em",marginBottom:16,flexShrink:0}}>{t.answer}</div>
-            <div style={{fontSize:17,lineHeight:1.7,textAlign:"center",color:"var(--text)"}} dangerouslySetInnerHTML={{__html:card?.answerHtml||""}}/>
-          </div>
+        <div className="flip-b" onClick={onFlipTap} onTouchStart={e=>{touchRef.current={y:e.touches[0].clientY,moved:false};}} onTouchMove={e=>{if(Math.abs(e.touches[0].clientY-touchRef.current.y)>10)touchRef.current.moved=true;}} style={{minHeight:320,maxHeight:"60vh",background:"var(--tint-orange)",border:"2px solid var(--ob)",display:"flex",flexDirection:"column",alignItems:"center",padding:"28px 32px",cursor:"pointer"}}>
+          <div style={{fontSize:11,fontWeight:600,color:"var(--rose)",textTransform:"uppercase",letterSpacing:".08em",marginBottom:16,flexShrink:0}}>{t.answer}</div>
+          <div style={{fontSize:17,lineHeight:1.7,textAlign:"center",color:"var(--text)",overflowY:"auto",WebkitOverflowScrolling:"touch",flex:1,width:"100%"}} dangerouslySetInnerHTML={{__html:card?.answerHtml||""}}/>
         </div>
       </div>
     </div></>}
@@ -2629,20 +2627,21 @@ function RichToolBar({targetRef,compact}){
     const [fontSize,setFontSize]=useState("15");
     const [fontFamily,setFontFamily]=useState("DM Sans");
     const applyColor=(c)=>{fmt("foreColor",c);setActiveColor(c);setShowColors(false);};
-    const wrapSelection=(styleProp,value)=>{
-      const sel=window.getSelection();
-      if(!sel||sel.rangeCount===0||sel.getRangeAt(0).collapsed)return;
-      const range=sel.getRangeAt(0);
-      const span=document.createElement("span");
-      span.style[styleProp]=value;
-      range.surroundContents(span);
-      const nr=document.createRange();
-      nr.selectNodeContents(span);
-      sel.removeAllRanges();
-      sel.addRange(nr);
+    const applyFontSize=(px)=>{
+      setFontSize(px);
+      // execCommand fontSize uses 1-7 scale. We use 7 (largest) then replace
+      // the generated <font size="7"> with inline style for exact px.
+      fmt("fontSize","7");
+      const el = window.getSelection()?.anchorNode?.parentElement;
+      if (el) {
+        const fonts = (el.closest?.("[contenteditable]") || el).querySelectorAll('font[size="7"]');
+        fonts.forEach(f => { f.removeAttribute("size"); f.style.fontSize = px + "px"; });
+      }
     };
-    const applyFontSize=(px)=>{setFontSize(px);wrapSelection("fontSize",px+"px");};
-    const applyFontFamily=(ff)=>{setFontFamily(ff);wrapSelection("fontFamily",ff);};
+    const applyFontFamily=(ff)=>{
+      setFontFamily(ff);
+      fmt("fontName", ff);
+    };
     const TB=({cmd,lbl,style:s})=><button onMouseDown={e=>{e.preventDefault();fmt(cmd);}} style={{width:26,height:26,border:"1px solid var(--border)",borderRadius:5,background:"var(--btn-sm-bg)",fontFamily:cmd==="bold"?"serif":"inherit",fontWeight:cmd==="bold"?700:400,fontStyle:cmd==="italic"?"italic":"normal",textDecoration:cmd==="underline"?"underline":"none",fontSize:12,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",color:"var(--text)",...s}}>{lbl}</button>;
     const colors=["#18170F","#6B7280","#374151","#1E40AF","#2563EB","#0891B2","#059669","#16A34A","#CA8A04","#F59E0B","#F5631A","#EA580C","#DC2626","#E11D48","#F43F5E","#9333EA","#7C3AED","#A855F7"];
     return(<div style={{display:"flex",flexWrap:"wrap",gap:4,padding:"8px 10px",borderBottom:"1px solid var(--border)",background:"var(--glass)",alignItems:"center"}}>
