@@ -351,6 +351,7 @@ const T = {
     question: "Frage",
     answer: "Antwort",
     showAnswer: "Antwort zeigen",
+    skipCard: "Überspringen →",
     howWell: "Wie gut kennst du das?",
     sessionDone: "Session abgeschlossen!",
     result: "Ergebnis",
@@ -505,6 +506,7 @@ const T = {
     question: "Question",
     answer: "Answer",
     showAnswer: "Show answer",
+    skipCard: "Skip →",
     howWell: "How well do you know this?",
     sessionDone: "Session complete!",
     result: "Result",
@@ -2313,7 +2315,19 @@ function FlashMode({set,cards,onExit,onGoHome,onRate,onProgress,onEditCard,readO
         <div className="flip-b" style={{position:"absolute",inset:0,background:"var(--tint-orange)",border:"2px solid var(--ob)",display:"flex",flexDirection:"column",alignItems:"center",padding:"28px 32px",overflowY:"auto",WebkitOverflowScrolling:"touch"}}><div style={{fontSize:11,fontWeight:600,color:"var(--rose)",textTransform:"uppercase",letterSpacing:".08em",marginBottom:16,flexShrink:0}}>{t.answer}</div><div style={{fontSize:17,lineHeight:1.7,textAlign:"center",color:"var(--text)",flex:1}} dangerouslySetInnerHTML={{__html:card?.answerHtml||""}}/></div>
       </div>
     </div></>}
-    {!flipped?<button className="btn-o" onClick={()=>setFlipped(true)}>{t.showAnswer}</button>:<div className="au" style={{width:"100%",maxWidth:640}}><div style={{fontSize:13,fontWeight:500,color:"var(--muted)",textAlign:"center",marginBottom:12}}>{t.howWell}</div><div style={{display:"flex",gap:10}}>{RATINGS.map((r,i)=><button key={r.label} onClick={()=>rate(i)} style={{flex:1,padding:"14px 6px",border:"2px solid var(--glass-bdr)",borderRadius:14,background:"var(--card-bg)",backdropFilter:"blur(18px) saturate(140%)",WebkitBackdropFilter:"blur(18px) saturate(140%)",cursor:"pointer",fontSize:22,display:"flex",flexDirection:"column",alignItems:"center",gap:4,transition:"all .15s",fontFamily:"inherit",boxShadow:"0 2px 8px rgba(245,99,26,.06),var(--glass-inset)"}} onMouseEnter={e=>{e.currentTarget.style.borderColor=r.c;e.currentTarget.style.background=`${r.c}22`;e.currentTarget.style.transform="translateY(-3px)";e.currentTarget.style.boxShadow=`0 8px 22px ${r.c}33`;}} onMouseLeave={e=>{e.currentTarget.style.borderColor="var(--glass-bdr)";e.currentTarget.style.background="var(--card-bg)";e.currentTarget.style.transform="translateY(0)";e.currentTarget.style.boxShadow="0 2px 8px rgba(245,99,26,.06),var(--glass-inset)";}}>
+    <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:16,width:"100%",maxWidth:640,marginBottom:16}}>
+      <button onClick={()=>{if(idx>0){setFlipped(false);setIdx(p=>p-1);}}} disabled={idx===0} style={{width:36,height:36,borderRadius:10,border:"1.5px solid var(--glass-bdr)",background:"var(--glass)",cursor:idx===0?"not-allowed":"pointer",display:"flex",alignItems:"center",justifyContent:"center",color:idx===0?"var(--muted2)":"var(--text)",transition:"all .15s",opacity:idx===0?.4:1}} onMouseEnter={e=>{if(idx>0){e.currentTarget.style.borderColor="var(--orange)";e.currentTarget.style.background="var(--glass-hover)";}}} onMouseLeave={e=>{e.currentTarget.style.borderColor="var(--glass-bdr)";e.currentTarget.style.background="var(--glass)";}}>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+      {!flipped
+        ? <button className="btn-o" style={{flex:1,maxWidth:280,justifyContent:"center"}} onClick={()=>setFlipped(true)}>{t.showAnswer}</button>
+        : <button className="btn-sm" style={{flex:1,maxWidth:280,justifyContent:"center"}} onClick={()=>{setFlipped(false);if(idx+1<cards.length)setIdx(p=>p+1);}}>{t.skipCard||"Überspringen"}</button>
+      }
+      <button onClick={()=>{if(idx+1<cards.length){setFlipped(false);setIdx(p=>p+1);}}} disabled={idx+1>=cards.length} style={{width:36,height:36,borderRadius:10,border:"1.5px solid var(--glass-bdr)",background:"var(--glass)",cursor:idx+1>=cards.length?"not-allowed":"pointer",display:"flex",alignItems:"center",justifyContent:"center",color:idx+1>=cards.length?"var(--muted2)":"var(--text)",transition:"all .15s",opacity:idx+1>=cards.length?.4:1}} onMouseEnter={e=>{if(idx+1<cards.length){e.currentTarget.style.borderColor="var(--orange)";e.currentTarget.style.background="var(--glass-hover)";}}} onMouseLeave={e=>{e.currentTarget.style.borderColor="var(--glass-bdr)";e.currentTarget.style.background="var(--glass)";}}>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M9 18l6-6-6-6"/></svg>
+      </button>
+    </div>
+    {flipped && <div className="au" style={{width:"100%",maxWidth:640}}><div style={{fontSize:13,fontWeight:500,color:"var(--muted)",textAlign:"center",marginBottom:12}}>{t.howWell}</div><div style={{display:"flex",gap:10}}>{RATINGS.map((r,i)=><button key={r.label} onClick={()=>rate(i)} style={{flex:1,padding:"14px 6px",border:"2px solid var(--glass-bdr)",borderRadius:14,background:"var(--card-bg)",backdropFilter:"blur(18px) saturate(140%)",WebkitBackdropFilter:"blur(18px) saturate(140%)",cursor:"pointer",fontSize:22,display:"flex",flexDirection:"column",alignItems:"center",gap:4,transition:"all .15s",fontFamily:"inherit",boxShadow:"0 2px 8px rgba(245,99,26,.06),var(--glass-inset)"}} onMouseEnter={e=>{e.currentTarget.style.borderColor=r.c;e.currentTarget.style.background=`${r.c}22`;e.currentTarget.style.transform="translateY(-3px)";e.currentTarget.style.boxShadow=`0 8px 22px ${r.c}33`;}} onMouseLeave={e=>{e.currentTarget.style.borderColor="var(--glass-bdr)";e.currentTarget.style.background="var(--card-bg)";e.currentTarget.style.transform="translateY(0)";e.currentTarget.style.boxShadow="0 2px 8px rgba(245,99,26,.06),var(--glass-inset)";}}>
       {r.emoji}<span style={{fontSize:11,color:"var(--muted)",fontWeight:500}}>{r.label}</span>
     </button>)}</div></div>}
   </div>);
@@ -2594,17 +2608,17 @@ function CardModal({card,saving,onSave,onClose,t}) {
     const [hexInput,setHexInput]=useState("#F5631A");
     const [activeColor,setActiveColor]=useState("#F5631A");
     const [fontSize,setFontSize]=useState("15");
+    const [fontFamily,setFontFamily]=useState("DM Sans");
     const applyColor=(c)=>{fmt("foreColor",c);setActiveColor(c);setShowColors(false);};
-    const applyFontSize=(px)=>{
-      setFontSize(px);
+    const wrapSelection=(styleProp,value)=>{
       const sel=window.getSelection();
-      if(!sel||sel.rangeCount===0)return;
-      const range=sel.getRangeAt(0);
-      if(range.collapsed)return;
+      if(!sel||sel.rangeCount===0||sel.getRangeAt(0).collapsed)return;
       const span=document.createElement("span");
-      span.style.fontSize=px+"px";
-      range.surroundContents(span);
+      span.style[styleProp]=value;
+      sel.getRangeAt(0).surroundContents(span);
     };
+    const applyFontSize=(px)=>{setFontSize(px);wrapSelection("fontSize",px+"px");};
+    const applyFontFamily=(ff)=>{setFontFamily(ff);wrapSelection("fontFamily",ff);};
     const TB=({cmd,lbl,style:s})=><button onMouseDown={e=>{e.preventDefault();fmt(cmd);}} style={{width:26,height:26,border:"1px solid var(--border)",borderRadius:5,background:"var(--btn-sm-bg)",fontFamily:cmd==="bold"?"serif":"inherit",fontWeight:cmd==="bold"?700:400,fontStyle:cmd==="italic"?"italic":"normal",textDecoration:cmd==="underline"?"underline":"none",fontSize:12,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",color:"var(--text)",...s}}>{lbl}</button>;
     const colors=["#18170F","#6B7280","#374151","#1E40AF","#2563EB","#0891B2","#059669","#16A34A","#CA8A04","#F59E0B","#F5631A","#EA580C","#DC2626","#E11D48","#F43F5E","#9333EA","#7C3AED","#A855F7"];
     return(<div style={{display:"flex",flexWrap:"wrap",gap:4,padding:"8px 10px",borderBottom:"1px solid var(--border)",background:"var(--glass)",alignItems:"center"}}>
@@ -2613,6 +2627,9 @@ function CardModal({card,saving,onSave,onClose,t}) {
       <TB cmd="insertUnorderedList" lbl={<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="9" y1="6" x2="20" y2="6"/><line x1="9" y1="12" x2="20" y2="12"/><line x1="9" y1="18" x2="20" y2="18"/><circle cx="4" cy="6" r="1.5" fill="currentColor" stroke="none"/><circle cx="4" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="4" cy="18" r="1.5" fill="currentColor" stroke="none"/></svg>}/>
       <TB cmd="insertOrderedList" lbl={<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="10" y1="6" x2="20" y2="6"/><line x1="10" y1="12" x2="20" y2="12"/><line x1="10" y1="18" x2="20" y2="18"/><text x="2" y="8" fontSize="8" fill="currentColor" stroke="none" fontFamily="sans-serif">1</text><text x="2" y="14" fontSize="8" fill="currentColor" stroke="none" fontFamily="sans-serif">2</text><text x="2" y="20" fontSize="8" fill="currentColor" stroke="none" fontFamily="sans-serif">3</text></svg>}/>
       <div style={{width:1,height:18,background:"var(--border)",margin:"0 2px"}}/>
+      <select value={fontFamily} onMouseDown={e=>e.stopPropagation()} onChange={e=>{applyFontFamily(e.target.value);}} style={{height:26,padding:"0 4px",border:"1px solid var(--border)",borderRadius:5,background:"var(--btn-sm-bg)",color:"var(--text)",fontSize:11,cursor:"pointer",outline:"none",maxWidth:80}}>
+        {[["DM Sans","Sans"],["Outfit","Outfit"],["Georgia","Serif"],["Courier New","Mono"],["Comic Sans MS","Comic"]].map(([v,l])=><option key={v} value={v} style={{fontFamily:v}}>{l}</option>)}
+      </select>
       <select value={fontSize} onMouseDown={e=>e.stopPropagation()} onChange={e=>{applyFontSize(e.target.value);}} style={{height:26,padding:"0 4px",border:"1px solid var(--border)",borderRadius:5,background:"var(--btn-sm-bg)",color:"var(--text)",fontSize:11,fontFamily:"inherit",cursor:"pointer",outline:"none",minWidth:42}}>
         {[10,12,14,15,16,18,20,24,28,32,36].map(s=><option key={s} value={s}>{s}pt</option>)}
       </select>
