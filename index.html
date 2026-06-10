@@ -15,6 +15,7 @@
 <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dompurify@3.2.4/dist/purify.min.js"></script>
 
 <script type="text/babel" data-presets="react">
 const { useState, useEffect, useRef, useMemo } = React;
@@ -602,6 +603,7 @@ const greetingNames = {
 };
 
 const uid = () => Math.random().toString(36).slice(2,8) + Date.now().toString(36).slice(-4);
+const safeHtml = h => typeof DOMPurify !== "undefined" ? DOMPurify.sanitize(h || "", {ALLOWED_TAGS:["p","br","b","i","u","strong","em","span","ul","ol","li","font","img","div","h1","h2","h3","h4","a","sub","sup","blockquote","pre","code"],ALLOWED_ATTR:["style","src","alt","href","target","color","size","face","class"],ALLOW_DATA_ATTR:false}) : (h||"");
 const strip = s => (s||"").replace(/<[^>]*>/g,"").replace(/&nbsp;/g," ").trim();
 const fmtDur = ms => { const s=Math.max(0,Math.round(ms/1000)); const m=Math.floor(s/60); const ss=s%60; return `${m}:${String(ss).padStart(2,"0")}`; };
 const ratingScore = r => r==null ? 0 : [0,.33,.66,1][r] ?? 0;
@@ -1269,13 +1271,15 @@ function Dashboard({session, onLogout}) {
 
   const saveCard = async (card) => {
     const isNew = !card.id; setSaving(true);
+    const q = safeHtml(card.questionHtml);
+    const a = safeHtml(card.answerHtml);
     if (isNew) {
       const id=uid(); const now=new Date().toISOString();
-      await sb.from("cards").insert({id,user_id:user.id,set_id:sel.setId,question_html:card.questionHtml,answer_html:card.answerHtml,last_rating:null,mcq_options:null,created_at:now});
-      setData(d=>({...d,cards:[...d.cards,{id,setId:sel.setId,questionHtml:card.questionHtml,answerHtml:card.answerHtml,lastRating:null,mcqOptions:null,createdAt:now}]}));
+      await sb.from("cards").insert({id,user_id:user.id,set_id:sel.setId,question_html:q,answer_html:a,last_rating:null,mcq_options:null,created_at:now});
+      setData(d=>({...d,cards:[...d.cards,{id,setId:sel.setId,questionHtml:q,answerHtml:a,lastRating:null,mcqOptions:null,createdAt:now}]}));
     } else {
-      await sb.from("cards").update({question_html:card.questionHtml,answer_html:card.answerHtml,mcq_options:null}).eq("id",card.id);
-      setData(d=>({...d,cards:d.cards.map(c=>c.id===card.id?{...c,questionHtml:card.questionHtml,answerHtml:card.answerHtml,mcqOptions:null}:c)}));
+      await sb.from("cards").update({question_html:q,answer_html:a,mcq_options:null}).eq("id",card.id);
+      setData(d=>({...d,cards:d.cards.map(c=>c.id===card.id?{...c,questionHtml:q,answerHtml:a,mcqOptions:null}:c)}));
     }
     setSaving(false); setEditCard(null); setModal(null);
   };
@@ -1391,8 +1395,8 @@ function Dashboard({session, onLogout}) {
     const now = new Date().toISOString();
     const rows = approvedCards.map(c => ({
       id:uid(), user_id:user.id, set_id:sel.setId,
-      question_html:`<p>${esc(c.q)}</p>`,
-      answer_html:`<p>${esc(c.a)}</p>`,
+      question_html:safeHtml(`<p>${esc(c.q)}</p>`),
+      answer_html:safeHtml(`<p>${esc(c.a)}</p>`),
       last_rating:null, mcq_options:null, created_at:now,
     }));
     await sb.from("cards").insert(rows);
@@ -1513,7 +1517,7 @@ function Dashboard({session, onLogout}) {
     const markProgress=()=>{studyHasProgress.current=true;};
     return <>
       {confirmGoHome && <ConfirmOverlay title={t.abortStudy} sub={t.abortStudySub} confirmLabel={t.abortStudyYes} cancelLabel={t.continueStudy} onConfirm={()=>{studyHasProgress.current=false;confirmGoHomeYes();}} onCancel={()=>setConfirmGoHome(false)}/>}
-      {studyMode.mode==="flash" ? <FlashMode set={sessionInfo} cards={studyMode.cards} onExit={Exit} onGoHome={goHome} onRate={updateCardRating} onProgress={markProgress} onEditCard={async(card,q,a)=>{await sb.from("cards").update({question_html:q,answer_html:a,mcq_options:null}).eq("id",card.id);setData(d=>({...d,cards:d.cards.map(c=>c.id===card.id?{...c,questionHtml:q,answerHtml:a,mcqOptions:null}:c)}));const ci=studyMode.cards.findIndex(c=>c.id===card.id);if(ci>=0){studyMode.cards[ci].questionHtml=q;studyMode.cards[ci].answerHtml=a;}}} t={t}/> : <MCQMode set={sessionInfo} cards={studyMode.cards} onExit={Exit} onGoHome={goHome} onRate={updateCardRating} onCacheMCQ={cacheCardMCQ} onProgress={markProgress} t={t}/>}
+      {studyMode.mode==="flash" ? <FlashMode set={sessionInfo} cards={studyMode.cards} onExit={Exit} onGoHome={goHome} onRate={updateCardRating} onProgress={markProgress} onEditCard={async(card,q,a)=>{const sq=safeHtml(q),sa=safeHtml(a);await sb.from("cards").update({question_html:sq,answer_html:sa,mcq_options:null}).eq("id",card.id);setData(d=>({...d,cards:d.cards.map(c=>c.id===card.id?{...c,questionHtml:sq,answerHtml:sa,mcqOptions:null}:c)}));const ci=studyMode.cards.findIndex(c=>c.id===card.id);if(ci>=0){studyMode.cards[ci].questionHtml=sq;studyMode.cards[ci].answerHtml=sa;}}} t={t}/> : <MCQMode set={sessionInfo} cards={studyMode.cards} onExit={Exit} onGoHome={goHome} onRate={updateCardRating} onCacheMCQ={cacheCardMCQ} onProgress={markProgress} t={t}/>}
     </>;
   }
 
@@ -1865,7 +1869,7 @@ function CardRow({card,onEdit,onDelete,onCopy,onMove,readOnly,t}) {
   );
   return (<div style={{background:"var(--glass)",backdropFilter:"blur(18px) saturate(140%)",WebkitBackdropFilter:"blur(18px) saturate(140%)",border:"1px solid rgba(245,99,26,.12)",borderRadius:"var(--r-md)",boxShadow:"0 2px 10px rgba(245,99,26,.06),var(--glass-inset)",position:"relative",zIndex:menuOpen?100:0}}>    <div style={{display:"flex",alignItems:open?"flex-start":"center",gap:10,padding:"14px 16px",cursor:"pointer"}} onClick={()=>setOpen(p=>!p)}>
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--muted2)" strokeWidth="2.5" style={{transform:open?"rotate(90deg)":"rotate(0deg)",transition:"transform .2s",flexShrink:0,marginTop:open?4:0}}><path d="M9 18l6-6-6-6"/></svg>
-      <div style={{flex:1,overflow:"hidden",fontSize:14,fontWeight:500,...(open?{whiteSpace:"normal",wordBreak:"break-word",lineHeight:1.6}:{whiteSpace:"nowrap",maskImage:"linear-gradient(to right, #000 82%, transparent 98%)",WebkitMaskImage:"linear-gradient(to right, #000 82%, transparent 98%)"})}} dangerouslySetInnerHTML={{__html:card.questionHtml||"<em style='color:var(--muted2)'>—</em>"}}/>
+      <div style={{flex:1,overflow:"hidden",fontSize:14,fontWeight:500,...(open?{whiteSpace:"normal",wordBreak:"break-word",lineHeight:1.6}:{whiteSpace:"nowrap",maskImage:"linear-gradient(to right, #000 82%, transparent 98%)",WebkitMaskImage:"linear-gradient(to right, #000 82%, transparent 98%)"})}} dangerouslySetInnerHTML={{__html:safeHtml(card.questionHtml)||"<em style='color:var(--muted2)'>—</em>"}}/>
       {ri && <span style={{fontSize:16,flexShrink:0}}>{ri.emoji}</span>}
       {(!readOnly || onCopy) && <div ref={menuRef} style={{position:"relative",flexShrink:0}}>
         <button onClick={e=>{e.stopPropagation();setMenuOpen(p=>!p);}} style={{width:28,height:28,borderRadius:8,border:"none",background:menuOpen?"var(--glass-hover)":"none",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",color:"var(--muted2)",transition:"all .12s"}} onMouseEnter={e=>e.currentTarget.style.color="var(--orange)"} onMouseLeave={e=>e.currentTarget.style.color="var(--muted2)"}>
@@ -1881,7 +1885,7 @@ function CardRow({card,onEdit,onDelete,onCopy,onMove,readOnly,t}) {
     </div>
     {open && <div style={{borderTop:"1px solid rgba(245,99,26,.15)",padding:"14px 16px",background:"var(--glass-hover)",backdropFilter:"blur(10px)",WebkitBackdropFilter:"blur(10px)",borderRadius:"0 0 var(--r-md) var(--r-md)"}}>
       <div style={{fontSize:12,fontWeight:600,color:"var(--orange)",marginBottom:8,textTransform:"uppercase",letterSpacing:".06em"}}>{t?.answer||"Antwort"}</div>
-      <div style={{fontSize:14,lineHeight:1.7,wordBreak:"break-word",whiteSpace:"normal"}} dangerouslySetInnerHTML={{__html:card.answerHtml||"<em style='color:var(--muted2)'>—</em>"}}/>
+      <div style={{fontSize:14,lineHeight:1.7,wordBreak:"break-word",whiteSpace:"normal"}} dangerouslySetInnerHTML={{__html:safeHtml(card.answerHtml)||"<em style='color:var(--muted2)'>—</em>"}}/>
     </div>}
   </div>);
 }
@@ -2326,11 +2330,11 @@ function FlashMode({set,cards,onExit,onGoHome,onRate,onProgress,onEditCard,readO
       <div className={`flip-inner${flipped?" flipped":""}`} style={{minHeight:320}}>
         <div className="flip-f" onClick={onFlipTap} onTouchStart={e=>{touchRef.current={y:e.touches[0].clientY,moved:false};}} onTouchMove={e=>{if(Math.abs(e.touches[0].clientY-touchRef.current.y)>10)touchRef.current.moved=true;}} style={{minHeight:320,maxHeight:"60vh",background:"var(--glass-s)",backdropFilter:"blur(26px) saturate(150%)",WebkitBackdropFilter:"blur(26px) saturate(150%)",border:"2px solid var(--glass-bdr)",display:"flex",flexDirection:"column",alignItems:"center",padding:"28px 32px",boxShadow:"var(--sh-md),var(--glass-inset)",cursor:"pointer"}}>
           <div style={{fontSize:11,fontWeight:600,color:"var(--muted)",textTransform:"uppercase",letterSpacing:".08em",marginBottom:16,flexShrink:0}}>{t.question}</div>
-          <div style={{fontSize:18,lineHeight:1.6,textAlign:"center",overflowY:"auto",WebkitOverflowScrolling:"touch",flex:1,width:"100%"}} dangerouslySetInnerHTML={{__html:card?.questionHtml||""}}/>
+          <div style={{fontSize:18,lineHeight:1.6,textAlign:"center",overflowY:"auto",WebkitOverflowScrolling:"touch",flex:1,width:"100%"}} dangerouslySetInnerHTML={{__html:safeHtml(card?.questionHtml)||""}}/>
         </div>
         <div className="flip-b" onClick={onFlipTap} onTouchStart={e=>{touchRef.current={y:e.touches[0].clientY,moved:false};}} onTouchMove={e=>{if(Math.abs(e.touches[0].clientY-touchRef.current.y)>10)touchRef.current.moved=true;}} style={{minHeight:320,maxHeight:"60vh",background:"var(--tint-orange)",border:"2px solid var(--ob)",display:"flex",flexDirection:"column",alignItems:"center",padding:"28px 32px",cursor:"pointer"}}>
           <div style={{fontSize:11,fontWeight:600,color:"var(--rose)",textTransform:"uppercase",letterSpacing:".08em",marginBottom:16,flexShrink:0}}>{t.answer}</div>
-          <div style={{fontSize:17,lineHeight:1.7,textAlign:"center",color:"var(--text)",overflowY:"auto",WebkitOverflowScrolling:"touch",flex:1,width:"100%"}} dangerouslySetInnerHTML={{__html:card?.answerHtml||""}}/>
+          <div style={{fontSize:17,lineHeight:1.7,textAlign:"center",color:"var(--text)",overflowY:"auto",WebkitOverflowScrolling:"touch",flex:1,width:"100%"}} dangerouslySetInnerHTML={{__html:safeHtml(card?.answerHtml)||""}}/>
         </div>
       </div>
     </div></>}
@@ -2413,7 +2417,7 @@ function MCQMode({set,cards,onExit,onGoHome,onRate,onCacheMCQ,onProgress,readOnl
       </button>
     </div>}
     <div style={{width:"100%",maxWidth:640,marginBottom:28}}><div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}><button onClick={tryExit} style={{display:"flex",alignItems:"center",gap:6,border:"none",background:"none",color:"var(--muted)",fontSize:14,cursor:"pointer",padding:0,fontFamily:"inherit"}}><IBack/> {set?.name}</button><span style={{fontSize:14,fontWeight:600,color:"var(--muted)"}}>{idx+1} / {cards.length} · {score} ✓</span></div><div className="prog-track"><div className="prog-fill" style={{width:`${(idx/cards.length)*100}%`}}/></div></div>
-    <div style={{width:"100%",maxWidth:640,background:"var(--glass-s)",backdropFilter:"blur(26px) saturate(150%)",WebkitBackdropFilter:"blur(26px) saturate(150%)",border:"1.5px solid var(--glass-bdr)",borderRadius:"var(--r-lg)",padding:28,marginBottom:16,boxShadow:"var(--sh-md),var(--glass-inset)"}}><div style={{fontSize:11,fontWeight:600,color:"var(--muted)",textTransform:"uppercase",letterSpacing:".08em",marginBottom:12}}>{t.question} {idx+1}</div><div style={{fontSize:18,lineHeight:1.6}} dangerouslySetInnerHTML={{__html:card?.questionHtml||""}}/></div>
+    <div style={{width:"100%",maxWidth:640,background:"var(--glass-s)",backdropFilter:"blur(26px) saturate(150%)",WebkitBackdropFilter:"blur(26px) saturate(150%)",border:"1.5px solid var(--glass-bdr)",borderRadius:"var(--r-lg)",padding:28,marginBottom:16,boxShadow:"var(--sh-md),var(--glass-inset)"}}><div style={{fontSize:11,fontWeight:600,color:"var(--muted)",textTransform:"uppercase",letterSpacing:".08em",marginBottom:12}}>{t.question} {idx+1}</div><div style={{fontSize:18,lineHeight:1.6}} dangerouslySetInnerHTML={{__html:safeHtml(card?.questionHtml)||""}}/></div>
     <div key={idx} style={{width:"100%",maxWidth:640,display:"flex",flexDirection:"column",gap:10}}>
       {(shuffledOpts||[]).map((opt,i)=>{
         const isCorrect = picked!==null && opt.ok;
