@@ -117,8 +117,11 @@ const CSS = `
 }
 
 /* ═══ DARK MODE (system preference) ═══════════════════════════════════ */
+/* Dunkles Schema. Zwei Wege hinein: das Geraet steht auf dunkel und der
+   Nutzer hat nichts anderes gewaehlt, oder er hat dunkel fest gewaehlt.
+   data-theme auf <html> entscheidet, gesetzt beim Start aus localStorage. */
 @media(prefers-color-scheme:dark){
-  :root{
+  :root:not([data-theme="light"]){
     --bg:#140808;--surface:#1E0C0C;--border:rgba(245,99,26,.22);--border-soft:rgba(245,99,26,.12);
     --text:#F5ECE3;--muted:#A89080;--muted2:#6B5848;
     --ol:rgba(245,99,26,.15);--ob:rgba(245,99,26,.3);
@@ -156,9 +159,49 @@ const CSS = `
     --sh-lg:0 18px 48px rgba(0,0,0,.55),0 5px 16px rgba(0,0,0,.3);
     --sh-hero:0 22px 60px rgba(0,0,0,.55),0 6px 22px rgba(0,0,0,.35);
   }
-  ::-webkit-scrollbar-thumb{background:rgba(245,99,26,.3)!important;}
-  img{opacity:.92;}
+  :root:not([data-theme="light"]) ::-webkit-scrollbar-thumb{background:rgba(245,99,26,.3)!important;}
+  :root:not([data-theme="light"]) img{opacity:.92;}
 }
+:root[data-theme="dark"]{
+    --bg:#140808;--surface:#1E0C0C;--border:rgba(245,99,26,.22);--border-soft:rgba(245,99,26,.12);
+    --text:#F5ECE3;--muted:#A89080;--muted2:#6B5848;
+    --ol:rgba(245,99,26,.15);--ob:rgba(245,99,26,.3);
+    --rl:rgba(220,38,38,.25);--gl:rgba(22,163,74,.18);
+    --shared-bg:linear-gradient(160deg,rgba(146,64,14,.28),rgba(146,64,14,.38));
+    --shared-border:rgba(200,120,60,.35);--shared-fg:#D4955E;
+    --grad-bg:
+      radial-gradient(ellipse 95% 55% at 50% 118%,rgba(245,99,26,.2),transparent 62%),
+      linear-gradient(180deg,#140808 0%,#180A08 70%,#1E0E0A 100%);
+    --glass:rgba(45,18,16,.62);
+    --glass-s:rgba(55,22,20,.7);
+    --glass-bdr:rgba(245,99,26,.2);
+    --glass-modal:rgba(32,13,12,.94);
+    --glass-hover:rgba(245,99,26,.2);
+    --glass-danger:rgba(220,38,38,.22);
+    --glass-inset:inset 0 1px 0 rgba(255,200,180,.06);
+    --card-bg:rgba(45,18,16,.58);
+    --card-bg-shared:rgba(55,25,15,.6);
+    --sidebar-bg:rgba(24,10,8,.88);
+    --sidebar-hdr:linear-gradient(160deg,rgba(55,20,15,.6),rgba(40,16,14,.3));
+    --topbar-bg:rgba(24,10,8,.88);
+    --btn-ghost-bg:rgba(55,22,20,.6);
+    --btn-ghost-bdr:rgba(245,99,26,.22);
+    --btn-sm-bg:rgba(55,22,20,.55);
+    --btn-sm-bdr:rgba(245,99,26,.18);
+    --overlay-bg:rgba(8,3,3,.7);
+    --input-bg:rgba(45,18,16,.7);
+    --prog-track:rgba(80,40,30,.5);
+    --auth-bg:linear-gradient(160deg,#160808,#1A0A0A);
+    --auth-card:linear-gradient(180deg,#1E0C0C,#200E0E);
+    --tab-bg:rgba(60,25,22,.6);
+    --tab-active:rgba(80,32,28,.8);
+    --sh-sm:0 2px 10px rgba(0,0,0,.35),0 1px 3px rgba(0,0,0,.25);
+    --sh-md:0 10px 32px rgba(0,0,0,.45),0 3px 10px rgba(0,0,0,.25);
+    --sh-lg:0 18px 48px rgba(0,0,0,.55),0 5px 16px rgba(0,0,0,.3);
+    --sh-hero:0 22px 60px rgba(0,0,0,.55),0 6px 22px rgba(0,0,0,.35);
+  }
+:root[data-theme="dark"] ::-webkit-scrollbar-thumb{background:rgba(245,99,26,.3)!important;}
+:root[data-theme="dark"] img{opacity:.92;}
 
 html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;color-scheme:light dark;}
 ::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-thumb{background:var(--border);border-radius:99px;}
@@ -677,6 +720,34 @@ const safeColor = c => (typeof c === "string" && /^#[0-9a-fA-F]{3,8}$/.test(c.tr
 // Profilbilder werden als eingebettete Daten gespeichert; alles andere waere
 // eine fremde URL, die beim Anzeigen die IP des Betrachters preisgibt.
 const safeImgSrc = u => (typeof u === "string" && /^data:image\/(png|jpe?g|gif|webp);base64,/i.test(u)) ? u : null;
+
+// \u2500\u2500\u2500 FARBSCHEMA \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+// "auto" folgt dem Geraet, "light"/"dark" sind feste Entscheidungen. Wird beim
+// Laden sofort angewendet, damit die Seite nicht kurz im falschen Schema
+// aufblitzt.
+const THEME_KEY = "heribert.theme";
+function getTheme(){
+  try { const v = localStorage.getItem(THEME_KEY); return (v === "light" || v === "dark") ? v : "auto"; }
+  catch { return "auto"; }
+}
+function isDarkNow(t){
+  return t === "dark" || (t === "auto" && (window.matchMedia?.("(prefers-color-scheme:dark)").matches || false));
+}
+function applyTheme(t){
+  const root = document.documentElement;
+  if (t === "light" || t === "dark") root.setAttribute("data-theme", t);
+  else root.removeAttribute("data-theme");
+  try { localStorage.setItem(THEME_KEY, t); } catch {}
+  // Die Statusleiste faerbt sich nach diesem Wert; die beiden festen
+  // Varianten aus dem Kopfbereich passen nicht mehr, sobald man fest waehlt.
+  document.querySelectorAll('meta[name="theme-color"]').forEach(m => m.remove());
+  const m = document.createElement("meta");
+  m.name = "theme-color";
+  m.content = isDarkNow(t) ? "#140808" : "#FAF4EB";
+  document.head.appendChild(m);
+  window.dispatchEvent(new Event("heribert:theme"));
+}
+applyTheme(getTheme());
 const strip = s => (s||"").replace(/<[^>]*>/g,"").replace(/&nbsp;/g," ").trim();
 const fmtDur = ms => { const s=Math.max(0,Math.round(ms/1000)); const m=Math.floor(s/60); const ss=s%60; return `${m}:${String(ss).padStart(2,"0")}`; };
 const ratingScore = r => r==null ? 0 : [0,.33,.66,1][r] ?? 0;
@@ -1028,8 +1099,14 @@ function useMobile(){
 }
 
 function useDarkMode(){
-  const [d,setD]=useState(window.matchMedia?.("(prefers-color-scheme:dark)").matches||false);
-  useEffect(()=>{const m=window.matchMedia?.("(prefers-color-scheme:dark)");if(!m)return;const h=e=>setD(e.matches);m.addEventListener?.("change",h);return()=>m.removeEventListener?.("change",h);},[]);
+  const [d,setD]=useState(()=>isDarkNow(getTheme()));
+  useEffect(()=>{
+    const h=()=>setD(isDarkNow(getTheme()));
+    const m=window.matchMedia?.("(prefers-color-scheme:dark)");
+    m?.addEventListener?.("change",h);
+    window.addEventListener("heribert:theme",h);
+    return()=>{m?.removeEventListener?.("change",h);window.removeEventListener("heribert:theme",h);};
+  },[]);
   return d;
 }
 
@@ -1056,6 +1133,30 @@ function SplashScreen({name,onDone,lang}){
 // wird. Der Teil fuer display-mode: standalone greift ausschliesslich in der
 // installierten App, im normalen Browser-Tab aendert sich nichts.
 const NATIVE_CSS = `
+:root { --safe-t: env(safe-area-inset-top, 0px); }
+
+/* Zurueck-Pfeile waren als nackter Text kaum zu sehen. Jetzt eine flache
+   Taste mit Rand, damit erkennbar ist, dass man sie druecken kann. */
+.btn-back {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 7px 14px 7px 11px;
+  border: 1.5px solid var(--glass-bdr);
+  border-radius: 10px;
+  background: var(--btn-sm-bg);
+  -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+  color: var(--text);
+  font-size: 14px; font-weight: 500; font-family: inherit;
+  cursor: pointer;
+  box-shadow: var(--sh-sm);
+  transition: border-color .15s, color .15s, transform .12s;
+  max-width: 100%;
+}
+.btn-back > span {
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.btn-back:hover { border-color: var(--ob); color: var(--orange); }
+.btn-back:active { transform: scale(.97); }
+
 @media (pointer: coarse) {
   /* Kein blauer Aufblitz beim Antippen, keine Textauswahl auf Bedienelementen */
   a, button, .folder-row, .btn-o, .btn-g, .btn-sm, .icon-btn, .mob-topbar, .flip-f, .flip-b {
@@ -1064,8 +1165,9 @@ const NATIVE_CSS = `
     -webkit-user-select: none;
     user-select: none;
   }
-  /* iOS zoomt beim Hineintippen, wenn ein Feld kleiner als 16px gesetzt ist */
-  input, select, textarea { font-size: 16px; }
+  /* iOS zoomt beim Hineintippen, wenn ein Feld kleiner als 16px gesetzt ist.
+     Die Felder setzen ihre Groesse inline, nur !important gewinnt dagegen. */
+  input, select, textarea { font-size: 16px !important; }
 }
 @media (display-mode: standalone) {
   html, body {
@@ -1079,7 +1181,6 @@ const NATIVE_CSS = `
     padding-bottom: env(safe-area-inset-bottom);
   }
   .hb-main { padding-bottom: calc(16px + env(safe-area-inset-bottom)) !important; }
-  .hb-study { padding-bottom: calc(24px + env(safe-area-inset-bottom)) !important; }
 }
 @media (display-mode: standalone) and (max-width: 768px) {
   /* Bottom-Sheet wie in iOS: Griff oben, Rand ueber dem Home-Indikator,
@@ -1101,9 +1202,145 @@ const NATIVE_CSS = `
 @keyframes sheetUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
 `;
 
+// \u2500\u2500\u2500 GESTEN \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+// Beide Gesten haengen bewusst nicht an einzelnen Fenstern, sondern lauschen
+// einmal am Dokument. Dadurch gelten sie automatisch fuer jedes Fenster, ohne
+// dass an elf Stellen im Code etwas ergaenzt werden muss.
+
+// Das oberste offene Fenster schliessen, indem der Klick auf den Hintergrund
+// nachgestellt wird. Genau den wertet jedes Fenster ohnehin schon aus.
+function closeTopSheet(){
+  const overlays = document.querySelectorAll(".overlay");
+  const top = overlays[overlays.length - 1];
+  if (!top) return false;
+  top.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+  return true;
+}
+
+// Fenster nach unten wegziehen. Zieht nur, wenn die Liste darin schon ganz
+// oben steht: sonst wuerde man beim Hochscrollen versehentlich schliessen.
+function useSheetDrag(){
+  useEffect(()=>{
+    if (!window.matchMedia?.("(pointer: coarse)").matches) return;
+    let sheet=null, scroller=null, startY=0, dy=0, dragging=false, decided=false;
+
+    const findScroller = (el, stop) => {
+      while (el && el !== stop) {
+        if (el.scrollHeight - el.clientHeight > 4) {
+          const oy = getComputedStyle(el).overflowY;
+          if (oy === "auto" || oy === "scroll") return el;
+        }
+        el = el.parentElement;
+      }
+      if (stop && stop.scrollHeight - stop.clientHeight > 4) return stop;
+      return null;
+    };
+
+    const detach = () => {
+      if (sheet) {
+        sheet.removeEventListener("touchmove", onMove);
+        sheet.removeEventListener("touchend", onEnd);
+        sheet.removeEventListener("touchcancel", onEnd);
+      }
+      sheet=null; scroller=null; dy=0; dragging=false; decided=false;
+    };
+
+    function onMove(e){
+      if (!sheet) return;
+      const delta = e.touches[0].clientY - startY;
+      if (!decided) {
+        if (Math.abs(delta) < 8) return;
+        decided = true;
+        const atTop = !scroller || scroller.scrollTop <= 0;
+        if (delta > 0 && atTop) { dragging = true; sheet.style.transition = "none"; }
+        else { detach(); return; }
+      }
+      if (!dragging) return;
+      dy = Math.max(0, delta);
+      sheet.style.transform = "translateY(" + dy + "px)";
+      // Verhindert, dass die Seite dahinter mitscrollt.
+      if (e.cancelable) e.preventDefault();
+    }
+
+    function onEnd(){
+      if (!sheet) return;
+      const el = sheet, weitGenug = dragging && dy > 110;
+      el.style.transition = "transform .3s cubic-bezier(.32,.72,0,1)";
+      if (weitGenug) {
+        el.style.transform = "translateY(100%)";
+        setTimeout(()=>{
+          closeTopSheet();
+          // Falls dieses Fenster kein Schliessen zulaesst, wieder einblenden.
+          setTimeout(()=>{
+            if (document.body.contains(el)) { el.style.transition=""; el.style.transform=""; }
+          }, 80);
+        }, 250);
+      } else {
+        el.style.transform = "";
+        setTimeout(()=>{ if (document.body.contains(el)) el.style.transition=""; }, 320);
+      }
+      detach();
+    }
+
+    const onStart = e => {
+      if (sheet || e.touches.length !== 1) return;
+      const s = e.target.closest?.(".modal");
+      if (!s) return;
+      // In Eingabefeldern nicht ziehen, das kollidiert mit der Textauswahl.
+      if (e.target.closest?.("input, textarea, [contenteditable='true']")) return;
+      sheet = s;
+      scroller = findScroller(e.target, s);
+      startY = e.touches[0].clientY; dy = 0; dragging = false; decided = false;
+      // Der nicht-passive Zuhoerer haengt bewusst nur am Fenster und nur
+      // waehrend einer Beruehrung. Global am Dokument wuerde er das Scrollen
+      // der ganzen App ausbremsen.
+      sheet.addEventListener("touchmove", onMove, {passive:false});
+      sheet.addEventListener("touchend", onEnd);
+      sheet.addEventListener("touchcancel", onEnd);
+    };
+
+    document.addEventListener("touchstart", onStart, {passive:true});
+    return ()=>{ detach(); document.removeEventListener("touchstart", onStart); };
+  },[]);
+}
+
+// Vom linken Rand nach rechts wischen = zurueck. Ausgefuehrt wird genau das,
+// was die sichtbare Zurueck-Taste tut; dadurch stimmt das Ziel in jeder
+// Ansicht, ohne eigene Navigationslogik daneben.
+function useEdgeSwipeBack(){
+  useEffect(()=>{
+    if (!window.matchMedia?.("(pointer: coarse)").matches) return;
+    let armed=false, x0=0, y0=0, t0=0;
+    const onStart = e => {
+      if (e.touches.length !== 1) { armed=false; return; }
+      const t = e.touches[0];
+      armed = t.clientX <= 28;
+      x0 = t.clientX; y0 = t.clientY; t0 = Date.now();
+    };
+    const onEnd = e => {
+      if (!armed) return;
+      armed = false;
+      const t = e.changedTouches[0];
+      const dx = t.clientX - x0, dy = Math.abs(t.clientY - y0);
+      if (dx < 70 || dy > 70 || Date.now() - t0 > 800) return;
+      if (closeTopSheet()) return;
+      const back = document.querySelector(".btn-back");
+      if (back) back.click();
+    };
+    document.addEventListener("touchstart", onStart, {passive:true});
+    document.addEventListener("touchend", onEnd, {passive:true});
+    return ()=>{
+      document.removeEventListener("touchstart", onStart);
+      document.removeEventListener("touchend", onEnd);
+    };
+  },[]);
+}
+
 function App() {
   const [session, setSession] = useState(undefined);
   const [splash,setSplash]=useState(false);
+  useSheetDrag();
+  useEdgeSwipeBack();
   useEffect(() => {
     const lk = document.createElement("link"); lk.rel="stylesheet"; lk.href=FONTS; document.head.appendChild(lk);
     const st = document.createElement("style"); st.textContent=CSS+NATIVE_CSS; document.head.appendChild(st);
@@ -1170,19 +1407,21 @@ function AuthScreen() {
         <div style={{color:"var(--muted)",fontSize:14,marginBottom:30}}>{t.yourPlatform}</div>
         <div style={{display:"flex",background:"var(--tab-bg)",borderRadius:10,padding:4,marginBottom:26,gap:4}}>
           {["login","register"].map(k => (
-            <button key={k} onClick={() => {setTab(k);setErr("");setInfo("");}} style={{flex:1,padding:"9px",border:"none",borderRadius:8,background:tab===k?"var(--tab-active)":"transparent",color:tab===k?"var(--text)":"var(--muted)",fontWeight:tab===k?600:400,fontSize:14,cursor:"pointer",boxShadow:tab===k?"0 1px 4px rgba(0,0,0,.08)":"none",transition:"all .15s",fontFamily:"inherit"}}>
+            <button key={k} type="button" onClick={() => {setTab(k);setErr("");setInfo("");}} style={{flex:1,padding:"9px",border:"none",borderRadius:8,background:tab===k?"var(--tab-active)":"transparent",color:tab===k?"var(--text)":"var(--muted)",fontWeight:tab===k?600:400,fontSize:14,cursor:"pointer",boxShadow:tab===k?"0 1px 4px rgba(0,0,0,.08)":"none",transition:"all .15s",fontFamily:"inherit"}}>
               {k==="login"?t.login:t.register}
             </button>
           ))}
         </div>
-        {tab==="register" && <Inp label={t.name} placeholder="Dein Name" value={f.name} onChange={up("name")}/>}
-        <Inp label={t.email} type="email" placeholder="du@beispiel.de" value={f.email} onChange={up("email")}/>
-        <Inp label={t.password} type="password" placeholder="••••••••" value={f.pw} onChange={up("pw")} onEnter={submit}/>
+        <form onSubmit={e=>{e.preventDefault();submit();}}>
+        {tab==="register" && <Inp label={t.name} placeholder="Dein Name" value={f.name} onChange={up("name")} name="name" autoComplete="name"/>}
+        <Inp label={t.email} type="email" placeholder="du@beispiel.de" value={f.email} onChange={up("email")} name="email" autoComplete="username" inputMode="email"/>
+        <Inp label={t.password} type="password" placeholder="••••••••" value={f.pw} onChange={up("pw")} name="password" autoComplete={tab==="login"?"current-password":"new-password"}/>
         {err && <div style={{color:"var(--red)",fontSize:13,marginBottom:14,padding:"10px 14px",background:"var(--rl)",borderRadius:8}}>{err}</div>}
         {info && <div style={{color:"var(--green)",fontSize:13,marginBottom:14,padding:"10px 14px",background:"var(--gl)",borderRadius:8}}>{info}</div>}
-        <button className="btn-o" onClick={submit} disabled={busy} style={{width:"100%",padding:"12px",justifyContent:"center",fontSize:15,fontWeight:600,borderRadius:12,opacity:busy?.7:1}}>
+        <button type="submit" className="btn-o" disabled={busy} style={{width:"100%",padding:"12px",justifyContent:"center",fontSize:15,fontWeight:600,borderRadius:12,opacity:busy?.7:1}}>
           {busy ? <ISpin c="#fff" s={18}/> : (tab==="login" ? t.login : t.createAccount)}
         </button>
+        </form>
       </div>
     </div>
   );
@@ -1838,7 +2077,7 @@ function FolderView({folder,sets,data,onBack,onNewSet,onSelectSet,onLearnSet,onL
     <div className="au">
       <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",marginBottom:24,flexWrap:"wrap",gap:16}}>
         <div style={{flex:1,minWidth:260}}>
-          <button style={{display:"flex",alignItems:"center",gap:6,border:"none",background:"none",color:"var(--muted)",fontSize:14,cursor:"pointer",fontFamily:"inherit",marginBottom:12,padding:"4px 0"}} onClick={onBack}><IBack/> {t.back}</button>
+          <button className="btn-back" style={{marginBottom:12}} onClick={onBack}><IBack/> <span>{t.back}</span></button>
           {isShared && (
             <div style={{display:"inline-flex",alignItems:"center",gap:4,fontSize:10,fontWeight:600,color:"var(--shared-fg)",background:"var(--shared-bg)",border:"1px solid var(--shared-border)",borderRadius:99,padding:"2px 8px",marginBottom:10,textTransform:"uppercase",letterSpacing:".06em"}}>🔗 {t.sharedBadge}</div>
           )}
@@ -1894,8 +2133,8 @@ function SetView({set,folder,cards,onBack,onNewCard,onEditCard,onDeleteCard,onCo
     <div className="au">
       <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",marginBottom:28,flexWrap:"wrap",gap:14}}>
         <div>
-          <button style={{display:"flex",alignItems:"center",gap:6,border:"none",background:"none",color:"var(--muted)",fontSize:14,cursor:"pointer",fontFamily:"inherit",marginBottom:10,padding:"4px 0"}} onClick={onBack}>
-            <IBack/> {folder?.name}
+          <button className="btn-back" style={{marginBottom:10}} onClick={onBack}>
+            <IBack/> <span>{folder?.name}</span>
           </button>
           <h1 style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:26,display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}>
             {!readOnly && onRenameSet ? (
@@ -2430,10 +2669,10 @@ function FlashMode({set,cards,onExit,onGoHome,onRate,onProgress,onEditCard,readO
   const tryExit=()=>{if(!done&&(idx>0||flipped||ratings.length>0)){setConfirmExit(true);}else{onExit();}};
   const restart=()=>{setIdx(0);setFlipped(false);setRatings([]);setDone(false);startRef.current=Date.now();setElapsed(0);};
   if(done){const dist=RATINGS.map((r,i)=>({...r,count:ratings.filter(x=>x===i).length}));return(<div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:"var(--grad-bg)",padding:20}}><div className="au" style={{textAlign:"center",maxWidth:480}}><div style={{fontSize:56,marginBottom:16}}>{dist[3].count>cards.length/2?"\ud83c\udfc6":"\ud83d\udcaa"}</div><h2 style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:28,marginBottom:10}}>{t.sessionDone}</h2><div style={{display:"inline-flex",alignItems:"center",gap:8,padding:"6px 14px",background:"var(--glass)",border:"1px solid var(--glass-bdr)",borderRadius:99,fontSize:13,color:"var(--muted)",marginBottom:22}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>{t.studyTime} · <span style={{fontWeight:600,color:"var(--orange)"}}>{fmtDur(elapsed)}</span></div><div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10,marginBottom:32}}>{dist.map(r=><div key={r.label} style={{background:"var(--glass)",border:"1.5px solid var(--border)",borderRadius:12,padding:"14px 8px",textAlign:"center"}}><div style={{fontSize:24,marginBottom:4}}>{r.emoji}</div><div style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:22,color:r.c}}>{r.count}</div><div style={{fontSize:11,color:"var(--muted)"}}>{r.label}</div></div>)}</div><div style={{display:"flex",gap:10,justifyContent:"center"}}><button className="btn-g" onClick={restart}>{t.again}</button><button className="btn-o" onClick={onExit}>{t.backBtn}</button></div></div></div>);}
-  return(<div style={{minHeight:"100vh",background:"var(--grad-bg)",padding:"40px 20px",display:"flex",flexDirection:"column",alignItems:"center"}}>
+  return(<div style={{minHeight:"100vh",background:"var(--grad-bg)",padding:"max(40px, calc(var(--safe-t) + 12px)) 20px max(40px, calc(var(--safe-b) + 12px))",display:"flex",flexDirection:"column",alignItems:"center"}}>
     {confirmExit && <ConfirmOverlay title={t.abortStudy} sub={t.abortStudySub} confirmLabel={t.abortStudyYes} cancelLabel={t.continueStudy} onConfirm={()=>{setConfirmExit(false);onExit();}} onCancel={()=>setConfirmExit(false)}/>}
     {onGoHome && <div style={{width:"100%",maxWidth:640,marginBottom:18,display:"flex",justifyContent:"center"}}><button onClick={onGoHome} title="Zur Übersicht" style={{border:"none",background:"none",padding:"4px 10px",cursor:"pointer",fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:18,letterSpacing:"-.3px",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",backgroundImage:"var(--grad)"}}>Heribert <Star spin/></button></div>}
-    <div style={{width:"100%",maxWidth:640,marginBottom:28}}><div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}><button onClick={tryExit} style={{display:"flex",alignItems:"center",gap:6,border:"none",background:"none",color:"var(--muted)",fontSize:14,cursor:"pointer",padding:0,fontFamily:"inherit"}}><IBack/> {set?.name}</button><div style={{display:"flex",alignItems:"center",gap:10}}>{onEditCard&&!readOnly&&<button onClick={e=>{e.stopPropagation();openEdit();}} title={t.editCard||"Bearbeiten"} style={{border:"none",background:"none",cursor:"pointer",color:"var(--muted2)",padding:2,display:"flex",transition:"color .15s"}} onMouseEnter={e=>e.currentTarget.style.color="var(--orange)"} onMouseLeave={e=>e.currentTarget.style.color="var(--muted2)"}><IEdit/></button>}<span style={{fontSize:14,fontWeight:600,color:"var(--muted)"}}>{idx+1} / {cards.length}</span></div></div><div className="prog-track"><div className="prog-fill" style={{width:`${(idx/cards.length)*100}%`}}/></div></div>
+    <div style={{width:"100%",maxWidth:640,marginBottom:28}}><div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}><button className="btn-back" onClick={tryExit}><IBack/> <span>{set?.name}</span></button><div style={{display:"flex",alignItems:"center",gap:10}}>{onEditCard&&!readOnly&&<button onClick={e=>{e.stopPropagation();openEdit();}} title={t.editCard||"Bearbeiten"} style={{border:"none",background:"none",cursor:"pointer",color:"var(--muted2)",padding:2,display:"flex",transition:"color .15s"}} onMouseEnter={e=>e.currentTarget.style.color="var(--orange)"} onMouseLeave={e=>e.currentTarget.style.color="var(--muted2)"}><IEdit/></button>}<span style={{fontSize:14,fontWeight:600,color:"var(--muted)"}}>{idx+1} / {cards.length}</span></div></div><div className="prog-track"><div className="prog-fill" style={{width:`${(idx/cards.length)*100}%`}}/></div></div>
     {editingCard ? <div style={{width:"100%",maxWidth:640,marginBottom:24}}>
       <div style={{background:"var(--glass-s)",backdropFilter:"blur(26px) saturate(150%)",WebkitBackdropFilter:"blur(26px) saturate(150%)",border:"2px solid var(--glass-bdr)",borderRadius:"var(--r-lg)",overflow:"hidden",boxShadow:"var(--sh-md),var(--glass-inset)"}}>
         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"12px 16px 0"}}>
@@ -2528,7 +2767,7 @@ function MCQMode({set,cards,onExit,onGoHome,onRate,onCacheMCQ,onProgress,readOnl
   const restart=()=>{setIdx(0);setScore(0);setDone(false);setPicked(null);setShuffledOpts(null);startRef.current=Date.now();setElapsed(0);};
   if(loadingMCQ)return(<div style={{minHeight:"100vh",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",background:"var(--grad-bg)",gap:16,padding:20}}><ISpin/><div style={{color:"var(--muted)",fontSize:14,textAlign:"center"}}>KI generiert Antwortoptionen…{loadProgress.total>0&&<div style={{fontSize:12,marginTop:4}}>{loadProgress.done} / {loadProgress.total}</div>}</div></div>);
   if(done){const pct=Math.round((score/cards.length)*100);const resEmoji=pct>=90?"🏆":pct>=70?"🎉":pct>=50?"📈":pct>=30?"💡":pct>0?"😤":"😵";return(<div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:"var(--grad-bg)",padding:20}}><div className="au" style={{textAlign:"center",maxWidth:440}}><div style={{fontSize:56,marginBottom:16}}>{resEmoji}</div><h2 style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:28,marginBottom:8}}>{t.result}</h2><div style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:52,background:pct>=80?"linear-gradient(135deg,#22C55E,#16A34A)":"var(--grad)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",marginBottom:6}}>{pct}%</div><div style={{color:"var(--muted)",marginBottom:14}}>{score} {t.ofTotal} {cards.length} {t.correct}</div><div style={{display:"inline-flex",alignItems:"center",gap:8,padding:"6px 14px",background:"var(--glass)",border:"1px solid var(--glass-bdr)",borderRadius:99,fontSize:13,color:"var(--muted)",marginBottom:28}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>{t.studyTime} · <span style={{fontWeight:600,color:"var(--orange)"}}>{fmtDur(elapsed)}</span></div><div style={{display:"flex",gap:10,justifyContent:"center"}}><button className="btn-g" onClick={restart}>{t.again}</button><button className="btn-o" onClick={onExit}>{t.backBtn}</button></div></div></div>);}
-  return(<div style={{minHeight:"100vh",background:"var(--grad-bg)",padding:"40px 20px",display:"flex",flexDirection:"column",alignItems:"center"}}>
+  return(<div style={{minHeight:"100vh",background:"var(--grad-bg)",padding:"max(40px, calc(var(--safe-t) + 12px)) 20px max(40px, calc(var(--safe-b) + 12px))",display:"flex",flexDirection:"column",alignItems:"center"}}>
     {confirmExit && <ConfirmOverlay title={t.abortStudy} sub={t.abortStudySub} confirmLabel={t.abortStudyYes} cancelLabel={t.continueStudy} onConfirm={()=>{setConfirmExit(false);onExit();}} onCancel={()=>setConfirmExit(false)}/>}
     {onGoHome && <div style={{width:"100%",maxWidth:640,marginBottom:18,display:"flex",justifyContent:"center"}}><button onClick={onGoHome} title="Zur Übersicht" style={{border:"none",background:"none",padding:"4px 10px",cursor:"pointer",fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:18,letterSpacing:"-.3px",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",backgroundImage:"var(--grad)"}}>Heribert <Star spin/></button></div>}
     {aiLimited && aiBannerOpen && <div style={{width:"100%",maxWidth:640,marginBottom:16,padding:"12px 14px",background:"var(--rl)",border:"1px solid rgba(220,38,38,.3)",borderRadius:12,display:"flex",alignItems:"flex-start",gap:10,boxShadow:"0 2px 8px rgba(220,38,38,.08)"}}>
@@ -2541,7 +2780,7 @@ function MCQMode({set,cards,onExit,onGoHome,onRate,onCacheMCQ,onProgress,readOnl
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
       </button>
     </div>}
-    <div style={{width:"100%",maxWidth:640,marginBottom:28}}><div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}><button onClick={tryExit} style={{display:"flex",alignItems:"center",gap:6,border:"none",background:"none",color:"var(--muted)",fontSize:14,cursor:"pointer",padding:0,fontFamily:"inherit"}}><IBack/> {set?.name}</button><span style={{fontSize:14,fontWeight:600,color:"var(--muted)"}}>{idx+1} / {cards.length} · {score} ✓</span></div><div className="prog-track"><div className="prog-fill" style={{width:`${(idx/cards.length)*100}%`}}/></div></div>
+    <div style={{width:"100%",maxWidth:640,marginBottom:28}}><div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}><button className="btn-back" onClick={tryExit}><IBack/> <span>{set?.name}</span></button><span style={{fontSize:14,fontWeight:600,color:"var(--muted)"}}>{idx+1} / {cards.length} · {score} ✓</span></div><div className="prog-track"><div className="prog-fill" style={{width:`${(idx/cards.length)*100}%`}}/></div></div>
     <div style={{width:"100%",maxWidth:640,background:"var(--glass-s)",backdropFilter:"blur(26px) saturate(150%)",WebkitBackdropFilter:"blur(26px) saturate(150%)",border:"1.5px solid var(--glass-bdr)",borderRadius:"var(--r-lg)",padding:28,marginBottom:16,boxShadow:"var(--sh-md),var(--glass-inset)"}}><div style={{fontSize:11,fontWeight:600,color:"var(--muted)",textTransform:"uppercase",letterSpacing:".08em",marginBottom:12}}>{t.question} {idx+1}</div><div style={{fontSize:18,lineHeight:1.6}} dangerouslySetInnerHTML={{__html:safeHtml(card?.questionHtml)||""}}/></div>
     <div key={idx} style={{width:"100%",maxWidth:640,display:"flex",flexDirection:"column",gap:10}}>
       {(shuffledOpts||[]).map((opt,i)=>{
@@ -2569,6 +2808,8 @@ function MCQMode({set,cards,onExit,onGoHome,onRate,onCacheMCQ,onProgress,readOnl
 }
 
 function ProfileModal({user,userName,onLogout,onClose,hideShared,setHideShared,onRemoveAllShared,hasSharedFolders,t,lang,setLang}) {
+  const [theme,setThemeState]=useState(getTheme);
+  const setTheme=v=>{applyTheme(v);setThemeState(v);};
   const [name,setName]=useState(userName);
   const [pw,setPw]=useState(""); const [pw2,setPw2]=useState("");
   const [err,setErr]=useState(""); const [ok,setOk]=useState(false); const [busy,setBusy]=useState(false);
@@ -2614,6 +2855,21 @@ function ProfileModal({user,userName,onLogout,onClose,hideShared,setHideShared,o
         {[["de","Deutsch \ud83c\udde9\ud83c\uddea"],["en","English \ud83c\uddec\ud83c\udde7"]].map(([k,lbl])=>(
           <button key={k} onClick={()=>setLang(k)} style={{flex:1,padding:"8px",border:"none",borderRadius:8,background:lang===k?"var(--tab-active)":"transparent",color:lang===k?"var(--text)":"var(--muted)",fontWeight:lang===k?600:500,fontSize:13,cursor:"pointer",fontFamily:"inherit",transition:"all .15s"}}>{lbl}</button>
         ))}
+      </div>
+    </div>
+    <div style={{marginBottom:16}}>
+      <label style={{display:"block",fontSize:13,fontWeight:500,color:"var(--muted)",marginBottom:6}}>{lang==="en"?"Appearance":"Erscheinungsbild"}</label>
+      <div style={{display:"flex",gap:4,background:"var(--tab-bg)",borderRadius:10,padding:3}}>
+        {[["light","\u2600\ufe0f",lang==="en"?"Light":"Hell"],
+          ["dark","\ud83c\udf19",lang==="en"?"Dark":"Dunkel"],
+          ["auto","\u2699\ufe0f",lang==="en"?"System":"Automatisch"]].map(([k,icon,lbl])=>(
+          <button key={k} onClick={()=>setTheme(k)} style={{flex:1,padding:"8px 4px",border:"none",borderRadius:8,background:theme===k?"var(--tab-active)":"transparent",color:theme===k?"var(--text)":"var(--muted)",fontWeight:theme===k?600:500,fontSize:13,cursor:"pointer",fontFamily:"inherit",transition:"all .15s",display:"flex",alignItems:"center",justifyContent:"center",gap:5}}>
+            <span style={{fontSize:12}}>{icon}</span>{lbl}
+          </button>
+        ))}
+      </div>
+      <div style={{fontSize:11,color:"var(--muted2)",marginTop:6,lineHeight:1.4}}>
+        {lang==="en" ? "System follows your device setting." : "Automatisch folgt der Einstellung deines Ger\u00e4ts."}
       </div>
     </div>
     <div style={{display:"flex",alignItems:"center",gap:14,marginBottom:18,padding:"14px",background:"var(--glass-hover)",border:"1px solid rgba(245,99,26,.15)",borderRadius:14}}>
@@ -3138,13 +3394,14 @@ function ExportModal({set,cards,onClose,t}) {
   </div></div>);
 }
 
-function Inp({label,type="text",placeholder,value,onChange,onEnter}) {
+function Inp({label,type="text",placeholder,value,onChange,onEnter,autoComplete,name,inputMode}) {
   const [show,setShow]=useState(false);
   const isPw = type==="password";
   return(<div style={{marginBottom:16}}>
     <label style={{display:"block",fontSize:13,fontWeight:500,color:"var(--muted)",marginBottom:6}}>{label}</label>
     <div style={{position:"relative"}}>
       <input type={isPw && show ? "text" : type} placeholder={placeholder} value={value} onChange={e=>onChange(e.target.value)} onKeyDown={e=>e.key==="Enter"&&onEnter?.()}
+        name={name} id={name} autoComplete={autoComplete} inputMode={inputMode} autoCapitalize={type==="email"?"none":undefined} autoCorrect={type==="email"?"off":undefined} spellCheck={type==="email"?false:undefined}
         style={{width:"100%",padding:isPw?"10px 40px 10px 14px":"10px 14px",border:"1.5px solid var(--border)",borderRadius:9,fontSize:14,background:"var(--input-bg)",color:"var(--text)",outline:"none",fontFamily:"inherit",transition:"border-color .15s"}}
         onFocus={e=>e.target.style.borderColor="var(--orange)"} onBlur={e=>e.target.style.borderColor="var(--border)"}/>
       {isPw && <button type="button" onClick={()=>setShow(p=>!p)} tabIndex={-1} style={{position:"absolute",right:8,top:"50%",transform:"translateY(-50%)",border:"none",background:"none",cursor:"pointer",padding:4,display:"flex",color:"var(--muted2)",transition:"color .15s"}} onMouseEnter={e=>e.currentTarget.style.color="var(--orange)"} onMouseLeave={e=>e.currentTarget.style.color="var(--muted2)"}>
