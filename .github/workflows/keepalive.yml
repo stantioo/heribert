@@ -1,19 +1,110 @@
+# Hält das Supabase-Free-Projekt wach.
+#
+# Warum es die Datei überhaupt gibt: Supabase pausiert Free-Projekte nach
+# 7 Tagen ohne ausreichende Datenbank-Aktivität. Danach ist die App tot, bis
+# jemand im Dashboard auf "Resume" klickt. Nach 90 Tagen Pause ist auch das
+# vorbei und es bleibt nur noch ein Backup-Import.
+#
+# Warum die alte Fassung NICHT funktioniert hat: sie rief die Wurzel der
+# REST-API auf (/rest/v1/). Die antwortet mit jedem Schlüssel 401 und erreicht
+# die Datenbank nie. Zusätzlich stand hinter dem curl-Aufruf ein fester
+# Erfolgs-Text, deshalb war der Lauf immer grün, auch als es längst klemmte.
+#
+# Diese Fassung stellt eine echte Tabellen-Abfrage und bricht bei allem ab,
+# was nicht 200 ist.
+
 name: Keep Supabase alive
 
 on:
   schedule:
-    # Runs every day at 06:00 UTC
-    - cron: '0 6 * * *'
-  workflow_dispatch: # Allow manual trigger
+    # Dreimal täglich, bewusst nicht zur vollen Stunde: zur vollen Stunde ist
+    # die GitHub-Warteschlange am längsten und Läufe fallen eher aus.
+    - cron: '17 5,13,21 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: keepalive
+  cancel-in-progress: false
+
+permissions:
+  contents: write
 
 jobs:
   ping:
     runs-on: ubuntu-latest
     steps:
-      - name: Ping Supabase REST API
+      - name: Datenbank wirklich abfragen
+        env:
+          SUPABASE_URL: https://ivvrfnsuoufymcwtsycp.supabase.co
+          SUPABASE_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
         run: |
-          curl -s -o /dev/null -w "%{http_code}" \
-            "https://ivvrfnsuoufymcwtsycp.supabase.co/rest/v1/" \
-            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
-            -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}"
-          echo " - Supabase pinged successfully"
+          set -euo pipefail
+
+          if [ -z "${SUPABASE_KEY}" ]; then
+            echo "::error::Secret SUPABASE_ANON_KEY ist nicht gesetzt."
+            exit 1
+          fi
+
+          # Schreibender Zugriff auf die Heartbeat-Zeile. Zeitstempel und
+          # Zähler setzt ein Trigger in der Datenbank, nicht dieser Aufruf.
+          body=$(mktemp)
+          code=$(curl -sS --max-time 30 -o "$body" -w '%{http_code}' \
+            -X PATCH "${SUPABASE_URL}/rest/v1/keepalive?id=eq.1" \
+            -H "apikey: ${SUPABASE_KEY}" \
+            -H "Content-Type: application/json" \
+            -H "Prefer: return=representation" \
+            -d '{"source":"github-actions"}')
+
+          echo "HTTP ${code}"
+          cat "$body"
+          echo
+
+          if [ "$code" != "200" ]; then
+            echo "::error::Supabase hat mit HTTP ${code} geantwortet statt mit 200."
+            echo "Wenn hier 000 steht, löst der Hostname nicht auf: das Projekt ist"
+            echo "sehr wahrscheinlich bereits pausiert und muss im Dashboard"
+            echo "einmal von Hand fortgesetzt werden."
+            exit 1
+          fi
+
+          # Gegenprobe: Antwort muss den neuen Zeitstempel enthalten.
+          if ! grep -q '"last_ping"' "$body"; then
+            echo "::error::Antwort enthält kein last_ping. Struktur verändert?"
+            exit 1
+          fi
+
+          last_ping=$(grep -o '"last_ping":"[^"]*"' "$body" | head -1 | cut -d'"' -f4)
+          count=$(grep -o '"ping_count":[0-9]*' "$body" | head -1 | cut -d: -f2)
+          {
+            echo "### Supabase-Heartbeat"
+            echo
+            echo "| Feld | Wert |"
+            echo "|---|---|"
+            echo "| Letzter Ping | \`${last_ping}\` |"
+            echo "| Pings gesamt | \`${count}\` |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Repo-Aktivität erhalten (nur am Monatsersten)
+        if: github.event_name == 'schedule'
+        run: |
+          set -euo pipefail
+          # GitHub schaltet geplante Workflows nach 60 Tagen ohne Aktivität im
+          # Repository ab. Genau das würde den Heartbeat still beenden. Ein
+          # Commit pro Monat verhindert es.
+          if [ "$(date -u +%d)" != "01" ]; then
+            echo "Heute ist nicht der Monatserste, kein Commit nötig."
+            exit 0
+          fi
+          if [ "$(date -u +%H)" != "05" ]; then
+            echo "Nur der erste Lauf des Tages committet."
+            exit 0
+          fi
+          git clone --depth 1 "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" repo
+          cd repo
+          date -u +"%Y-%m-%dT%H:%M:%SZ Heartbeat aktiv" >> keepalive-log.txt
+          tail -n 24 keepalive-log.txt > keepalive-log.tmp && mv keepalive-log.tmp keepalive-log.txt
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add keepalive-log.txt
+          git commit -m "chore: Heartbeat-Protokoll (haelt geplante Workflows aktiv)"
+          git push

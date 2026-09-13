@@ -2,20 +2,42 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+
+  <!-- Zweite Verteidigungslinie hinter DOMPurify: selbst wenn Schadcode ins
+       Dokument gelangt, kann er Daten nirgendwohin senden. connect-src laesst
+       nur Supabase zu, img-src nur eingebettete Bilder, Skripte nur aus diesem
+       Repo. 'unsafe-eval'/'unsafe-inline' braucht Babel, das JSX im Browser
+       uebersetzt. -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; form-action 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; worker-src 'self' blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://ivvrfnsuoufymcwtsycp.supabase.co; manifest-src 'self'"/>
+  <meta name="referrer" content="strict-origin-when-cross-origin"/>
+
   <title>Heribert ✦</title>
+
+  <!-- Installierbar als App auf dem Home-Bildschirm -->
+  <link rel="manifest" href="manifest.webmanifest"/>
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-title" content="Heribert"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="theme-color" content="#FAF4EB" media="(prefers-color-scheme: light)"/>
+  <meta name="theme-color" content="#1C1810" media="(prefers-color-scheme: dark)"/>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23F5631A'/%3E%3Crect x='6' y='5' width='14' height='18' rx='2' fill='white' opacity='.95'/%3E%3Crect x='8' y='9' width='8' height='1.5' rx='.75' fill='%23F5631A'/%3E%3Ctext x='24' y='12' text-anchor='middle' font-family='system-ui' font-weight='700' font-size='9' fill='white'%3E%E2%9C%A6%3C/text%3E%3C/svg%3E">
   <style>body{margin:0;}#root{min-height:100vh;}</style>
 </head>
 <body>
 <div id="root"></div>
 
-<!-- UMD builds - guaranteed to work in browser without build step -->
-<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/dompurify@3.2.4/dist/purify.min.js"></script>
+<!-- Bibliotheken liegen fest im Repo (siehe vendor/HERKUNFT.md). Frueher kamen
+     sie von unpkg/jsdelivr, teils ohne feste Version: wer dort eine Datei
+     austauscht, hat vollen Zugriff auf jede Sitzung. Jetzt kann nur noch
+     aendern, was auch im Repo geaendert wird. Nebeneffekt: laeuft offline. -->
+<script src="vendor/react-18.3.1.min.js"></script>
+<script src="vendor/react-dom-18.3.1.min.js"></script>
+<script src="vendor/supabase-js-2.116.0.min.js"></script>
+<script src="vendor/babel-standalone-7.29.8.min.js"></script>
+<script src="vendor/dompurify-3.4.15.min.js"></script>
 
 <script type="text/babel" data-presets="react">
 const { useState, useEffect, useRef, useMemo } = React;
@@ -27,9 +49,10 @@ const SUPABASE_KEY = "sb_publishable_hQ2G_piEyVVp0SFABugOZA_6PEU9my9";
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const FONTS = "https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap";
-const PDFJS  = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
-const MAMMOTH = "https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js";
-const JSZIP   = "https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js";
+const PDFJS   = "vendor/pdf-3.11.174.min.js";
+const PDFJS_WORKER = "vendor/pdf.worker-3.11.174.min.js";
+const MAMMOTH = "vendor/mammoth-1.6.0.browser.min.js";
+const JSZIP   = "vendor/jszip-3.10.1.min.js";
 
 const CSS = `
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
@@ -603,7 +626,57 @@ const greetingNames = {
 };
 
 const uid = () => Math.random().toString(36).slice(2,8) + Date.now().toString(36).slice(-4);
-const safeHtml = h => typeof DOMPurify !== "undefined" ? DOMPurify.sanitize(h || "", {ALLOWED_TAGS:["p","br","b","i","u","strong","em","span","ul","ol","li","font","img","div","h1","h2","h3","h4","a","sub","sup","blockquote","pre","code"],ALLOWED_ATTR:["style","src","alt","href","target","color","size","face","class"],ALLOW_DATA_ATTR:false}) : (h||"");
+// Karteninhalte duerfen wie Text aussehen, sich aber nicht wie App-Oberflaeche
+// verhalten. Erlaubt bleiben deshalb nur typografische CSS-Eigenschaften: ohne
+// position/inset/z-index laesst sich kein gefaelschtes Anmeldefenster ueber die
+// echte App legen. Bilder nur als eingebettete Daten (kein Zaehlpixel), keine
+// Links, keine class/id (sonst greifen Karten die App-Styles ab).
+const SAFE_STYLE_PROPS = new Set(["color","background-color","font-weight","font-style","font-size","font-family","text-decoration","text-decoration-line","text-align","letter-spacing","line-height","vertical-align","list-style-type","text-transform"]);
+let _purifyHooked = false;
+function initPurify(){
+  if (_purifyHooked || typeof DOMPurify === "undefined") return;
+  _purifyHooked = true;
+  DOMPurify.addHook("afterSanitizeAttributes", node => {
+    if (!node.hasAttribute) return;
+    // Bilder nur als eingebettete Daten. Eine fremde URL waere ein Zaehlpixel
+    // und verriete IP und Zeitpunkt jedes Betrachters.
+    if (node.hasAttribute("src")) {
+      const src = String(node.getAttribute("src") || "").trim();
+      if (!/^data:image\/(png|jpe?g|gif|webp|bmp);base64,/i.test(src)) node.removeAttribute("src");
+    }
+    if (!node.hasAttribute("style")) return;
+    const kept = [];
+    for (const decl of String(node.getAttribute("style")).split(";")) {
+      const i = decl.indexOf(":");
+      if (i < 0) continue;
+      const prop = decl.slice(0,i).trim().toLowerCase();
+      const val  = decl.slice(i+1).trim();
+      if (!SAFE_STYLE_PROPS.has(prop)) continue;
+      if (/url\s*\(|expression|javascript:/i.test(val)) continue;
+      kept.push(prop+":"+val);
+    }
+    if (kept.length) node.setAttribute("style", kept.join(";"));
+    else node.removeAttribute("style");
+  });
+}
+const safeHtml = h => {
+  // Ohne DOMPurify lieber nichts anzeigen als Ungeprueftes.
+  if (typeof DOMPurify === "undefined") return "";
+  initPurify();
+  return DOMPurify.sanitize(h || "", {
+    ALLOWED_TAGS:["p","br","b","i","u","strong","em","span","ul","ol","li","font","img","div","h1","h2","h3","h4","sub","sup","blockquote","pre","code"],
+    ALLOWED_ATTR:["style","src","alt","color","size","face"],
+    ALLOW_DATA_ATTR:false,
+    FORBID_TAGS:["script","style","iframe","object","embed","form","input","button","a","link","meta","base","svg","math"],
+    FORBID_ATTR:["class","id","href","target","srcset","formaction","xlink:href"]
+  });
+};
+// Farbwerte aus fremden Freigaben landen direkt in CSS. Ein Wert wie
+// "url(https://.../pixel)" waere ein Zaehlpixel beim Betrachter.
+const safeColor = c => (typeof c === "string" && /^#[0-9a-fA-F]{3,8}$/.test(c.trim())) ? c.trim() : "#C2410C";
+// Profilbilder werden als eingebettete Daten gespeichert; alles andere waere
+// eine fremde URL, die beim Anzeigen die IP des Betrachters preisgibt.
+const safeImgSrc = u => (typeof u === "string" && /^data:image\/(png|jpe?g|gif|webp);base64,/i.test(u)) ? u : null;
 const strip = s => (s||"").replace(/<[^>]*>/g,"").replace(/&nbsp;/g," ").trim();
 const fmtDur = ms => { const s=Math.max(0,Math.round(ms/1000)); const m=Math.floor(s/60); const ss=s%60; return `${m}:${String(ss).padStart(2,"0")}`; };
 const ratingScore = r => r==null ? 0 : [0,.33,.66,1][r] ?? 0;
@@ -621,8 +694,9 @@ const esc = s => s.replace(/</g,"&lt;").replace(/>/g,"&gt;");
 // Convert HTML (as used in card questionHtml/answerHtml) to plain text,
 // keeping paragraph structure as newlines.
 function htmlToPlainText(html) {
-  const div = document.createElement("div");
-  div.innerHTML = html || "";
+  // Bewusst ueber DOMParser statt innerHTML: das erzeugte Dokument ist inert,
+  // laedt keine Bilder nach und fuehrt keine Ereignis-Attribute aus.
+  const div = new DOMParser().parseFromString(String(html || ""), "text/html").body;
   let out = "";
   const walk = n => {
     if (n.nodeType === 3) { out += n.textContent; return; }
@@ -636,7 +710,11 @@ function htmlToPlainText(html) {
 }
 
 function csvEscape(s) {
-  const str = String(s ?? "").replace(/"/g, '""');
+  let str = String(s ?? "");
+  // Excel und Google Sheets fuehren Zellen aus, die mit = + - @ beginnen.
+  // Ein vorangestelltes Apostroph macht daraus wieder Text.
+  if (/^[=+\-@\t\r]/.test(str)) str = "'" + str;
+  str = str.replace(/"/g, '""');
   return /[",\n\r]/.test(str) ? `"${str}"` : str;
 }
 
@@ -667,18 +745,18 @@ function exportSetPDF(set, cards) {
       <div class="header">Heribert ✦ · ${esc2(set.name)} · Karte ${i+1} / ${cards.length}</div>
       <div class="q-section">
         <div class="label">Frage</div>
-        <div class="rich-content">${c.questionHtml || "<em>Keine Frage</em>"}</div>
+        <div class="rich-content">${safeHtml(c.questionHtml) || "<em>Keine Frage</em>"}</div>
       </div>
       <hr class="divider"/>
       <div class="a-section">
         <div class="label">Antwort</div>
-        <div class="rich-content">${c.answerHtml || "<em>Keine Antwort</em>"}</div>
+        <div class="rich-content">${safeHtml(c.answerHtml) || "<em>Keine Antwort</em>"}</div>
       </div>
       <div class="footer">${new Date().toLocaleDateString("de-DE")} · Exportiert aus Heribert</div>
     </section>
   `).join("");
   const html = `<!DOCTYPE html>
-<html lang="de"><head><meta charset="UTF-8"><title>${esc2(set.name)}</title>
+<html lang="de"><head><meta charset="UTF-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src data:; style-src 'unsafe-inline'"><title>${esc2(set.name)}</title>
 <style>
   @page { size: A4; margin: 0; }
   * { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
@@ -735,41 +813,37 @@ function exportSetPDF(set, cards) {
 <body>
 <div class="print-hint">Drücke Cmd+P (oder Strg+P) → „Als PDF speichern"</div>
 ${pages}
-<scr`+`ipt>
-  window.addEventListener("load", function(){
-    setTimeout(function(){ try { window.print(); } catch(e) {} }, 600);
-  });
-<\/scr`+`ipt>
 </body></html>`;
   const w = window.open("", "_blank");
   if (!w) { alert("Bitte erlaube Popups, damit der PDF-Export geöffnet werden kann."); return; }
   w.document.open(); w.document.write(html); w.document.close();
+  // Der Druckdialog wird von hier aus geoeffnet, damit das erzeugte Dokument
+  // ohne eigenes Skript auskommt und seine strenge CSP behalten kann.
+  setTimeout(() => { try { w.focus(); w.print(); } catch(e) {} }, 700);
 }
 
 // Generate 3 plausible wrong answers for MCQ mode.
 // Calls the "generate-mcq" Supabase Edge Function (Gemini under the hood).
 // Retries up to 2x with exponential backoff on failure (handles Gemini rate-limiting).
 async function genMCQ(q, a) {
-  const url = `${SUPABASE_URL}/functions/v1/generate-mcq`;
-  const body = JSON.stringify({ question: strip(q).slice(0, 180), answer: strip(a).slice(0, 180) });
+  const body = { question: strip(q).slice(0, 180), answer: strip(a).slice(0, 180) };
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
-      const r = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "apikey": SUPABASE_KEY },
-        body
-      });
-      const resp = await r.json().catch(() => ({}));
-      if (r.ok && resp && Array.isArray(resp.answers) && resp.answers.length >= 3) {
-        return resp.answers.slice(0, 3).map(x => String(x));
+      // invoke() haengt das Session-Token an. Die Edge Function laesst nur
+      // angemeldete Nutzer durch, sonst koennte jeder im Internet die
+      // Gemini-Quota leerlaufen lassen.
+      const { data, error } = await sb.functions.invoke("generate-mcq", { body });
+      if (!error && data && Array.isArray(data.answers) && data.answers.length >= 3) {
+        return data.answers.slice(0, 3).map(x => String(x));
       }
-      // 429 / 5xx → wait and retry. Other failures still get one more shot.
+      const status = error?.context?.status;
+      if (status === 401) { console.warn("MCQ: nicht angemeldet"); return null; }
       if (attempt < 2) {
-        const delay = r.status === 429 ? 1500 * (attempt + 1) : 600 * (attempt + 1);
+        const delay = status === 429 ? 1500 * (attempt + 1) : 600 * (attempt + 1);
         await new Promise(res => setTimeout(res, delay));
         continue;
       }
-      console.warn("MCQ-Generation fehlgeschlagen:", r.status, resp);
+      console.warn("MCQ-Generation fehlgeschlagen:", status ?? error);
     } catch (e) {
       if (attempt < 2) { await new Promise(res => setTimeout(res, 600 * (attempt + 1))); continue; }
       console.warn("MCQ-Generation fehlgeschlagen:", e);
@@ -884,13 +958,15 @@ function FolderMark({mark,size=22,style={}}){
   if(isEmojiMark(mark)){
     return <span style={{fontSize:Math.round(size*0.95),lineHeight:1,display:"inline-flex",alignItems:"center",justifyContent:"center",width:size,height:size,filter:"drop-shadow(0 2px 3px rgba(0,0,0,.12))",...style}}>{mark}</span>;
   }
-  return <span style={{display:"inline-flex",width:size,height:size,borderRadius:Math.round(size*0.36),background:mark,boxShadow:`0 4px 10px ${mark}66,inset 0 1px 0 rgba(255,255,255,.35)`,flexShrink:0,...style}}/>;
+  const c = safeColor(mark);
+  return <span style={{display:"inline-flex",width:size,height:size,borderRadius:Math.round(size*0.36),background:c,boxShadow:`0 4px 10px ${c}66,inset 0 1px 0 rgba(255,255,255,.35)`,flexShrink:0,...style}}/>;
 }
 // Avatar — image if url present, fallback to gradient-initial circle.
 function Avatar({url,name,size=30,style={}}){
   const common={width:size,height:size,borderRadius:"50%",flexShrink:0,boxShadow:"0 2px 6px rgba(245,99,26,.18)",...style};
-  if(url){
-    return <img src={url} alt="" style={{...common,objectFit:"cover",border:"1.5px solid rgba(255,255,255,.8)"}}/>;
+  const src = safeImgSrc(url);
+  if(src){
+    return <img src={src} alt="" style={{...common,objectFit:"cover",border:"1.5px solid rgba(255,255,255,.8)"}}/>;
   }
   return <div style={{...common,background:"var(--grad)",display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontWeight:700,fontSize:Math.max(10,Math.round(size*0.42))}}>{(name||"?").charAt(0).toUpperCase()}</div>;
 }
@@ -976,12 +1052,61 @@ function SplashScreen({name,onDone,lang}){
   );
 }
 
+// Verhalten wie eine echte App, wenn Heribert vom Home-Bildschirm gestartet
+// wird. Der Teil fuer display-mode: standalone greift ausschliesslich in der
+// installierten App, im normalen Browser-Tab aendert sich nichts.
+const NATIVE_CSS = `
+@media (pointer: coarse) {
+  /* Kein blauer Aufblitz beim Antippen, keine Textauswahl auf Bedienelementen */
+  a, button, .folder-row, .btn-o, .btn-g, .btn-sm, .icon-btn, .mob-topbar, .flip-f, .flip-b {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  /* iOS zoomt beim Hineintippen, wenn ein Feld kleiner als 16px gesetzt ist */
+  input, select, textarea { font-size: 16px; }
+}
+@media (display-mode: standalone) {
+  html, body {
+    overscroll-behavior-y: none;   /* kein Gummiband ueber die Seitenkante */
+    background: var(--bg);
+  }
+  /* Inhalte duerfen nicht unter Statusleiste und Home-Indikator rutschen */
+  .mob-topbar { padding-top: calc(12px + env(safe-area-inset-top)) !important; }
+  .hb-aside {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .hb-main { padding-bottom: calc(16px + env(safe-area-inset-bottom)) !important; }
+  .hb-study { padding-bottom: calc(24px + env(safe-area-inset-bottom)) !important; }
+}
+@media (display-mode: standalone) and (max-width: 768px) {
+  /* Bottom-Sheet wie in iOS: Griff oben, Rand ueber dem Home-Indikator,
+     und die Feder-Kurve, die Apple fuer Sheets benutzt. */
+  .modal {
+    padding-bottom: env(safe-area-inset-bottom) !important;
+    animation: sheetUp .42s cubic-bezier(.32,.72,0,1) both !important;
+  }
+  .modal::before {
+    content: "";
+    display: block;
+    width: 36px; height: 5px;
+    margin: 8px auto 2px;
+    border-radius: 99px;
+    background: var(--border);
+    flex-shrink: 0;
+  }
+}
+@keyframes sheetUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+`;
+
 function App() {
   const [session, setSession] = useState(undefined);
   const [splash,setSplash]=useState(false);
   useEffect(() => {
     const lk = document.createElement("link"); lk.rel="stylesheet"; lk.href=FONTS; document.head.appendChild(lk);
-    const st = document.createElement("style"); st.textContent=CSS; document.head.appendChild(st);
+    const st = document.createElement("style"); st.textContent=CSS+NATIVE_CSS; document.head.appendChild(st);
     sb.auth.getSession().then(({data:{session}}) => { setSession(session); if(session) setSplash(true); });
     const {data:{subscription}} = sb.auth.onAuthStateChange((_e,s) => setSession(s));
     return () => subscription.unsubscribe();
@@ -1029,7 +1154,7 @@ function AuthScreen() {
       } else {
         if (!f.name.trim()) { setErr("Bitte Namen eingeben."); return; }
         if (!f.email.includes("@")) { setErr("Ung\u00fcltige E-Mail."); return; }
-        if (f.pw.length < 6) { setErr("Passwort mind. 6 Zeichen."); return; }
+        if (f.pw.length < 10) { setErr("Passwort mind. 10 Zeichen."); return; }
         const path = window.location.pathname;
         const emailRedirectTo = window.location.origin + path.substring(0, path.lastIndexOf("/") + 1) + "confirmed.html";
         const {error} = await sb.auth.signUp({email:f.email, password:f.pw, options:{data:{display_name:f.name.trim()}, emailRedirectTo}});
@@ -1352,9 +1477,9 @@ function Dashboard({session, onLogout}) {
         // PDF (default)
         if (!window.pdfjsLib) {
           await loadScript(PDFJS);
-          window.pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+          window.pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS_WORKER;
         }
-        const pdf = await window.pdfjsLib.getDocument({data:buf}).promise;
+        const pdf = await window.pdfjsLib.getDocument({data:buf, isEvalSupported:false}).promise;
         pageCount = pdf.numPages;
         const pagesTxt = [];
         for (let p=1; p<=pdf.numPages; p++) {
@@ -2297,7 +2422,7 @@ function FlashMode({set,cards,onExit,onGoHome,onRate,onProgress,onEditCard,readO
   const startRef=useRef(Date.now());
   const [elapsed,setElapsed]=useState(0);
   const card=cards[idx];
-  const openEdit=()=>{setEditQ(card?.questionHtml||"");setEditA(card?.answerHtml||"");setEditingCard(true);};
+  const openEdit=()=>{setEditQ(safeHtml(card?.questionHtml));setEditA(safeHtml(card?.answerHtml));setEditingCard(true);};
   const saveEdit=()=>{if(onEditCard&&card){onEditCard(card,editQ,editA);card.questionHtml=editQ;card.answerHtml=editA;}setEditingCard(false);setShowFormatBar(false);};
   const touchRef=useRef({y:0,moved:false});
   const onFlipTap=()=>{if(!touchRef.current.moved)setFlipped(p=>!p);};
@@ -2455,7 +2580,7 @@ function ProfileModal({user,userName,onLogout,onClose,hideShared,setHideShared,o
     setErr("");setBusy(true);
     try{
       if(!name.trim()){setErr("Name darf nicht leer sein.");return;}
-      if(pw&&pw.length<6){setErr("Passwort mind. 6 Zeichen.");return;}
+      if(pw&&pw.length<10){setErr("Passwort mind. 10 Zeichen.");return;}
       if(pw&&pw!==pw2){setErr("Passwörter stimmen nicht überein.");return;}
       const updates={data:{display_name:name.trim(),avatar_url:avatar}};if(pw)updates.password=pw;
       const {error}=await sb.auth.updateUser(updates);
@@ -2699,7 +2824,7 @@ function RichToolBar({targetRef,compact}){
 
 function CardModal({card,saving,onSave,onClose,t}) {
   const qRef=useRef(); const aRef=useRef();
-  useEffect(()=>{if(qRef.current)qRef.current.innerHTML=card?.questionHtml||"";if(aRef.current)aRef.current.innerHTML=card?.answerHtml||"";},[]);
+  useEffect(()=>{if(qRef.current)qRef.current.innerHTML=safeHtml(card?.questionHtml);if(aRef.current)aRef.current.innerHTML=safeHtml(card?.answerHtml);},[]);
   const save=()=>{const q=qRef.current?.innerHTML||"";const a=aRef.current?.innerHTML||"";if(!strip(q)&&!strip(a))return;onSave({...(card||{}),questionHtml:q,answerHtml:a,mcqOptions:null});};
   return(<div className="overlay" onClick={onClose}><div className="modal si" style={{maxWidth:580,padding:0}} onClick={e=>e.stopPropagation()}>
     <div style={{padding:"24px 28px 16px",borderBottom:"1px solid var(--border)",background:"var(--glass-hover)",position:"relative"}}><ModalX onClose={onClose}/><h3 style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:18}}>{card?t.editCard:t.newCard}</h3></div>
@@ -2949,7 +3074,7 @@ function CardActionModal({card,action,sets,folders,currentSetId,onConfirm,onClos
     <div style={{padding:"20px 24px 14px",borderBottom:"1px solid var(--border-soft)",background:"var(--glass-hover)"}}>
       <ModalX onClose={onClose}/>
       <h3 style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:18,marginBottom:4}}>{title}</h3>
-      <div style={{fontSize:12,color:"var(--muted)",lineHeight:1.5}} dangerouslySetInnerHTML={{__html:strip(card.questionHtml).slice(0,80)||(t?.question||"Frage")}}/>
+      <div style={{fontSize:12,color:"var(--muted)",lineHeight:1.5}}>{strip(card.questionHtml).slice(0,80)||(t?.question||"Frage")}</div>
     </div>
     <div style={{padding:"14px 24px",maxHeight:"50vh",overflowY:"auto"}}>
       <div style={{fontSize:12,fontWeight:600,color:"var(--muted2)",textTransform:"uppercase",letterSpacing:".06em",marginBottom:10}}>{t?.targetSet||"Ziel-Set wählen"}</div>
@@ -3045,6 +3170,15 @@ function EmptyState({icon,title,sub,btnLabel,onBtn}) {
     <div style={{fontSize:14,marginBottom:24,maxWidth:320,margin:"0 auto 24px"}}>{sub}</div>
     {onBtn&&btnLabel&&<button className="btn-o" onClick={onBtn}>{btnLabel}</button>}
   </div>);
+}
+
+// Service Worker: macht Heribert installierbar und offline benutzbar.
+// Er liefert nur eigene Dateien aus dem Cache; Supabase-Aufrufe gehen immer
+// ins Netz, damit nie veraltete Karten angezeigt werden.
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("sw.js").catch(err => console.warn("SW nicht registriert:", err));
+  });
 }
 
 createRoot(document.getElementById('root')).render(<App/>);
