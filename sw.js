@@ -64,7 +64,10 @@ self.addEventListener("fetch", event => {
   if (req.mode === "navigate") {
     event.respondWith((async () => {
       try {
-        const fresh = await fetch(req);
+        // cache:"reload" umgeht den HTTP-Cache des Browsers. Ohne das kann
+        // GitHub Pages die alte index.html noch minutenlang aus dem Browser-
+        // Cache liefern, obwohl der Service Worker extra ins Netz geht.
+        const fresh = await fetch(req, { cache: "reload" });
         const cache = await caches.open(CACHE_VERSION);
         cache.put(req, fresh.clone());
         return fresh;
