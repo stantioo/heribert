@@ -3364,12 +3364,16 @@ function FolderShareModal({folder,allFolders,folderSets,ownerEmail,ownerId,owner
       <div style={{fontSize:13,color:"var(--muted)"}}>„{folder.name}" · {setIds.length} Set{setIds.length===1?"":"s"} — eingeladene Personen sehen alle Sets in diesem Ordner</div>
     </div>
     <div style={{padding:"18px 26px 22px"}}>
+      {setIds.length===0 && <div style={{marginBottom:14,fontSize:13,lineHeight:1.55,color:"var(--shared-fg)",background:"var(--shared-bg)",border:"1px solid var(--shared-border)",borderRadius:10,padding:"10px 12px"}}>
+        ℹ️ Dieser Ordner ist noch leer. Freigaben hängen an den Sets, nicht am Ordner — lege also zuerst ein Set in „{folder.name}" an, danach kannst du Leute einladen. Spätere Sets in diesem Ordner werden automatisch mitgeteilt.
+      </div>}
       <label style={{display:"block",fontSize:13,fontWeight:500,color:"var(--muted)",marginBottom:6}}>{t.inviteByEmail}</label>
       <div style={{display:"flex",gap:8,marginBottom:8}}>
         <input type="email" placeholder="name@beispiel.de" value={email} onChange={e=>setEmail(e.target.value)} onKeyDown={e=>e.key==="Enter"&&addShare()}
           style={{flex:1,padding:"10px 14px",border:"1.5px solid var(--border)",borderRadius:11,fontSize:14,background:"var(--input-bg)",outline:"none",fontFamily:"inherit",color:"var(--text)"}}
           onFocus={e=>e.target.style.borderColor="var(--orange)"} onBlur={e=>e.target.style.borderColor="var(--border)"}/>
-        <button className="btn-o" onClick={addShare} disabled={busy||!email.trim()||setIds.length===0}>{busy?<ISpin c="#fff" s={16}/>:t.invite}</button>
+        <button className="btn-o" onClick={addShare} disabled={busy||!email.trim()||setIds.length===0}
+          title={setIds.length===0 ? "Dieser Ordner enthält noch kein Set zum Teilen" : (!email.trim() ? "Bitte zuerst eine E-Mail-Adresse eingeben" : "")}>{busy?<ISpin c="#fff" s={16}/>:t.invite}</button>
       </div>
       {suggestions.length>0 && <div style={{marginBottom:12}}>
         <div style={{fontSize:11,fontWeight:600,color:"var(--muted2)",textTransform:"uppercase",letterSpacing:".06em",marginBottom:6}}>{t.recentContacts}</div>
