@@ -1731,16 +1731,32 @@ function Dashboard({session, onLogout}) {
     if (fail(setError,"Set konnte nicht angelegt werden")) return;
     // Propagate folder-level shares to the new set: find all emails currently
     // sharing any sibling set in this folder and add shares for the new set.
+    // Wer bekommt das neue Set? Zwei Quellen: die Einladungen am Ordner (die
+    // gelten auch, wenn der Ordner vorher leer war) und die Freigaben der
+    // Nachbarsets. Vorher gab es nur Letztere -- in einem frisch angelegten
+    // Ordner konnte man deshalb niemanden einladen.
+    const recipients = new Map();
+    if (sel.folderId) {
+      const {data:inv} = await sb.from("folder_invites").select("invited_email,can_edit").eq("folder_id", sel.folderId);
+      for (const iv of (inv||[])) {
+        const m = (iv.invited_email||"").toLowerCase();
+        if (m) recipients.set(m, !!iv.can_edit);
+      }
+    }
     const siblingIds = data.sets.filter(s=>!s.isSharedWithMe && s.folderId===sel.folderId).map(s=>s.id);
     if (siblingIds.length > 0) {
-      const {data:sh} = await sb.from("set_shares").select("invited_email").in("set_id", siblingIds);
-      const emails = Array.from(new Set((sh||[]).map(x=>(x.invited_email||"").toLowerCase()).filter(Boolean)));
-      if (emails.length > 0) {
-        // Nicht abbrechen: das Set steht schon. Aber melden, sonst wundert man
-        // sich spaeter, warum die anderen das neue Set nicht sehen.
-        const {error:shareError} = await sb.from("set_shares").insert(emails.map(e=>({set_id:id,invited_email:e,owner_email:user.email,owner_id:user.id})));
-        fail(shareError,"Set angelegt, aber die Freigaben des Ordners wurden nicht uebernommen");
+      const {data:sh} = await sb.from("set_shares").select("invited_email,can_edit").in("set_id", siblingIds);
+      for (const x of (sh||[])) {
+        const m = (x.invited_email||"").toLowerCase();
+        if (m) recipients.set(m, recipients.get(m) || !!x.can_edit);
       }
+    }
+    if (recipients.size > 0) {
+      // Nicht abbrechen: das Set steht schon. Aber melden, sonst wundert man
+      // sich spaeter, warum die anderen das neue Set nicht sehen.
+      const {error:shareError} = await sb.from("set_shares").insert(
+        Array.from(recipients, ([mail,ce]) => ({set_id:id, invited_email:mail, owner_email:user.email, owner_id:user.id, can_edit:ce})));
+      fail(shareError,"Set angelegt, aber die Freigaben des Ordners wurden nicht uebernommen");
     }
     setData(d=>({...d,sets:[...d.sets,{id,folderId:sel.folderId,name,description:desc,createdAt:now}]}));
     setModal(null);
@@ -1900,6 +1916,10 @@ function Dashboard({session, onLogout}) {
     const myEmail = (user.email || "").toLowerCase();
     const {error} = await sb.from("set_shares").delete().eq("invited_email", myEmail);
     if (fail(error,"Zugriff konnte nicht entfernt werden")) return;
+    // Auch die Vormerkungen an Ordnern loesen, sonst kommt der Zugriff mit dem
+    // naechsten Set, das dort angelegt wird, von selbst zurueck.
+    const {error:inviteError} = await sb.from("folder_invites").delete().eq("invited_email", myEmail);
+    if (fail(inviteError,"Ordner-Einladungen konnten nicht entfernt werden")) return;
     setSel({folderId:null, setId:null});
     loadAll();
   };
@@ -3256,6 +3276,10 @@ function FolderShareModal({folder,allFolders,folderSets,ownerEmail,ownerId,owner
   // set_shares row for E. We aggregate across all sets in the folder so the
   // user can manage sharing at the folder level.
   const [rows,setRows]=useState([]);
+  // Freigaben haengen an den Sets (set_shares), die Einladung haengt am Ordner
+  // (folder_invites). Ein leerer Ordner hat nur Letztere. Beides wird geladen
+  // und in grouped zu einer Liste zusammengefuehrt.
+  const [invites,setInvites]=useState([]);
   const [pMap,setPMap]=useState({});
   const [email,setEmail]=useState("");
   const [canEdit,setCanEdit]=useState(false);
@@ -3268,24 +3292,30 @@ function FolderShareModal({folder,allFolders,folderSets,ownerEmail,ownerId,owner
 
   const load = async () => {
     setLoading(true);
-    if (setIds.length === 0) { setRows([]); setLoading(false); return; }
-    const {data, error} = await sb.from("set_shares").select("*").in("set_id", setIds).order("created_at",{ascending:false});
-    if (!error) {
-      setRows(data||[]);
-      // Auch die Profile aus dem Adressbuch mitladen, damit die Vorschlaege
-      // Name und Bild zeigen. Wem der Zugriff entzogen wurde, dessen Profil
-      // darf man laut RLS nicht mehr lesen -- dann bleibt die E-Mail stehen.
-      const emails = Array.from(new Set([
-        ...(data||[]).map(r=>(r.invited_email||"").toLowerCase()),
-        ...(knownContacts||[]).map(c=>(c.email||"").toLowerCase()),
-      ].filter(Boolean)));
-      if (emails.length) {
-        try {
-          const {data:pr} = await sb.from("profiles").select("email,avatar_url,display_name").in("email",emails);
-          const m = {}; for (const p of (pr||[])) m[(p.email||"").toLowerCase()] = p;
-          setPMap(m);
-        } catch {}
-      }
+    const [shareRes, inviteRes] = await Promise.all([
+      setIds.length
+        ? sb.from("set_shares").select("*").in("set_id", setIds).order("created_at",{ascending:false})
+        : Promise.resolve({data:[]}),
+      sb.from("folder_invites").select("*").eq("folder_id", folder.id),
+    ]);
+    const shareRows = shareRes.data || [];
+    const inviteRows = inviteRes.data || [];
+    setRows(shareRows);
+    setInvites(inviteRows);
+    // Auch die Profile aus dem Adressbuch mitladen, damit die Vorschlaege
+    // Name und Bild zeigen. Wem der Zugriff entzogen wurde, dessen Profil
+    // darf man laut RLS nicht mehr lesen -- dann bleibt die E-Mail stehen.
+    const emails = Array.from(new Set([
+      ...shareRows.map(r=>(r.invited_email||"").toLowerCase()),
+      ...inviteRows.map(r=>(r.invited_email||"").toLowerCase()),
+      ...(knownContacts||[]).map(c=>(c.email||"").toLowerCase()),
+    ].filter(Boolean)));
+    if (emails.length) {
+      try {
+        const {data:pr} = await sb.from("profiles").select("email,avatar_url,display_name").in("email",emails);
+        const m = {}; for (const p of (pr||[])) m[(p.email||"").toLowerCase()] = p;
+        setPMap(m);
+      } catch {}
     }
     setLoading(false);
   };
@@ -3293,14 +3323,25 @@ function FolderShareModal({folder,allFolders,folderSets,ownerEmail,ownerId,owner
 
   const grouped = (() => {
     const m = new Map();
+    const entry = (mail, createdAt) => {
+      const key = (mail||"").toLowerCase();
+      if (!m.has(key)) m.set(key, {email:mail, createdAt, coverage:0, rowIds:[], canEdit:false, inviteId:null});
+      return m.get(key);
+    };
     for (const r of rows) {
-      const key = (r.invited_email||"").toLowerCase();
-      if (!m.has(key)) m.set(key, {email:r.invited_email, createdAt:r.created_at, coverage:0, rowIds:[], canEdit:false});
-      const e = m.get(key);
+      const e = entry(r.invited_email, r.created_at);
       e.coverage += 1;
       e.rowIds.push(r.id);
       if (r.can_edit) e.canEdit = true;
       if (new Date(r.created_at) < new Date(e.createdAt)) e.createdAt = r.created_at;
+    }
+    // Wer am Ordner eingeladen ist, aber (noch) kein Set abbekommen hat, steht
+    // trotzdem in der Liste -- sonst sieht es aus, als waere nichts passiert.
+    for (const iv of invites) {
+      const e = entry(iv.invited_email, iv.created_at);
+      e.inviteId = iv.id;
+      if (iv.can_edit) e.canEdit = true;
+      if (new Date(iv.created_at) < new Date(e.createdAt)) e.createdAt = iv.created_at;
     }
     return Array.from(m.values());
   })();
@@ -3309,7 +3350,9 @@ function FolderShareModal({folder,allFolders,folderSets,ownerEmail,ownerId,owner
   // die auf diesen Ordner ohnehin schon vollen Zugriff haben. Sobald etwas
   // getippt ist, wird danach gefiltert.
   const typed = email.trim().toLowerCase();
-  const fullAccess = new Set(grouped.filter(g => g.coverage === setIds.length).map(g => (g.email||"").toLowerCase()));
+  const fullAccess = new Set(grouped
+    .filter(g => g.inviteId || (setIds.length > 0 && g.coverage === setIds.length))
+    .map(g => (g.email||"").toLowerCase()));
   const suggestions = (knownContacts||[])
     .filter(c => c.email !== (ownerEmail||"").toLowerCase() && !fullAccess.has(c.email))
     .filter(c => !typed || c.email.includes(typed))
@@ -3320,14 +3363,32 @@ function FolderShareModal({folder,allFolders,folderSets,ownerEmail,ownerId,owner
     const e = email.trim().toLowerCase();
     if (!e || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)) { setErr("Bitte gültige E-Mail-Adresse eingeben."); return; }
     if (e === (ownerEmail||"").toLowerCase()) { setErr("Du kannst dich nicht selbst einladen."); return; }
-    if (grouped.some(g => (g.email||"").toLowerCase() === e && g.coverage === setIds.length)) { setErr("Diese E-Mail hat bereits Zugriff auf den gesamten Ordner."); return; }
-    if (setIds.length === 0) { setErr("Dieser Ordner hat noch keine Sets zum Teilen."); return; }
+    if (grouped.some(g => (g.email||"").toLowerCase() === e && g.inviteId && g.coverage === setIds.length)) { setErr("Diese Person ist bereits eingeladen."); return; }
     setBusy(true);
+    // Zuerst die Einladung am ORDNER. Sie funktioniert auch ohne ein einziges
+    // Set und sorgt dafuer, dass jedes spaeter angelegte Set automatisch
+    // mitgeteilt wird -- frueher hing das allein daran, dass schon ein Set mit
+    // Freigabe daneben lag.
+    const {error:inviteError} = await sb.from("folder_invites")
+      .upsert({folder_id:folder.id, invited_email:e, owner_email:ownerEmail, owner_id:ownerId, can_edit:canEdit},
+              {onConflict:"folder_id,invited_email"});
+    if (inviteError) { setBusy(false); setErr("Einladung konnte nicht gespeichert werden: " + inviteError.message); return; }
     const existingSetIds = new Set(rows.filter(r => (r.invited_email||"").toLowerCase()===e).map(r=>r.set_id));
     // Include denormalized folder metadata so invitees can see the original folder.
     // If these columns don't exist yet, we retry without them.
     const baseRows = setIds.filter(sid => !existingSetIds.has(sid)).map(sid => ({set_id:sid, invited_email:e, owner_email:ownerEmail, owner_id:ownerId, can_edit:canEdit}));
-    if (baseRows.length === 0) { setBusy(false); setErr("Diese E-Mail hat bereits Zugriff."); return; }
+    // Leerer Ordner oder alle Sets schon geteilt: die Ordner-Einladung steht,
+    // mehr ist an dieser Stelle nicht zu tun.
+    if (baseRows.length === 0) {
+      setBusy(false);
+      if (onRemember) onRemember(e);
+      setEmail("");
+      setOk(setIds.length === 0
+        ? `✓ ${e} ist für „${folder.name}" eingeladen. Sobald das erste Set im Ordner liegt, ist es automatisch geteilt.`
+        : `✓ ${e} hat Zugriff auf „${folder.name}".`);
+      load();
+      return;
+    }
     const parentFolder = folder.parentId ? allFolders.find(f=>f.id===folder.parentId) : null;
     const withMeta = baseRows.map(r => ({...r, folder_id:folder.id, folder_name:folder.name, folder_color:folder.color, ...(parentFolder ? {parent_folder_name:parentFolder.name, parent_folder_color:parentFolder.color} : {})}));
     let {error} = await sb.from("set_shares").insert(withMeta);
@@ -3349,10 +3410,19 @@ function FolderShareModal({folder,allFolders,folderSets,ownerEmail,ownerId,owner
 
   const removeShare = async (invitedEmail) => {
     if (!confirm(`Zugriff für ${invitedEmail} auf „${folder.name}" entfernen?`)) return;
-    const ids = rows.filter(r => (r.invited_email||"").toLowerCase() === invitedEmail.toLowerCase()).map(r=>r.id);
-    if (ids.length === 0) return;
-    const {error} = await sb.from("set_shares").delete().in("id", ids);
-    if (error) { setErr("Zugriff konnte nicht entfernt werden: " + error.message); return; }
+    const key = (invitedEmail||"").toLowerCase();
+    const ids = rows.filter(r => (r.invited_email||"").toLowerCase() === key).map(r=>r.id);
+    const inviteIds = invites.filter(iv => (iv.invited_email||"").toLowerCase() === key).map(iv=>iv.id);
+    // Die Ordner-Einladung MUSS mit weg, sonst holt das naechste neue Set die
+    // Person sofort wieder herein.
+    if (ids.length) {
+      const {error} = await sb.from("set_shares").delete().in("id", ids);
+      if (error) { setErr("Zugriff konnte nicht entfernt werden: " + error.message); return; }
+    }
+    if (inviteIds.length) {
+      const {error} = await sb.from("folder_invites").delete().in("id", inviteIds);
+      if (error) { setErr("Einladung konnte nicht entfernt werden: " + error.message); return; }
+    }
     load();
   };
 
@@ -3365,15 +3435,15 @@ function FolderShareModal({folder,allFolders,folderSets,ownerEmail,ownerId,owner
     </div>
     <div style={{padding:"18px 26px 22px"}}>
       {setIds.length===0 && <div style={{marginBottom:14,fontSize:13,lineHeight:1.55,color:"var(--shared-fg)",background:"var(--shared-bg)",border:"1px solid var(--shared-border)",borderRadius:10,padding:"10px 12px"}}>
-        ℹ️ Dieser Ordner ist noch leer. Freigaben hängen an den Sets, nicht am Ordner — lege also zuerst ein Set in „{folder.name}" an, danach kannst du Leute einladen. Spätere Sets in diesem Ordner werden automatisch mitgeteilt.
+        ℹ️ Dieser Ordner ist noch leer. Du kannst trotzdem schon einladen — die Person wird vorgemerkt und bekommt automatisch Zugriff, sobald das erste Set in „{folder.name}" liegt. Zu sehen gibt es bis dahin nichts.
       </div>}
       <label style={{display:"block",fontSize:13,fontWeight:500,color:"var(--muted)",marginBottom:6}}>{t.inviteByEmail}</label>
       <div style={{display:"flex",gap:8,marginBottom:8}}>
         <input type="email" placeholder="name@beispiel.de" value={email} onChange={e=>setEmail(e.target.value)} onKeyDown={e=>e.key==="Enter"&&addShare()}
           style={{flex:1,padding:"10px 14px",border:"1.5px solid var(--border)",borderRadius:11,fontSize:14,background:"var(--input-bg)",outline:"none",fontFamily:"inherit",color:"var(--text)"}}
           onFocus={e=>e.target.style.borderColor="var(--orange)"} onBlur={e=>e.target.style.borderColor="var(--border)"}/>
-        <button className="btn-o" onClick={addShare} disabled={busy||!email.trim()||setIds.length===0}
-          title={setIds.length===0 ? "Dieser Ordner enthält noch kein Set zum Teilen" : (!email.trim() ? "Bitte zuerst eine E-Mail-Adresse eingeben" : "")}>{busy?<ISpin c="#fff" s={16}/>:t.invite}</button>
+        <button className="btn-o" onClick={addShare} disabled={busy||!email.trim()}
+          title={!email.trim() ? "Bitte zuerst eine E-Mail-Adresse eingeben" : ""}>{busy?<ISpin c="#fff" s={16}/>:t.invite}</button>
       </div>
       {suggestions.length>0 && <div style={{marginBottom:12}}>
         <div style={{fontSize:11,fontWeight:600,color:"var(--muted2)",textTransform:"uppercase",letterSpacing:".06em",marginBottom:6}}>{t.recentContacts}</div>
@@ -3417,9 +3487,9 @@ function FolderShareModal({folder,allFolders,folderSets,ownerEmail,ownerId,owner
                 <Avatar url={pr.avatar_url} name={pr.display_name||g.email} size={32}/>
                 <div style={{flex:1,overflow:"hidden"}}>
                   <div style={{fontSize:13,fontWeight:600,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{pr.display_name||g.email}</div>
-                  <div style={{fontSize:11,color:partial?"var(--amber)":"var(--muted2)",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{g.canEdit ? "Kann bearbeiten" : "Nur lesen"}{!partial && ` · ${new Date(g.createdAt).toLocaleDateString("de-DE")}`}</div>
+                  <div style={{fontSize:11,color:(partial||g.coverage===0)?"var(--amber)":"var(--muted2)",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{g.coverage===0 ? "Vorgemerkt — wartet auf das erste Set" : <>{g.canEdit ? "Kann bearbeiten" : "Nur lesen"}{!partial && ` · ${new Date(g.createdAt).toLocaleDateString("de-DE")}`}</>}</div>
                 </div>
-                <button onClick={async()=>{const nv=!g.canEdit;const upd={can_edit:nv};const res=await Promise.all(g.rowIds.map(id=>sb.from("set_shares").update(upd).eq("id",id)));const bad=res.find(x=>x&&x.error);if(bad){setErr("Rechte konnten nicht geaendert werden: "+bad.error.message);return;}load();}} title={g.canEdit?"Auf nur-lesen setzen":"Bearbeitungsrechte geben"} style={{width:28,height:28,borderRadius:7,border:`1.5px solid ${g.canEdit?"var(--orange)":"var(--border)"}`,background:g.canEdit?"var(--orange)":"transparent",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",transition:"all .15s",flexShrink:0}}>
+                <button onClick={async()=>{const nv=!g.canEdit;const upd={can_edit:nv};const jobs=g.rowIds.map(id=>sb.from("set_shares").update(upd).eq("id",id));if(g.inviteId)jobs.push(sb.from("folder_invites").update(upd).eq("id",g.inviteId));const res=await Promise.all(jobs);const bad=res.find(x=>x&&x.error);if(bad){setErr("Rechte konnten nicht geaendert werden: "+bad.error.message);return;}load();}} title={g.canEdit?"Auf nur-lesen setzen":"Bearbeitungsrechte geben"} style={{width:28,height:28,borderRadius:7,border:`1.5px solid ${g.canEdit?"var(--orange)":"var(--border)"}`,background:g.canEdit?"var(--orange)":"transparent",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",transition:"all .15s",flexShrink:0}}>
                   <IEdit/>
                 </button>
                 <button onClick={()=>removeShare(g.email)} className="icon-btn" title="Zugriff entfernen"><ITrash/></button>
