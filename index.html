@@ -812,6 +812,9 @@ function htmlToPlainText(html) {
   const walk = n => {
     if (n.nodeType === 3) { out += n.textContent; return; }
     if (n.nodeName === "BR") { out += "\n"; return; }
+    // Ein Bild hat keinen Text. Ohne Markierung wird eine reine Bildkarte im
+    // CSV zu einer leeren Zelle und sieht aus, als waere sie verlorengegangen.
+    if (n.nodeName === "IMG") { out += (n.getAttribute("alt") || "[Bild]"); return; }
     if (/^(P|DIV|LI|H[1-6])$/.test(n.nodeName) && out && !out.endsWith("\n")) out += "\n";
     for (const c of n.childNodes) walk(c);
     if (/^(P|DIV|LI|H[1-6])$/.test(n.nodeName) && !out.endsWith("\n")) out += "\n";
@@ -872,29 +875,32 @@ function exportSetPDF(set, cards) {
   @page { size: A4; margin: 0; }
   * { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   html, body { margin: 0; padding: 0; font-family: -apple-system, system-ui, "Segoe UI", Roboto, sans-serif; color: #18170F; background: white; }
+  /* Fruehere Fassung: feste Hoehe 297mm, Frage und Antwort je zur Haelfte,
+     beide mit overflow:hidden. Alles was laenger war als eine halbe Seite
+     wurde damit stillschweigend abgeschnitten -- ohne jeden Hinweis im PDF.
+     Jetzt: normaler Textfluss, keine feste Hoehe, kein Beschneiden. Eine
+     lange Karte laeuft lieber auf eine zweite Seite als dass ein Satz fehlt.
+     Der Seitenumbruch kommt ueber page-break-after, nicht ueber die Hoehe --
+     eine erzwungene Hoehe von exakt 297mm erzeugt beim Drucken gern eine
+     leere Extraseite dahinter. */
   .card-page {
-    width: 210mm; height: 297mm;
-    padding: 22mm 24mm;
+    width: 210mm;
+    /* min-height statt height: eine kurze Karte fuellt die Seite (damit die
+       Fusszeile unten steht), eine lange darf darueber hinauswachsen und auf
+       die naechste Seite laufen. 296 statt 297, weil Rundungen beim Drucken
+       sonst eine leere Extraseite erzeugen. */
+    min-height: 296mm;
+    padding: 14mm 24mm 16mm;
     display: flex; flex-direction: column;
     page-break-after: always; break-after: page;
-    position: relative;
   }
   .card-page:last-child { page-break-after: auto; break-after: auto; }
-  .header {
-    position: absolute; top: 10mm; left: 24mm; right: 24mm;
-    font-size: 9pt; color: #B8B2A8; letter-spacing: .05em;
-  }
-  .footer {
-    position: absolute; bottom: 10mm; left: 24mm; right: 24mm;
-    font-size: 8pt; color: #B8B2A8;
-  }
-  .q-section, .a-section {
-    flex: 1 1 50%;
-    display: flex; flex-direction: column;
-    overflow: hidden;
-  }
-  .q-section { justify-content: center; padding-bottom: 8mm; }
-  .a-section { justify-content: flex-start; padding-top: 8mm; }
+  .header { font-size: 9pt; color: #B8B2A8; letter-spacing: .05em; margin-bottom: 9mm; }
+  /* Schiebt die Fusszeile an den Seitenfuss, solange Platz ist -- bei langen
+     Karten laeuft sie einfach hinter dem Text mit. */
+  .footer { font-size: 8pt; color: #B8B2A8; margin-top: auto; padding-top: 12mm; }
+  .q-section { padding-bottom: 7mm; }
+  .a-section { padding-top: 7mm; }
   .label {
     font-size: 8pt; letter-spacing: .12em; text-transform: uppercase;
     color: #F5631A; font-weight: 700; margin-bottom: 6mm;
@@ -910,13 +916,17 @@ function exportSetPDF(set, cards) {
   .rich-content p:last-child { margin-bottom: 0; }
   .rich-content ul, .rich-content ol { padding-left: 6mm; margin: 0 0 3mm; }
   .rich-content li { margin-bottom: 1mm; }
-  .rich-content img { max-width: 100%; max-height: 70mm; border-radius: 4pt; display: block; margin: 3mm 0; object-fit: contain; }
+  /* Hoehe grosszuegig: ein Bild wird verkleinert, nicht beschnitten. */
+  .rich-content img { max-width: 100%; max-height: 150mm; border-radius: 4pt; display: block; margin: 3mm 0; object-fit: contain; page-break-inside: avoid; break-inside: avoid; }
+  .label, .rich-content li { page-break-inside: avoid; break-inside: avoid; }
   .rich-content strong { font-weight: 700; }
   .rich-content em { font-style: italic; }
   .rich-content u { text-decoration: underline; }
   @media screen {
     body { background: #F5F4F1; padding: 20px 0; }
-    .card-page { margin: 0 auto 20px; box-shadow: 0 4px 24px rgba(0,0,0,.12); background: white; }
+    /* Nur in der Vorschau eine volle Seitenhoehe, damit es nach Papier
+       aussieht. Im Druck bleibt die Hoehe frei (siehe oben). */
+    .card-page { min-height: 297mm; margin: 0 auto 20px; box-shadow: 0 4px 24px rgba(0,0,0,.12); background: white; }
     .print-hint { position: fixed; top: 10px; left: 50%; transform: translateX(-50%); background: #F5631A; color: white; padding: 10px 20px; border-radius: 8px; font-size: 13px; font-weight: 600; z-index: 1000; box-shadow: 0 4px 12px rgba(245,99,26,.35); }
   }
   @media print { .print-hint { display: none !important; } body { background: white; padding: 0; } .card-page { box-shadow: none; margin: 0; } }
@@ -1862,7 +1872,7 @@ function Dashboard({session, onLogout}) {
       if (!cards.length) { setModal({type:"pdfError",msg:data?.error||"Gemini hat keine Karten generiert."}); return; }
 
       // 3) Show preview modal; user confirms → insert into DB
-      setModal({type:"pdfPreview", cards, sourceName:file.name, pages:pageCount});
+      setModal({type:"pdfPreview", cards, sourceName:file.name, pages:pageCount, meta:data?.meta});
     } catch(e) {
       setModal({type:"pdfError",msg:e.message});
     }
@@ -2150,7 +2160,7 @@ function Dashboard({session, onLogout}) {
           <div style={{fontSize:12,color:"var(--muted2)",textAlign:"center",lineHeight:1.5}}>{modal.stage==="extract" ? "Text wird aus dem PDF extrahiert…" : "Kann bei großen PDFs 10-30 Sekunden dauern."}</div>
         </div>
       </SimpleModal>}
-      {modal?.type==="pdfPreview" && <PDFPreviewModal cards={modal.cards} sourceName={modal.sourceName} pages={modal.pages} onConfirm={confirmPDFImport} onClose={()=>setModal(null)}/>}
+      {modal?.type==="pdfPreview" && <PDFPreviewModal cards={modal.cards} sourceName={modal.sourceName} pages={modal.pages} meta={modal.meta} onConfirm={confirmPDFImport} onClose={()=>setModal(null)}/>}
       {modal?.type==="pdfDone" && <SimpleModal title="📄 Import fertig" onClose={()=>setModal(null)}>
         <p style={{color:"var(--muted)",fontSize:14,marginBottom:20}}>{modal.count} Karten zu deinem Set hinzugefügt. Du kannst jetzt lernen oder einzelne Karten bearbeiten.</p>
         <button className="btn-o" onClick={()=>setModal(null)} style={{justifyContent:"center"}}>Super!</button>
@@ -3420,7 +3430,12 @@ function FolderShareModal({folder,allFolders,folderSets,ownerEmail,ownerId,owner
   </div></div>);
 }
 
-function PDFPreviewModal({cards,sourceName,pages,onConfirm,onClose}){
+function PDFPreviewModal({cards,sourceName,pages,meta,onConfirm,onClose}){
+  // Wenn beim Erzeugen etwas liegengeblieben ist, muss das hier stehen. Vorher
+  // hat der Import stillschweigend gekuerzt und man hat es nie erfahren.
+  const gaps = [];
+  if (meta?.failedChunks > 0) gaps.push(`${meta.failedChunks} von ${meta.chunks} Abschnitten konnten nicht ausgewertet werden`);
+  if (meta?.skippedChars > 0) gaps.push(`das Dokument war zu lang, ${Math.round(meta.skippedChars/1000)} Tausend Zeichen wurden nicht verarbeitet`);
   // Selection state: track which cards user has excluded
   const [excluded,setExcluded]=useState(()=>new Set());
   const toggle = i => setExcluded(p => { const n=new Set(p); n.has(i)?n.delete(i):n.add(i); return n; });
@@ -3432,6 +3447,9 @@ function PDFPreviewModal({cards,sourceName,pages,onConfirm,onClose}){
     <div style={{padding:"20px 24px 14px",borderBottom:"1px solid var(--border)",background:"var(--glass-hover)"}}>
       <h3 style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:19,marginBottom:4}}>📄 {cards.length} Karten generiert</h3>
       <div style={{fontSize:13,color:"var(--muted)"}}>Aus „{sourceName}" ({pages} Seite{pages===1?"":"n"}) · wähle ab, was du nicht willst</div>
+      {gaps.length>0 && <div style={{marginTop:10,fontSize:12,lineHeight:1.5,color:"var(--shared-fg)",background:"var(--shared-bg)",border:"1px solid var(--shared-border)",borderRadius:10,padding:"8px 11px"}}>
+        ⚠️ Nicht alles ist eingeflossen: {gaps.join(" und ")}. Du kannst den Rest als eigenes Dokument noch einmal importieren.
+      </div>}
     </div>
     <div style={{padding:"10px 24px 4px",borderBottom:"1px solid var(--border)",background:"var(--glass)",display:"flex",justifyContent:"space-between",alignItems:"center",gap:10,flexWrap:"wrap"}}>
       <div style={{fontSize:13,color:"var(--text)"}}><b>{included.length}</b> von {cards.length} ausgewählt</div>
