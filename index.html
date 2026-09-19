@@ -287,7 +287,17 @@ html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;background:var(
 .au{animation:fadeUp .22s ease both;}
 .si{animation:scaleIn .18s ease both;}
 
-.mob-topbar{display:none;align-items:center;gap:10px;padding:12px 16px;background:var(--topbar-bg);backdrop-filter:blur(22px) saturate(150%);-webkit-backdrop-filter:blur(22px) saturate(150%);border-bottom:1px solid var(--glass-bdr);position:sticky;top:0;z-index:50;}
+.mob-topbar{display:none;align-items:center;gap:10px;padding:12px 16px;background:var(--topbar-bg);border-bottom:1px solid var(--glass-bdr);position:sticky;top:0;z-index:50;isolation:isolate;}
+/* Die Unschaerfe liegt auf einer EIGENEN Ebene hinter dem Inhalt, nicht auf dem
+   Balken selbst. Ab iOS 26 zieht Safari sonst den Inhalt des Elements mit ins
+   Weichzeichnen -- Menuesymbol, Schriftzug und Profilbild wurden dadurch matt.
+   Das Gleiche gilt fuer den Menue-Ausschub: der hat zusaetzlich ein transform,
+   und transform + backdrop-filter am selben Element ist genau die Kombination,
+   die es ausloest. */
+.mob-topbar::before,.hb-aside::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;}
+.mob-topbar::before{backdrop-filter:blur(22px) saturate(150%);-webkit-backdrop-filter:blur(22px) saturate(150%);}
+.hb-aside{position:relative;isolation:isolate;}
+.hb-aside::before{backdrop-filter:blur(26px) saturate(150%);-webkit-backdrop-filter:blur(26px) saturate(150%);}
 .mob-overlay{position:fixed;inset:0;background:var(--overlay-bg);backdrop-filter:blur(8px);z-index:149;}
 .hb-sidebar-footer{border-top:1px solid var(--border-soft);padding:10px 8px;background:var(--glass);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);}
 
@@ -396,6 +406,7 @@ const T = {
     canEdit: "kann bearbeiten",
     editRights: "Bearbeitungsrechte vergeben (Karten erstellen, bearbeiten, löschen)",
     inviteByEmail: "Person per E-Mail einladen",
+    recentContacts: "Schon mal eingeladen",
     invite: "Einladen",
     accessList: "Zugriff haben",
     ownerYou: "Besitzer · Du",
@@ -551,6 +562,7 @@ const T = {
     canEdit: "can edit",
     editRights: "Grant edit permissions (create, edit, delete cards)",
     inviteByEmail: "Invite by email",
+    recentContacts: "Invited before",
     invite: "Invite",
     accessList: "Have access",
     ownerYou: "Owner · You",
@@ -669,6 +681,34 @@ const greetingNames = {
 };
 
 const uid = () => Math.random().toString(36).slice(2,8) + Date.now().toString(36).slice(-4);
+
+// --- Adressbuch -----------------------------------------------------------
+// Wen man schon einmal eingeladen hat, soll man nicht wieder abtippen muessen.
+// Die Liste liegt pro Konto im Browser und NICHT in der Datenbank: dort stehen
+// nur die aktiven Freigaben, wer den Zugriff wieder entzogen bekommt, waere
+// sofort wieder vergessen. Beim Laden werden die aktuellen Freigaben aus der
+// Datenbank eingemischt, damit das Buch auf einem neuen Geraet nicht leer ist.
+// localStorage kann in privaten Fenstern werfen -- deshalb alles in try/catch,
+// das Adressbuch ist Komfort und darf nie das Einladen blockieren.
+const CONTACTS_KEY = (userId) => "heribert.contacts." + userId;
+const readContacts = (userId) => {
+  try {
+    const raw = localStorage.getItem(CONTACTS_KEY(userId));
+    const list = raw ? JSON.parse(raw) : [];
+    return Array.isArray(list) ? list.filter(c => c && c.email) : [];
+  } catch { return []; }
+};
+const rememberContacts = (userId, emails) => {
+  const known = new Map(readContacts(userId).map(c => [c.email, c]));
+  const now = Date.now();
+  for (const raw of (emails||[])) {
+    const email = (raw||"").trim().toLowerCase();
+    if (email) known.set(email, {email, last: now});
+  }
+  const list = Array.from(known.values()).sort((a,b)=>(b.last||0)-(a.last||0)).slice(0,60);
+  try { localStorage.setItem(CONTACTS_KEY(userId), JSON.stringify(list)); } catch {}
+  return list;
+};
 // Karteninhalte duerfen wie Text aussehen, sich aber nicht wie App-Oberflaeche
 // verhalten. Erlaubt bleiben deshalb nur typografische CSS-Eigenschaften: ohne
 // position/inset/z-index laesst sich kein gefaelschtes Anmeldefenster ueber die
@@ -1620,6 +1660,9 @@ function Dashboard({session, onLogout}) {
         cards,
         shares: shares.filter(x => x.owner_id === user.id),
       });
+      // Bestehende Freigaben ins Adressbuch uebernehmen, damit die Vorschlaege
+      // auch auf einem frisch eingerichteten Geraet sofort da sind.
+      setContacts(rememberContacts(user.id, shares.filter(x => x.owner_id === user.id).map(x => x.invited_email)));
     } catch (e) {
       setLoadError(String(e?.message || e));
     } finally {
@@ -1627,16 +1670,46 @@ function Dashboard({session, onLogout}) {
     }
   };
 
-  const createFolder = async (name,color,parentId) => { const id=uid(); await sb.from("folders").insert({id,user_id:user.id,name,color,parent_id:parentId||null}); setData(d=>({...d,folders:[...d.folders,{id,name,color,parentId:parentId||null}]})); setModal(null); };
+  // --- Zentrale Meldung fuer fehlgeschlagene Schreibvorgaenge ---------------
+  // JEDER Schreibpfad geht hier durch. Einen Fehler zu verschlucken und den
+  // lokalen State trotzdem zu aktualisieren, hat am 19.09.2026 dazu gefuehrt,
+  // dass ein Set in der Oberflaeche stand, das es in der Datenbank nie gab --
+  // und der Fehler schlug erst viel spaeter an ganz anderer Stelle zu.
+  // Gibt true zurueck, wenn etwas schiefgelaufen ist: if (fail(e,"...")) return;
+  // Adressbuch dieses Kontos (siehe readContacts weiter oben).
+  const [contacts,setContacts] = useState(() => readContacts(user.id));
+  const [toast,setToast] = useState(null);
+  const toastTimer = useRef(null);
+  const fail = (error, what) => {
+    if (!error) return false;
+    console.error(what, error);
+    setToast(what + ": " + (error.message || "unbekannter Fehler"));
+    clearTimeout(toastTimer.current);
+    toastTimer.current = setTimeout(()=>setToast(null), 8000);
+    return true;
+  };
+
+  const createFolder = async (name,color,parentId) => {
+    const id=uid();
+    const {error} = await sb.from("folders").insert({id,user_id:user.id,name,color,parent_id:parentId||null});
+    if (fail(error,"Ordner konnte nicht angelegt werden")) return;
+    setData(d=>({...d,folders:[...d.folders,{id,name,color,parentId:parentId||null}]}));
+    setModal(null);
+  };
   const removeFolder = async (fid) => {
-    // Also reassign children to top-level
+    // Erst die Datenbank, dann die Oberflaeche. Vorher lief es andersherum:
+    // ein abgelehntes Loeschen liess den Ordner verschwinden, beim naechsten
+    // Laden war er wieder da.
+    // Unterordner vorher loshaengen, sonst reisst das ON-DELETE-CASCADE sie mit.
+    const {error:unhookError} = await sb.from("folders").update({parent_id:null}).eq("parent_id",fid);
+    if (fail(unhookError,"Unterordner konnten nicht geloest werden")) return;
+    const {error} = await sb.from("folders").delete().eq("id",fid);
+    if (error) { fail(error,"Ordner konnte nicht geloescht werden"); loadAll(); return; }
     setData(d=>{const sids=d.sets.filter(s=>s.folderId===fid).map(s=>s.id);return{...d,folders:d.folders.filter(f=>f.id!==fid).map(f=>f.parentId===fid?{...f,parentId:null}:f),sets:d.sets.filter(s=>s.folderId!==fid),cards:d.cards.filter(c=>!sids.includes(c.setId))};});
-    await sb.from("folders").update({parent_id:null}).eq("parent_id",fid);
-    await sb.from("folders").delete().eq("id",fid);
     if(sel.folderId===fid)setSel({folderId:null,setId:null});
   };
-  const renameFolder = async (fid,name) => { await sb.from("folders").update({name}).eq("id",fid); setData(d=>({...d,folders:d.folders.map(f=>f.id===fid?{...f,name}:f)})); };
-  const updateFolder = async (fid,name,color,parentId) => { await sb.from("folders").update({name,color,parent_id:parentId===undefined?undefined:(parentId||null)}).eq("id",fid); setData(d=>({...d,folders:d.folders.map(f=>f.id===fid?{...f,name,color,...(parentId!==undefined?{parentId:parentId||null}:{})}:f)})); setModal(null); };
+  const renameFolder = async (fid,name) => { const {error}=await sb.from("folders").update({name}).eq("id",fid); if(fail(error,"Ordner konnte nicht umbenannt werden"))return; setData(d=>({...d,folders:d.folders.map(f=>f.id===fid?{...f,name}:f)})); };
+  const updateFolder = async (fid,name,color,parentId) => { const {error}=await sb.from("folders").update({name,color,parent_id:parentId===undefined?undefined:(parentId||null)}).eq("id",fid); if(fail(error,"Ordner konnte nicht gespeichert werden"))return; setData(d=>({...d,folders:d.folders.map(f=>f.id===fid?{...f,name,color,...(parentId!==undefined?{parentId:parentId||null}:{})}:f)})); setModal(null); };
   const createSet = async (name,desc) => {
     const id=uid(); const now=new Date().toISOString();
     // Never swallow this error. If the insert fails, the set does not exist in
@@ -1645,7 +1718,7 @@ function Dashboard({session, onLogout}) {
     // that isn't there and dies with a confusing "violates row-level security"
     // message somewhere else entirely.
     const {error:setError} = await sb.from("sets").insert({id,user_id:user.id,folder_id:sel.folderId,name,description:desc,created_at:now});
-    if (setError) { alert("Set konnte nicht angelegt werden:\n" + setError.message); return; }
+    if (fail(setError,"Set konnte nicht angelegt werden")) return;
     // Propagate folder-level shares to the new set: find all emails currently
     // sharing any sibling set in this folder and add shares for the new set.
     const siblingIds = data.sets.filter(s=>!s.isSharedWithMe && s.folderId===sel.folderId).map(s=>s.id);
@@ -1653,14 +1726,17 @@ function Dashboard({session, onLogout}) {
       const {data:sh} = await sb.from("set_shares").select("invited_email").in("set_id", siblingIds);
       const emails = Array.from(new Set((sh||[]).map(x=>(x.invited_email||"").toLowerCase()).filter(Boolean)));
       if (emails.length > 0) {
-        await sb.from("set_shares").insert(emails.map(e=>({set_id:id,invited_email:e,owner_email:user.email,owner_id:user.id})));
+        // Nicht abbrechen: das Set steht schon. Aber melden, sonst wundert man
+        // sich spaeter, warum die anderen das neue Set nicht sehen.
+        const {error:shareError} = await sb.from("set_shares").insert(emails.map(e=>({set_id:id,invited_email:e,owner_email:user.email,owner_id:user.id})));
+        fail(shareError,"Set angelegt, aber die Freigaben des Ordners wurden nicht uebernommen");
       }
     }
     setData(d=>({...d,sets:[...d.sets,{id,folderId:sel.folderId,name,description:desc,createdAt:now}]}));
     setModal(null);
   };
-  const removeSet = async (sid) => { await sb.from("sets").delete().eq("id",sid); setData(d=>({...d,sets:d.sets.filter(s=>s.id!==sid),cards:d.cards.filter(c=>c.setId!==sid)})); if(sel.setId===sid)setSel(p=>({...p,setId:null})); };
-  const renameSet = async (sid,name) => { await sb.from("sets").update({name}).eq("id",sid); setData(d=>({...d,sets:d.sets.map(s=>s.id===sid?{...s,name}:s)})); };
+  const removeSet = async (sid) => { const {error}=await sb.from("sets").delete().eq("id",sid); if(fail(error,"Set konnte nicht geloescht werden"))return; setData(d=>({...d,sets:d.sets.filter(s=>s.id!==sid),cards:d.cards.filter(c=>c.setId!==sid)})); if(sel.setId===sid)setSel(p=>({...p,setId:null})); };
+  const renameSet = async (sid,name) => { const {error}=await sb.from("sets").update({name}).eq("id",sid); if(fail(error,"Set konnte nicht umbenannt werden"))return; setData(d=>({...d,sets:d.sets.map(s=>s.id===sid?{...s,name}:s)})); };
 
   const saveCard = async (card) => {
     const isNew = !card.id; setSaving(true);
@@ -1671,23 +1747,25 @@ function Dashboard({session, onLogout}) {
       const {error} = await sb.from("cards").insert({id,user_id:user.id,set_id:sel.setId,question_html:q,answer_html:a,last_rating:null,mcq_options:null,created_at:now});
       // Bail out BEFORE closing the editor, so a failed save doesn't throw away
       // what the user just typed.
-      if (error) { setSaving(false); alert("Karte konnte nicht gespeichert werden:\n" + error.message); return; }
+      if (error) { setSaving(false); fail(error,"Karte konnte nicht gespeichert werden"); return; }
       setData(d=>({...d,cards:[...d.cards,{id,setId:sel.setId,questionHtml:q,answerHtml:a,lastRating:null,mcqOptions:null,createdAt:now}]}));
     } else {
       const {error} = await sb.from("cards").update({question_html:q,answer_html:a,mcq_options:null}).eq("id",card.id);
-      if (error) { setSaving(false); alert("Änderung konnte nicht gespeichert werden:\n" + error.message); return; }
+      if (error) { setSaving(false); fail(error,"Aenderung konnte nicht gespeichert werden"); return; }
       setData(d=>({...d,cards:d.cards.map(c=>c.id===card.id?{...c,questionHtml:q,answerHtml:a,mcqOptions:null}:c)}));
     }
     setSaving(false); setEditCard(null); setModal(null);
   };
-  const removeCard = async (cid) => { await sb.from("cards").delete().eq("id",cid); setData(d=>({...d,cards:d.cards.filter(c=>c.id!==cid)})); };
+  const removeCard = async (cid) => { const {error}=await sb.from("cards").delete().eq("id",cid); if(fail(error,"Karte konnte nicht geloescht werden"))return; setData(d=>({...d,cards:d.cards.filter(c=>c.id!==cid)})); };
   const copyCard = async (card, targetSetId) => {
     const id=uid(); const now=new Date().toISOString();
-    await sb.from("cards").insert({id,user_id:user.id,set_id:targetSetId,question_html:card.questionHtml,answer_html:card.answerHtml,last_rating:null,mcq_options:null,created_at:now});
+    const {error} = await sb.from("cards").insert({id,user_id:user.id,set_id:targetSetId,question_html:card.questionHtml,answer_html:card.answerHtml,last_rating:null,mcq_options:null,created_at:now});
+    if (fail(error,"Karte konnte nicht kopiert werden")) return;
     setData(d=>({...d,cards:[...d.cards,{id,setId:targetSetId,questionHtml:card.questionHtml,answerHtml:card.answerHtml,lastRating:null,mcqOptions:null,createdAt:now}]}));
   };
   const moveCard = async (card, targetSetId) => {
-    await sb.from("cards").update({set_id:targetSetId}).eq("id",card.id);
+    const {error} = await sb.from("cards").update({set_id:targetSetId}).eq("id",card.id);
+    if (fail(error,"Karte konnte nicht verschoben werden")) return;
     setData(d=>({...d,cards:d.cards.map(c=>c.id===card.id?{...c,setId:targetSetId}:c)}));
   };
   const updateCardRating = async (cid,rating) => {
@@ -1699,10 +1777,13 @@ function Dashboard({session, onLogout}) {
       if (error) console.warn("card_ratings upsert failed, falling back:", error.message);
       if (!error) { setData(d=>({...d,cards:d.cards.map(c=>c.id===cid?{...c,lastRating:rating}:c)})); return; }
     }
-    await sb.from("cards").update({last_rating:rating}).eq("id",cid);
+    const {error} = await sb.from("cards").update({last_rating:rating}).eq("id",cid);
+    if (fail(error,"Bewertung konnte nicht gespeichert werden")) return;
     setData(d=>({...d,cards:d.cards.map(c=>c.id===cid?{...c,lastRating:rating}:c)}));
   };
-  const cacheCardMCQ = async (cid,opts) => { await sb.from("cards").update({mcq_options:opts}).eq("id",cid); setData(d=>({...d,cards:d.cards.map(c=>c.id===cid?{...c,mcqOptions:opts}:c)})); };
+  // Reiner Cache: schlaegt er fehl, werden die Antwortoptionen beim naechsten
+  // Mal neu erzeugt. Kein Datenverlust, deshalb keine Meldung an den Nutzer.
+  const cacheCardMCQ = async (cid,opts) => { const {error}=await sb.from("cards").update({mcq_options:opts}).eq("id",cid); if(error)console.warn("MCQ-Cache nicht gespeichert:",error.message); setData(d=>({...d,cards:d.cards.map(c=>c.id===cid?{...c,mcqOptions:opts}:c)})); };
 
   const loadScript = (url) => new Promise((res,rej) => {
     if (document.querySelector(`script[src="${url}"]`)) { res(); return; }
@@ -1796,7 +1877,8 @@ function Dashboard({session, onLogout}) {
       answer_html:safeHtml(`<p>${esc(c.a)}</p>`),
       last_rating:null, mcq_options:null, created_at:now,
     }));
-    await sb.from("cards").insert(rows);
+    const {error} = await sb.from("cards").insert(rows);
+    if (error) { setModal({type:"pdfError", msg:"Die Karten konnten nicht gespeichert werden:\n\n" + error.message}); return; }
     setData(d=>({...d,cards:[...d.cards,...rows.map(r=>({id:r.id,setId:r.set_id,questionHtml:r.question_html,answerHtml:r.answer_html,lastRating:null,mcqOptions:null,createdAt:r.created_at}))]}));
     setModal({type:"pdfDone", count:rows.length});
   };
@@ -1807,7 +1889,7 @@ function Dashboard({session, onLogout}) {
   const removeAllSharedAccess = async () => {
     const myEmail = (user.email || "").toLowerCase();
     const {error} = await sb.from("set_shares").delete().eq("invited_email", myEmail);
-    if (error) { alert("Konnte nicht entfernen: " + error.message); return; }
+    if (fail(error,"Zugriff konnte nicht entfernt werden")) return;
     setSel({folderId:null, setId:null});
     loadAll();
   };
@@ -1914,14 +1996,14 @@ function Dashboard({session, onLogout}) {
     const markProgress=()=>{studyHasProgress.current=true;};
     return <>
       {confirmGoHome && <ConfirmOverlay title={t.abortStudy} sub={t.abortStudySub} confirmLabel={t.abortStudyYes} cancelLabel={t.continueStudy} onConfirm={()=>{studyHasProgress.current=false;confirmGoHomeYes();}} onCancel={()=>setConfirmGoHome(false)}/>}
-      {studyMode.mode==="flash" ? <FlashMode set={sessionInfo} cards={studyMode.cards} onExit={Exit} onGoHome={goHome} onRate={updateCardRating} onProgress={markProgress} onEditCard={async(card,q,a)=>{const sq=safeHtml(q),sa=safeHtml(a);await sb.from("cards").update({question_html:sq,answer_html:sa,mcq_options:null}).eq("id",card.id);setData(d=>({...d,cards:d.cards.map(c=>c.id===card.id?{...c,questionHtml:sq,answerHtml:sa,mcqOptions:null}:c)}));const ci=studyMode.cards.findIndex(c=>c.id===card.id);if(ci>=0){studyMode.cards[ci].questionHtml=sq;studyMode.cards[ci].answerHtml=sa;}}} t={t}/> : <MCQMode set={sessionInfo} cards={studyMode.cards} onExit={Exit} onGoHome={goHome} onRate={updateCardRating} onCacheMCQ={cacheCardMCQ} onProgress={markProgress} t={t}/>}
+      {studyMode.mode==="flash" ? <FlashMode set={sessionInfo} cards={studyMode.cards} onExit={Exit} onGoHome={goHome} onRate={updateCardRating} onProgress={markProgress} onEditCard={async(card,q,a)=>{const sq=safeHtml(q),sa=safeHtml(a);const {error}=await sb.from("cards").update({question_html:sq,answer_html:sa,mcq_options:null}).eq("id",card.id);if(fail(error,"Aenderung konnte nicht gespeichert werden"))return;setData(d=>({...d,cards:d.cards.map(c=>c.id===card.id?{...c,questionHtml:sq,answerHtml:sa,mcqOptions:null}:c)}));const ci=studyMode.cards.findIndex(c=>c.id===card.id);if(ci>=0){studyMode.cards[ci].questionHtml=sq;studyMode.cards[ci].answerHtml=sa;}}} t={t}/> : <MCQMode set={sessionInfo} cards={studyMode.cards} onExit={Exit} onGoHome={goHome} onRate={updateCardRating} onCacheMCQ={cacheCardMCQ} onProgress={markProgress} t={t}/>}
     </>;
   }
 
   return (
     <div style={{display:"flex",height:"100vh",overflow:"hidden"}}>
       {mobile&&menuOpen&&<div className="mob-overlay" onClick={()=>setMenuOpen(false)}></div>}
-      <aside className={"hb-aside"+(mobile&&menuOpen?" open":"")} style={{width:!mobile&&sideCollapsed?60:"var(--sw)",minWidth:!mobile&&sideCollapsed?60:"var(--sw)",height:"100vh",background:"var(--sidebar-bg)",backdropFilter:"blur(26px) saturate(150%)",WebkitBackdropFilter:"blur(26px) saturate(150%)",borderRight:"1px solid rgba(245,99,26,.12)",display:"flex",flexDirection:"column",overflow:"hidden",boxShadow:"inset -1px 0 0 var(--glass-bdr)",transition:mobile?"transform .28s ease":"width .2s ease,min-width .2s ease"}}>
+      <aside className={"hb-aside"+(mobile&&menuOpen?" open":"")} style={{width:!mobile&&sideCollapsed?60:"var(--sw)",minWidth:!mobile&&sideCollapsed?60:"var(--sw)",height:"100vh",background:"var(--sidebar-bg)",borderRight:"1px solid rgba(245,99,26,.12)",display:"flex",flexDirection:"column",overflow:"hidden",boxShadow:"inset -1px 0 0 var(--glass-bdr)",transition:mobile?"transform .28s ease":"width .2s ease,min-width .2s ease"}}>
         {/* ── Sidebar header ── */}
         {!mobile&&sideCollapsed ? (
           <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:10,padding:"16px 8px 12px",borderBottom:"1px solid rgba(245,99,26,.12)",background:"var(--sidebar-hdr)"}}>
@@ -2058,6 +2140,8 @@ function Dashboard({session, onLogout}) {
         ownerId={user.id}
         ownerAvatar={avatarUrl}
         ownerName={userName}
+        knownContacts={contacts}
+        onRemember={(email)=>setContacts(rememberContacts(user.id,[email]))}
         onClose={()=>{setModal(null);loadAll();}}/>}
       {modal?.type==="pdfLoading" && <SimpleModal title="📄 PDF verarbeiten" onClose={undefined}>
         <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:14,padding:"8px 0 4px"}}>
@@ -2089,6 +2173,10 @@ function Dashboard({session, onLogout}) {
         }}
         onClose={()=>setModal(null)}
         t={t}/>}
+      {toast && <div onClick={()=>setToast(null)} role="alert" style={{position:"fixed",left:"50%",bottom:"max(20px, calc(env(safe-area-inset-bottom,0px) + 16px))",transform:"translateX(-50%)",zIndex:3000,width:"max-content",maxWidth:"min(520px, calc(100vw - 32px))",padding:"12px 16px",borderRadius:14,background:"var(--surface)",border:"1.5px solid var(--red)",color:"var(--text)",fontSize:13,lineHeight:1.5,boxShadow:"0 12px 36px rgba(0,0,0,.28)",cursor:"pointer",animation:"scaleIn .15s ease"}}>
+        <div style={{fontWeight:600,color:"var(--red)",marginBottom:2}}>Nicht gespeichert</div>
+        <div style={{wordBreak:"break-word"}}>{toast}</div>
+      </div>}
     </div>
   );
 }
@@ -2861,7 +2949,10 @@ function ProfileModal({user,userName,onLogout,onClose,hideShared,setHideShared,o
       if(error){setErr(error.message);return;}
       // Sync to public profiles table so other users can see our avatar.
       // Best-effort: if profiles table doesn't exist, silently skip.
-      try { await sb.from("profiles").upsert({id:user.id,email:(user.email||"").toLowerCase(),display_name:name.trim(),avatar_url:avatar,updated_at:new Date().toISOString()},{onConflict:"id"}); } catch {}
+      const {error:profileError} = await sb.from("profiles").upsert({id:user.id,email:(user.email||"").toLowerCase(),display_name:name.trim(),avatar_url:avatar,updated_at:new Date().toISOString()},{onConflict:"id"});
+      // Das Konto ist hier schon gespeichert -- fehlt nur die oeffentliche
+      // Visitenkarte. Das muss man wissen, statt es zu verschlucken.
+      if (profileError) { setErr("Konto gespeichert. Name und Bild konnten aber nicht fuer die anderen veroeffentlicht werden: " + profileError.message); return; }
       setOk(true);
     }finally{setBusy(false);}
   };
@@ -3150,7 +3241,7 @@ function SimpleModal({title,onClose,children}) {
   </div></div>);
 }
 
-function FolderShareModal({folder,allFolders,folderSets,ownerEmail,ownerId,ownerAvatar,ownerName,onClose,t}) {
+function FolderShareModal({folder,allFolders,folderSets,ownerEmail,ownerId,ownerAvatar,ownerName,knownContacts,onRemember,onClose,t}) {
   // A folder is "shared with email E" if any set in the folder has a
   // set_shares row for E. We aggregate across all sets in the folder so the
   // user can manage sharing at the folder level.
@@ -3171,7 +3262,13 @@ function FolderShareModal({folder,allFolders,folderSets,ownerEmail,ownerId,owner
     const {data, error} = await sb.from("set_shares").select("*").in("set_id", setIds).order("created_at",{ascending:false});
     if (!error) {
       setRows(data||[]);
-      const emails = Array.from(new Set((data||[]).map(r=>(r.invited_email||"").toLowerCase()).filter(Boolean)));
+      // Auch die Profile aus dem Adressbuch mitladen, damit die Vorschlaege
+      // Name und Bild zeigen. Wem der Zugriff entzogen wurde, dessen Profil
+      // darf man laut RLS nicht mehr lesen -- dann bleibt die E-Mail stehen.
+      const emails = Array.from(new Set([
+        ...(data||[]).map(r=>(r.invited_email||"").toLowerCase()),
+        ...(knownContacts||[]).map(c=>(c.email||"").toLowerCase()),
+      ].filter(Boolean)));
       if (emails.length) {
         try {
           const {data:pr} = await sb.from("profiles").select("email,avatar_url,display_name").in("email",emails);
@@ -3197,6 +3294,16 @@ function FolderShareModal({folder,allFolders,folderSets,ownerEmail,ownerId,owner
     }
     return Array.from(m.values());
   })();
+
+  // Vorschlaege: alle bekannten Kontakte ausser mir selbst und ausser denen,
+  // die auf diesen Ordner ohnehin schon vollen Zugriff haben. Sobald etwas
+  // getippt ist, wird danach gefiltert.
+  const typed = email.trim().toLowerCase();
+  const fullAccess = new Set(grouped.filter(g => g.coverage === setIds.length).map(g => (g.email||"").toLowerCase()));
+  const suggestions = (knownContacts||[])
+    .filter(c => c.email !== (ownerEmail||"").toLowerCase() && !fullAccess.has(c.email))
+    .filter(c => !typed || c.email.includes(typed))
+    .slice(0,6);
 
   const addShare = async () => {
     setErr(""); setOk("");
@@ -3225,6 +3332,7 @@ function FolderShareModal({folder,allFolders,folderSets,ownerEmail,ownerId,owner
     }
     setBusy(false);
     if (error) { setErr(error.message); return; }
+    if (onRemember) onRemember(e);
     setEmail(""); setOk(`✓ ${e} hat jetzt Zugriff auf „${folder.name}" (${setIds.length} Set${setIds.length===1?"":"s"}).`);
     load();
   };
@@ -3233,7 +3341,8 @@ function FolderShareModal({folder,allFolders,folderSets,ownerEmail,ownerId,owner
     if (!confirm(`Zugriff für ${invitedEmail} auf „${folder.name}" entfernen?`)) return;
     const ids = rows.filter(r => (r.invited_email||"").toLowerCase() === invitedEmail.toLowerCase()).map(r=>r.id);
     if (ids.length === 0) return;
-    await sb.from("set_shares").delete().in("id", ids);
+    const {error} = await sb.from("set_shares").delete().in("id", ids);
+    if (error) { setErr("Zugriff konnte nicht entfernt werden: " + error.message); return; }
     load();
   };
 
@@ -3252,6 +3361,21 @@ function FolderShareModal({folder,allFolders,folderSets,ownerEmail,ownerId,owner
           onFocus={e=>e.target.style.borderColor="var(--orange)"} onBlur={e=>e.target.style.borderColor="var(--border)"}/>
         <button className="btn-o" onClick={addShare} disabled={busy||!email.trim()||setIds.length===0}>{busy?<ISpin c="#fff" s={16}/>:t.invite}</button>
       </div>
+      {suggestions.length>0 && <div style={{marginBottom:12}}>
+        <div style={{fontSize:11,fontWeight:600,color:"var(--muted2)",textTransform:"uppercase",letterSpacing:".06em",marginBottom:6}}>{t.recentContacts}</div>
+        <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
+          {suggestions.map(c => {
+            const pr = pMap[c.email] || {};
+            return (<button key={c.email} type="button" onClick={()=>setEmail(c.email)} title={c.email}
+              style={{display:"flex",alignItems:"center",gap:7,maxWidth:"100%",padding:"5px 12px 5px 5px",borderRadius:99,border:"1.5px solid var(--border)",background:"var(--glass)",cursor:"pointer",fontFamily:"inherit",fontSize:12,color:"var(--text)",transition:"all .15s"}}
+              onMouseEnter={e=>{e.currentTarget.style.borderColor="var(--orange)";e.currentTarget.style.background="var(--ol)";}}
+              onMouseLeave={e=>{e.currentTarget.style.borderColor="var(--border)";e.currentTarget.style.background="var(--glass)";}}>
+              <Avatar url={pr.avatar_url} name={pr.display_name||c.email} size={22}/>
+              <span style={{whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",maxWidth:170}}>{pr.display_name||c.email}</span>
+            </button>);
+          })}
+        </div>
+      </div>}
       <label style={{display:"flex",alignItems:"center",gap:8,marginBottom:10,cursor:"pointer",fontSize:13,color:"var(--muted)",fontWeight:500}} onClick={()=>setCanEdit(p=>!p)}>
         <span style={{width:18,height:18,borderRadius:5,border:`2px solid ${canEdit?"var(--orange)":"var(--border)"}`,background:canEdit?"var(--orange)":"transparent",display:"flex",alignItems:"center",justifyContent:"center",transition:"all .15s",flexShrink:0}}>
           {canEdit && <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3.5"><polyline points="20 6 9 17 4 12"/></svg>}
@@ -3281,7 +3405,7 @@ function FolderShareModal({folder,allFolders,folderSets,ownerEmail,ownerId,owner
                   <div style={{fontSize:13,fontWeight:600,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{pr.display_name||g.email}</div>
                   <div style={{fontSize:11,color:partial?"var(--amber)":"var(--muted2)",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{g.canEdit ? "Kann bearbeiten" : "Nur lesen"}{!partial && ` · ${new Date(g.createdAt).toLocaleDateString("de-DE")}`}</div>
                 </div>
-                <button onClick={async()=>{const nv=!g.canEdit;const upd={can_edit:nv};await Promise.all(g.rowIds.map(id=>sb.from("set_shares").update(upd).eq("id",id)));load();}} title={g.canEdit?"Auf nur-lesen setzen":"Bearbeitungsrechte geben"} style={{width:28,height:28,borderRadius:7,border:`1.5px solid ${g.canEdit?"var(--orange)":"var(--border)"}`,background:g.canEdit?"var(--orange)":"transparent",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",transition:"all .15s",flexShrink:0}}>
+                <button onClick={async()=>{const nv=!g.canEdit;const upd={can_edit:nv};const res=await Promise.all(g.rowIds.map(id=>sb.from("set_shares").update(upd).eq("id",id)));const bad=res.find(x=>x&&x.error);if(bad){setErr("Rechte konnten nicht geaendert werden: "+bad.error.message);return;}load();}} title={g.canEdit?"Auf nur-lesen setzen":"Bearbeitungsrechte geben"} style={{width:28,height:28,borderRadius:7,border:`1.5px solid ${g.canEdit?"var(--orange)":"var(--border)"}`,background:g.canEdit?"var(--orange)":"transparent",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",transition:"all .15s",flexShrink:0}}>
                   <IEdit/>
                 </button>
                 <button onClick={()=>removeShare(g.email)} className="icon-btn" title="Zugriff entfernen"><ITrash/></button>
