@@ -10,7 +10,7 @@
 //     einem geteilten Cache ohnehin nichts verloren.
 //
 // CACHE_VERSION hochzählen, wenn sich Dateien in vendor/ oder icons/ ändern.
-const CACHE_VERSION = "heribert-v1";
+const CACHE_VERSION = "heribert-v2";
 
 // Nur die Dateien, die für den ersten Start gebraucht werden. Die großen
 // Import-Bibliotheken (pdf.js, mammoth, jszip) landen erst im Cache, wenn sie

@@ -20,9 +20,18 @@
   <meta name="apple-mobile-web-app-capable" content="yes"/>
   <meta name="mobile-web-app-capable" content="yes"/>
   <meta name="apple-mobile-web-app-title" content="Heribert"/>
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
-  <meta name="theme-color" content="#FAF4EB" media="(prefers-color-scheme: light)"/>
-  <meta name="theme-color" content="#1C1810" media="(prefers-color-scheme: dark)"/>
+  <!-- NICHT auf black-translucent stellen. Das zieht den Seiteninhalt unter
+       die Statusleiste, und ab iOS 26 legt das System dort seine Glas-Optik
+       darueber: alles, was in diesem Streifen liegt, wird weichgezeichnet.
+       Die Kopfleiste klebt oben fest, sass also dauerhaft darin -- Menue,
+       Schriftzug und Profilbild sahen matt aus. Mit "default" beginnt der
+       Inhalt unterhalb der Statusleiste, die ihre Flaeche aus theme-color
+       bekommt und damit zum Seitenhintergrund passt. -->
+  <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+  <!-- Muss dem OBERSTEN Ton von --grad-bg entsprechen, sonst zeichnet sich
+       die Flaeche der Statusleiste als Kante gegen den Seitenanfang ab. -->
+  <meta name="theme-color" content="#FFFBF4" media="(prefers-color-scheme: light)"/>
+  <meta name="theme-color" content="#140808" media="(prefers-color-scheme: dark)"/>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23F5631A'/%3E%3Crect x='6' y='5' width='14' height='18' rx='2' fill='white' opacity='.95'/%3E%3Crect x='8' y='9' width='8' height='1.5' rx='.75' fill='%23F5631A'/%3E%3Ctext x='24' y='12' text-anchor='middle' font-family='system-ui' font-weight='700' font-size='9' fill='white'%3E%E2%9C%A6%3C/text%3E%3C/svg%3E">
   <style>body{margin:0;}#root{min-height:100vh;}</style>
 </head>
