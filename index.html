@@ -1217,7 +1217,10 @@ const NATIVE_CSS = `
 .btn-back:hover { border-color: var(--ob); color: var(--orange); }
 .btn-back:active { transform: scale(.97); }
 
-@media (pointer: coarse) {
+/* any-pointer statt pointer: greift auch, wenn zusaetzlich eine Maus oder ein
+   Trackpad angeschlossen ist (iPad mit Tastatur meldet sonst "fein", der
+   Finger tippt aber trotzdem auf den Bildschirm). */
+@media (any-pointer: coarse) {
   /* iOS blaeht Text in engen Spalten eigenmaechtig auf. Das liess im
      Lernmodus die Gesamtzahl riesig wirken und die aktuelle Nummer
      abgeschnitten aussehen. */
@@ -1230,9 +1233,15 @@ const NATIVE_CSS = `
     -webkit-user-select: none;
     user-select: none;
   }
-  /* iOS zoomt beim Hineintippen, wenn ein Feld kleiner als 16px gesetzt ist.
-     Die Felder setzen ihre Groesse inline, nur !important gewinnt dagegen. */
-  input, select, textarea { font-size: 16px !important; }
+  /* iOS zoomt beim Hineintippen, wenn ein Feld kleiner als 16px gesetzt ist,
+     und zoomt danach NICHT von selbst zurueck. Das gilt nicht nur fuer
+     input/textarea/select, sondern genauso fuer contenteditable -- und genau
+     daraus bestehen die Kartenfelder und der Editor im Lernmodus. Die standen
+     auf 15px und waren deshalb weiter betroffen, nachdem die Anmeldemaske
+     laengst ruhig war. Die Felder setzen ihre Groesse inline, nur !important
+     gewinnt dagegen. */
+  input, select, textarea,
+  [contenteditable]:not([contenteditable="false"]) { font-size: 16px !important; }
 }
 @media (display-mode: standalone) {
   html, body {
