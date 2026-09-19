@@ -1639,7 +1639,13 @@ function Dashboard({session, onLogout}) {
   const updateFolder = async (fid,name,color,parentId) => { await sb.from("folders").update({name,color,parent_id:parentId===undefined?undefined:(parentId||null)}).eq("id",fid); setData(d=>({...d,folders:d.folders.map(f=>f.id===fid?{...f,name,color,...(parentId!==undefined?{parentId:parentId||null}:{})}:f)})); setModal(null); };
   const createSet = async (name,desc) => {
     const id=uid(); const now=new Date().toISOString();
-    await sb.from("sets").insert({id,user_id:user.id,folder_id:sel.folderId,name,description:desc,created_at:now});
+    // Never swallow this error. If the insert fails, the set does not exist in
+    // the DB -- but the optimistic setData() below would still show it. Every
+    // follow-up action (inviting someone, saving a card) then points at a set
+    // that isn't there and dies with a confusing "violates row-level security"
+    // message somewhere else entirely.
+    const {error:setError} = await sb.from("sets").insert({id,user_id:user.id,folder_id:sel.folderId,name,description:desc,created_at:now});
+    if (setError) { alert("Set konnte nicht angelegt werden:\n" + setError.message); return; }
     // Propagate folder-level shares to the new set: find all emails currently
     // sharing any sibling set in this folder and add shares for the new set.
     const siblingIds = data.sets.filter(s=>!s.isSharedWithMe && s.folderId===sel.folderId).map(s=>s.id);
@@ -1662,10 +1668,14 @@ function Dashboard({session, onLogout}) {
     const a = safeHtml(card.answerHtml);
     if (isNew) {
       const id=uid(); const now=new Date().toISOString();
-      await sb.from("cards").insert({id,user_id:user.id,set_id:sel.setId,question_html:q,answer_html:a,last_rating:null,mcq_options:null,created_at:now});
+      const {error} = await sb.from("cards").insert({id,user_id:user.id,set_id:sel.setId,question_html:q,answer_html:a,last_rating:null,mcq_options:null,created_at:now});
+      // Bail out BEFORE closing the editor, so a failed save doesn't throw away
+      // what the user just typed.
+      if (error) { setSaving(false); alert("Karte konnte nicht gespeichert werden:\n" + error.message); return; }
       setData(d=>({...d,cards:[...d.cards,{id,setId:sel.setId,questionHtml:q,answerHtml:a,lastRating:null,mcqOptions:null,createdAt:now}]}));
     } else {
-      await sb.from("cards").update({question_html:q,answer_html:a,mcq_options:null}).eq("id",card.id);
+      const {error} = await sb.from("cards").update({question_html:q,answer_html:a,mcq_options:null}).eq("id",card.id);
+      if (error) { setSaving(false); alert("Änderung konnte nicht gespeichert werden:\n" + error.message); return; }
       setData(d=>({...d,cards:d.cards.map(c=>c.id===card.id?{...c,questionHtml:q,answerHtml:a,mcqOptions:null}:c)}));
     }
     setSaving(false); setEditCard(null); setModal(null);
