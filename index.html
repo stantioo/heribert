@@ -1518,7 +1518,7 @@ function Dashboard({session, onLogout}) {
     try { localStorage.setItem("heribert.lang", l); } catch {}
     try { await sb.auth.updateUser({data:{lang:l}}); } catch {}
   };
-  const [data, setData] = useState({folders:[], sets:[], cards:[], shares:[]});
+  const [data, setData] = useState({folders:[], sets:[], cards:[], shares:[], invitedFolders:[]});
   const hasRatingsTable = useRef(false);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(null);
@@ -1593,11 +1593,15 @@ function Dashboard({session, onLogout}) {
     // on "Daten werden geladen…". Each stage logs so we can diagnose in
     // DevTools which query blew up.
     try {
-      const [fr,sr,cr,shr] = await Promise.all([
+      const [fr,sr,cr,shr,ivr] = await Promise.all([
         sb.from("folders").select("*").order("created_at"),
         sb.from("sets").select("*").order("created_at"),
         sb.from("cards").select("*").order("created_at"),
         sb.from("set_shares").select("*"),
+        // Ordner, zu denen ich eingeladen bin. Enthaelt so ein Ordner noch kein
+        // Set, gibt es keine set_shares-Zeile -- ohne diese Abfrage waere die
+        // Einladung fuer mich unsichtbar und saehe aus wie nie passiert.
+        sb.from("folder_invites").select("*"),
       ]);
 
       // Per-user ratings: if card_ratings table exists, overlay user's own
@@ -1664,11 +1668,31 @@ function Dashboard({session, onLogout}) {
           if (userRatings.has(c.id)) c.lastRating = userRatings.get(c.id);
         }
       }
+      // Die Ordner-Abfrage liefert dank RLS auch fremde Ordner mit, die mir
+      // freigegeben sind -- daraus kommen Name und Farbe fuer die Kacheln.
+      const folderById = new Map((fr.data||[]).map(f=>[f.id,f]));
+      const invitedFolders = (ivr.data||[])
+        .filter(iv => (iv.invited_email||"").toLowerCase() === myEmail)
+        .map(iv => {
+          const f = folderById.get(iv.folder_id);
+          if (!f || f.user_id === user.id) return null;
+          const pf = f.parent_id ? folderById.get(f.parent_id) : null;
+          return {
+            id: f.id, name: f.name, color: f.color,
+            parentFolderName: pf?.name || null,
+            parentFolderColor: pf?.color || null,
+            sharedBy: iv.owner_email || null,
+            canEdit: !!iv.can_edit,
+          };
+        })
+        .filter(Boolean);
+
       setData({
         folders:(fr.data||[]).filter(r=>r.user_id===user.id).map(toFolder),
         sets,
         cards,
         shares: shares.filter(x => x.owner_id === user.id),
+        invitedFolders,
       });
       // Bestehende Freigaben ins Adressbuch uebernehmen, damit die Vorschlaege
       // auch auf einem frisch eingerichteten Geraet sofort da sind.
@@ -1946,8 +1970,9 @@ function Dashboard({session, onLogout}) {
     return {...f, setCount:allSets.length, cardCount:fc.length, progress:calcProgress(fc), children:enrichedChildren};
   };
   const rootFolders = data.folders.filter(f=>!f.parentId).map(enrichFolder);
+  const invitedFolders = data.invitedFolders || [];
   const sharedFolders = [];
-  if (sharedSets.length > 0 && !hideShared) {
+  if ((sharedSets.length > 0 || invitedFolders.length > 0) && !hideShared) {
     const groups = new Map();
     for (const s of sharedSets) {
       const key = s.sourceFolderId || "__unknown";
@@ -1968,6 +1993,23 @@ function Dashboard({session, onLogout}) {
       const g = groups.get(key);
       g.sets.push(s);
       if (s.sharedBy) g.sharers.add(s.sharedBy.toLowerCase());
+    }
+    // Eingeladene Ordner, in denen (noch) kein Set liegt. Sie bekommen eine
+    // eigene, leere Kachel -- sonst waere von der Einladung nichts zu sehen.
+    for (const inv of invitedFolders) {
+      if (groups.has(inv.id)) continue;
+      groups.set(inv.id, {
+        id: "__shared_" + inv.id,
+        name: inv.name || "Geteilt mit mir",
+        color: inv.color || "#C2410C",
+        parentId: null,
+        parentFolderName: inv.parentFolderName,
+        parentFolderColor: inv.parentFolderColor,
+        isVirtualShared: true,
+        sourceFolderId: inv.id,
+        sets: [],
+        sharers: new Set(inv.sharedBy ? [inv.sharedBy.toLowerCase()] : []),
+      });
     }
     for (const g of groups.values()) {
       const fc = data.cards.filter(c => g.sets.some(s => s.id === c.setId));
@@ -2156,7 +2198,7 @@ function Dashboard({session, onLogout}) {
         onClose={()=>setProfileOpen(false)}
         hideShared={hideShared}
         setHideShared={setHideShared}
-        hasSharedFolders={sharedSets.length > 0}
+        hasSharedFolders={sharedSets.length > 0 || invitedFolders.length > 0}
         onRemoveAllShared={removeAllSharedAccess}
         t={t} lang={lang} setLang={setLang}/>}
       {modal?.type==="folder" && <FolderModal initial={editFolder} folders={data.folders} t={t} onSave={(name,color,parentId)=>{editFolder?updateFolder(editFolder.id,name,color,parentId):createFolder(name,color,parentId);setEditFolder(null);}} onClose={()=>{setModal(null);setEditFolder(null);}}/>}
