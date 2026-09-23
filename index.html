@@ -6,7 +6,7 @@
        ausgelieferten index.html; weicht er ab, sperrt sie sich bis zum
        Neuladen. BEI JEDER VEROEFFENTLICHUNG HOCHZAEHLEN -- zusammen mit dem
        obersten CHANGELOG-Eintrag und CACHE_VERSION in sw.js. -->
-  <meta name="heribert-version" content="2.7"/>
+  <meta name="heribert-version" content="2.8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
 
   <!-- Zweite Verteidigungslinie hinter DOMPurify: selbst wenn Schadcode ins
@@ -346,6 +346,7 @@ html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;background:var(
 // \u2500\u2500\u2500 UTILS \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 const CHANGELOG = {
   de: [
+    {version:"2.8", date:"23.09.2026", items:["Reihenfolge ändern: man kann eine Zeile jetzt auch einfach kurz gedrückt halten und verschieben — nicht mehr nur am Griff mit den Punkten links. Ein schneller Wisch scrollt weiterhin ganz normal"]},
     {version:"2.7", date:"23.09.2026", items:["Reihenfolge ändern geht jetzt auch am Telefon: der Ziehgriff war 19 Pixel breit und damit mit dem Finger praktisch nicht zu treffen — er ist jetzt über die volle Zeilenhöhe anfassbar, die Pfeile daneben sind größer","Das GETEILT-Zeichen sitzt jetzt neben dem Ordnernamen statt mittig darüber — geteilte und eigene Kacheln stehen dadurch wieder auf einer Linie"]},
     {version:"2.6", date:"23.09.2026", items:["Wer zu einem Ordner hinzugefügt wurde und bearbeiten darf, kann jetzt wirklich alles: Sets anlegen, umsortieren, Karten ändern und löschen, weitere Leute einladen, deren Rechte umstellen und den Ordner umbenennen — vorher ging manches nur beim Ersteller","Statt „Löschen“ gibt es bei geteilten Ordnern „Verlassen“: der eigene Zugang geht zurück, die Inhalte des Eigentümers bleiben unangetastet","Löschen des Ordners bleibt beim Eigentümer — es würde die Sets und Karten aller anderen mitreißen"]},
     {version:"2.5", date:"23.09.2026", items:["Karten werden beim Tippen laufend gesichert — klickt man daneben oder geht die App zu, fragt sie beim Öffnen nach und stellt den Entwurf wieder her","Am Telefon macht Enter wieder ganz normal einen Zeilenumbruch; bestätigt wird über die Leiste, die mit der Tastatur mitwandert. Am Rechner bleibt es bei Enter = weiter/speichern und Shift+Enter = Zeilenumbruch","Löschen fragt jetzt immer nach — bei Karten, Sets und Ordnern, mit Angabe, wie viel daran hängt","Der Update-Hinweis kommt sofort beim Start statt erst nach ein paar Sekunden — vorher sah man kurz die normale App, bevor sich das Fenster davorlegte"]},
@@ -365,6 +366,7 @@ const CHANGELOG = {
     {version:"1.0", date:"14.04.2026", items:["Ordner & Sets erstellen","Karteikarten mit Rich-Text","Fortschritts-Tracking","Teilen per E-Mail"]},
   ],
   en: [
+    {version:"2.8", date:"23.09.2026", items:["Reordering: you can now press and hold any row to move it — not just the dotted handle on the left. A quick swipe still scrolls as usual"]},
     {version:"2.7", date:"23.09.2026", items:["Reordering now works on phones too: the drag handle was 19 pixels wide and almost impossible to hit with a finger — it now spans the full row height, and the arrows next to it are bigger","The SHARED badge now sits next to the folder name instead of centred above it — shared and own tiles line up again"]},
     {version:"2.6", date:"23.09.2026", items:["Anyone added to a folder with edit rights can now really do everything: create sets, reorder, change and delete cards, invite more people, change their rights and rename the folder — some of this used to be limited to the creator","Shared folders offer \"Leave\" instead of \"Delete\": you hand back your own access, the owner's content stays untouched","Deleting the folder stays with the owner — it would take everyone else's sets and cards with it"]},
     {version:"2.5", date:"23.09.2026", items:["Cards are saved continuously while you type — if you click beside the dialog or the app closes, your draft is restored next time you open it","On phones, Enter is a plain line break again; you confirm with the bar that follows the keyboard. On a computer, Enter still means next/save and Shift+Enter is a line break","Deleting always asks first now — cards, sets and folders, including how much is attached to them","The update dialog appears right at startup instead of a few seconds in — you used to briefly see the normal app before it took over"]},
@@ -576,7 +578,7 @@ const T = {
     reorder: "Verschieben",
     reorderSetsTitle: "Reihenfolge der Sets",
     reorderCardsTitle: "Reihenfolge der Karten",
-    reorderHint: "Am Griff ziehen oder die Pfeile benutzen. Die Reihenfolge gilt für alle, die den Ordner sehen.",
+    reorderHint: "Am Griff ziehen, eine Zeile kurz gedrückt halten und schieben, oder die Pfeile benutzen. Die Reihenfolge gilt für alle, die den Ordner sehen.",
     reorderSaved: "Reihenfolge gespeichert",
     moveUp: "Nach oben",
     moveDown: "Nach unten",
@@ -774,7 +776,7 @@ const T = {
     reorder: "Reorder",
     reorderSetsTitle: "Order of sets",
     reorderCardsTitle: "Order of cards",
-    reorderHint: "Drag the handle or use the arrows. The order applies to everyone who sees this folder.",
+    reorderHint: "Drag the handle, press and hold a row to move it, or use the arrows. The order applies to everyone who sees this folder.",
     reorderSaved: "Order saved",
     moveUp: "Move up",
     moveDown: "Move down",
@@ -3969,26 +3971,54 @@ function OrderModal({title,hint,items,renderLabel,onSave,onClose,t}){
     const a=[...cur];const [x]=a.splice(from,1);a.splice(to,0,x);put(a);
   };
   const bump=(id,delta)=>{const i=listRef.current.findIndex(x=>x.id===id);moveTo(id,i+delta);};
-  const startDrag=(e,id)=>{
+
+  // Ziehen geht auf zwei Wegen: am Griff sofort, oder irgendwo auf der Zeile,
+  // wenn man kurz gedrueckt haelt. Das Halten ist noetig, weil eine Beruehrung
+  // mitten auf der Zeile sonst nicht vom Scrollen zu unterscheiden waere --
+  // mit der Maus gibt es dieses Problem nicht, dort geht es sofort.
+  const HALTEN_MS = 400;
+  const zug = useRef({});
+  const zugEnde = () => {
+    const z = zug.current;
+    clearTimeout(z.timer);
+    if (z.onMove)  window.removeEventListener("pointermove",z.onMove);
+    if (z.onEnd)   { window.removeEventListener("pointerup",z.onEnd); window.removeEventListener("pointercancel",z.onEnd); }
+    if (z.onTouch) document.removeEventListener("touchmove",z.onTouch,{passive:false});
+    zug.current = {};
+    setDragId(null);
+  };
+  const startDrag=(e,id,mitHalten)=>{
     if(e.button!=null&&e.button!==0)return;
-    e.preventDefault();e.stopPropagation();
-    setDragId(id);
-    const onMove=ev=>{
+    if(zug.current.id)return;
+    if(!mitHalten){ e.preventDefault(); e.stopPropagation(); }
+    const z = zug.current = {id, aktiv:!mitHalten, x:e.clientX, y:e.clientY};
+
+    z.onMove = ev => {
+      if(!z.aktiv){
+        // Noch in der Wartezeit: wer wischt, will scrollen und nicht ziehen.
+        if(Math.abs(ev.clientY-z.y)>8 || Math.abs(ev.clientX-z.x)>8) zugEnde();
+        return;
+      }
       const el=document.elementFromPoint(ev.clientX,ev.clientY);
       const row=el&&el.closest?el.closest("[data-oi]"):null;
       if(row){const to=Number(row.getAttribute("data-oi"));if(!Number.isNaN(to))moveTo(id,to);}
       if(ev.cancelable)ev.preventDefault();
     };
-    const end=()=>{
-      setDragId(null);
-      window.removeEventListener("pointermove",onMove);
-      window.removeEventListener("pointerup",end);
-      window.removeEventListener("pointercancel",end);
-    };
-    window.addEventListener("pointermove",onMove,{passive:false});
-    window.addEventListener("pointerup",end);
-    window.addEventListener("pointercancel",end);
+    // Sobald das Ziehen laeuft, muss das Scrollen aufhoeren. touch-action
+    // nachtraeglich zu setzen wirkt auf eine LAUFENDE Geste nicht mehr --
+    // nur ein nicht-passiver touchmove mit preventDefault haelt sie an.
+    z.onTouch = ev => { if(z.aktiv && ev.cancelable) ev.preventDefault(); };
+    z.onEnd = () => zugEnde();
+
+    window.addEventListener("pointermove",z.onMove,{passive:false});
+    window.addEventListener("pointerup",z.onEnd);
+    window.addEventListener("pointercancel",z.onEnd);
+    document.addEventListener("touchmove",z.onTouch,{passive:false});
+
+    if(mitHalten) z.timer = setTimeout(()=>{ z.aktiv = true; setDragId(id); }, HALTEN_MS);
+    else setDragId(id);
   };
+  useEffect(()=>zugEnde,[]);
   const save=async()=>{setBusy(true);await onSave(list.map(x=>x.id));setBusy(false);onClose();};
   return(<div className="overlay" onClick={onClose}><div className="modal si" style={{maxWidth:520,padding:0,display:"flex",flexDirection:"column",maxHeight:"84vh"}} onClick={e=>e.stopPropagation()}>
     <div style={{padding:"22px 26px 14px",borderBottom:"1px solid var(--border)",background:"var(--glass-hover)",position:"relative",flexShrink:0}}>
@@ -3998,13 +4028,13 @@ function OrderModal({title,hint,items,renderLabel,onSave,onClose,t}){
     </div>
     <div data-nodrag style={{flex:1,overflowY:"auto",padding:"10px 14px",touchAction:"pan-y"}}>
       {list.map((it,i)=>(
-        <div key={it.id} data-oi={i} style={{display:"flex",alignItems:"stretch",gap:8,paddingRight:8,marginBottom:6,minHeight:54,borderRadius:12,overflow:"hidden",userSelect:"none",WebkitUserSelect:"none",border:"1px solid "+(dragId===it.id?"var(--orange)":"var(--glass-bdr)"),background:dragId===it.id?"var(--glass-hover)":"var(--glass)",boxShadow:dragId===it.id?"0 8px 24px rgba(245,99,26,.18)":"none",transition:"border-color .12s, box-shadow .12s"}}>
+        <div key={it.id} data-oi={i} onPointerDown={e=>startDrag(e,it.id,e.pointerType==="touch")} style={{display:"flex",alignItems:"stretch",gap:8,paddingRight:8,marginBottom:6,minHeight:54,cursor:dragId===it.id?"grabbing":"grab",borderRadius:12,overflow:"hidden",userSelect:"none",WebkitUserSelect:"none",border:"1px solid "+(dragId===it.id?"var(--orange)":"var(--glass-bdr)"),background:dragId===it.id?"var(--glass-hover)":"var(--glass)",boxShadow:dragId===it.id?"0 8px 24px rgba(245,99,26,.18)":"none",transition:"border-color .12s, box-shadow .12s"}}>
           {/* Der Griff war 19x23 Pixel gross -- am Telefon trifft man den nicht.
               Jetzt 46 Pixel breit ueber die volle Zeilenhoehe, also ueber der
               44x44-Marke, die Apple fuer Beruehrungsziele nennt. Nur DIESE
               Flaeche hat touch-action:none; sonst liesse sich eine lange
               Liste nicht mehr scrollen. */}
-          <div data-nodrag onPointerDown={e=>startDrag(e,it.id)} title={t.reorder} style={{cursor:"grab",touchAction:"none",width:46,flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",color:"var(--muted2)",background:"var(--glass-hover)"}}>
+          <div data-nodrag onPointerDown={e=>startDrag(e,it.id,false)} title={t.reorder} style={{cursor:"grab",touchAction:"none",width:46,flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",color:"var(--muted2)",background:"var(--glass-hover)"}}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.7"/><circle cx="15" cy="6" r="1.7"/><circle cx="9" cy="12" r="1.7"/><circle cx="15" cy="12" r="1.7"/><circle cx="9" cy="18" r="1.7"/><circle cx="15" cy="18" r="1.7"/></svg>
           </div>
           <span style={{fontSize:11,fontWeight:700,color:"var(--muted2)",width:20,flexShrink:0,fontVariantNumeric:"tabular-nums",alignSelf:"center"}}>{i+1}</span>
