@@ -6,7 +6,7 @@
        ausgelieferten index.html; weicht er ab, sperrt sie sich bis zum
        Neuladen. BEI JEDER VEROEFFENTLICHUNG HOCHZAEHLEN -- zusammen mit dem
        obersten CHANGELOG-Eintrag und CACHE_VERSION in sw.js. -->
-  <meta name="heribert-version" content="2.8"/>
+  <meta name="heribert-version" content="2.9"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
 
   <!-- Zweite Verteidigungslinie hinter DOMPurify: selbst wenn Schadcode ins
@@ -341,11 +341,13 @@ html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;background:var(
 }
 @media(max-width:480px){
   .hb-g-sets{grid-template-columns:1fr!important;}
+  .hb-g-folders{grid-template-columns:1fr!important;}
 }`;
 
 // \u2500\u2500\u2500 UTILS \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 const CHANGELOG = {
   de: [
+    {version:"2.9", date:"23.09.2026", items:["Ordner-Kacheln nehmen am Telefon die volle Breite ein — vorher standen zwei nebeneinander, in die weder Name noch GETEILT-Zeichen noch Fortschrittsring richtig passten","Das GETEILT-Zeichen wird nicht mehr abgeschnitten: bei langen Ordnernamen wird jetzt der Name gekürzt, nicht das Zeichen dahinter"]},
     {version:"2.8", date:"23.09.2026", items:["Reihenfolge ändern: man kann eine Zeile jetzt auch einfach kurz gedrückt halten und verschieben — nicht mehr nur am Griff mit den Punkten links. Ein schneller Wisch scrollt weiterhin ganz normal"]},
     {version:"2.7", date:"23.09.2026", items:["Reihenfolge ändern geht jetzt auch am Telefon: der Ziehgriff war 19 Pixel breit und damit mit dem Finger praktisch nicht zu treffen — er ist jetzt über die volle Zeilenhöhe anfassbar, die Pfeile daneben sind größer","Das GETEILT-Zeichen sitzt jetzt neben dem Ordnernamen statt mittig darüber — geteilte und eigene Kacheln stehen dadurch wieder auf einer Linie"]},
     {version:"2.6", date:"23.09.2026", items:["Wer zu einem Ordner hinzugefügt wurde und bearbeiten darf, kann jetzt wirklich alles: Sets anlegen, umsortieren, Karten ändern und löschen, weitere Leute einladen, deren Rechte umstellen und den Ordner umbenennen — vorher ging manches nur beim Ersteller","Statt „Löschen“ gibt es bei geteilten Ordnern „Verlassen“: der eigene Zugang geht zurück, die Inhalte des Eigentümers bleiben unangetastet","Löschen des Ordners bleibt beim Eigentümer — es würde die Sets und Karten aller anderen mitreißen"]},
@@ -366,6 +368,7 @@ const CHANGELOG = {
     {version:"1.0", date:"14.04.2026", items:["Ordner & Sets erstellen","Karteikarten mit Rich-Text","Fortschritts-Tracking","Teilen per E-Mail"]},
   ],
   en: [
+    {version:"2.9", date:"23.09.2026", items:["Folder tiles take the full width on phones — two side by side left no room for the name, the SHARED badge or the progress ring","The SHARED badge is no longer clipped: with long folder names the name is now truncated instead of the badge behind it"]},
     {version:"2.8", date:"23.09.2026", items:["Reordering: you can now press and hold any row to move it — not just the dotted handle on the left. A quick swipe still scrolls as usual"]},
     {version:"2.7", date:"23.09.2026", items:["Reordering now works on phones too: the drag handle was 19 pixels wide and almost impossible to hit with a finger — it now spans the full row height, and the arrows next to it are bigger","The SHARED badge now sits next to the folder name instead of centred above it — shared and own tiles line up again"]},
     {version:"2.6", date:"23.09.2026", items:["Anyone added to a folder with edit rights can now really do everything: create sets, reorder, change and delete cards, invite more people, change their rights and rename the folder — some of this used to be limited to the creator","Shared folders offer \"Leave\" instead of \"Delete\": you hand back your own access, the owner's content stays untouched","Deleting the folder stays with the owner — it would take everyone else's sets and cards with it"]},
@@ -2798,9 +2801,9 @@ function SidebarFolder({folder,isActive,onClick,onDelete,onEdit,onLeave,t}) {
   const virtualShared = folder.isVirtualShared;
   return (<div className={`folder-row${isActive?" active":""}`} onClick={onClick}>
     <FolderMark mark={folder.color} size={18}/>
-    <div style={{flex:1,overflow:"hidden"}}>
-      <div style={{fontSize:13,fontWeight:500,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",display:"flex",alignItems:"center",gap:5}}>
-        {folder.name}
+    <div style={{flex:1,minWidth:0,overflow:"hidden"}}>
+      <div style={{fontSize:13,fontWeight:500,display:"flex",alignItems:"center",gap:5,minWidth:0}}>
+        <span style={{minWidth:0,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{folder.name}</span>
         {virtualShared && <span title="Geteilt mit mir" style={{fontSize:9,color:"var(--shared-fg)",background:"var(--shared-bg)",border:"1px solid var(--shared-border)",borderRadius:99,padding:"1px 6px",fontWeight:600,textTransform:"uppercase",letterSpacing:".04em",flexShrink:0}}>🔗</span>}
       </div>
       <div style={{fontSize:11,color:"var(--muted2)",marginTop:1}}>{folder.setCount} {t.sets} · {folder.cardCount} {t.cardsCount}{folder.cardCount>0&&<span style={{marginLeft:4,color:folder.progress>=80?"var(--green)":"var(--orange)"}}>· {folder.progress}%</span>}</div>
@@ -3150,18 +3153,25 @@ function HomeView({userName,data,rootFolders,onSelectFolder,t,lang}){
           const tintColor = isEmojiMark(f.color) ? "#F5631A" : f.color;
           return (
           <div key={f.id} className="card-hover glass-card" style={{background:`radial-gradient(ellipse 125% 95% at 100% 115%,${tintColor}32 0%,${tintColor}10 40%,transparent 65%),var(--card-bg)`,border:`1px solid ${tintColor}22`,borderRadius:"var(--r-md)",padding:"18px",cursor:"pointer"}} onClick={()=>onSelectFolder(f.id)}>
-            <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between"}}>
-              <div style={{flex:1,marginRight:8}}>
+            <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:8}}>
+              {/* minWidth:0 ist hier kein Detail: ohne das schrumpft die linke
+                  Spalte nie unter ihren Inhalt und schiebt auf schmalen
+                  Kacheln erst die Pille, dann den Fortschrittsring hinaus. */}
+              <div style={{flex:1,minWidth:0}}>
                 {/* Die Pille sass in einer eigenen, ZENTRIERTEN Zeile ueber dem
                     Namen: sie stand als einziges Element mittig, und geteilte
                     Kacheln waren dadurch hoeher als eigene -- die Reihe lief
                     auseinander. Jetzt steht sie in der Titelzeile. */}
-                <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}>
+                {/* Die Pille sitzt in der Titelzeile und der Name weicht ihr
+                    aus. Auf dem Telefon sind die Kacheln nur ~174 px breit --
+                    auf dem Telefon bekommt die Kachel dafuer die volle Breite
+                    (siehe Medienabfrage fuer .hb-g-folders). */}
+                <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6,minWidth:0}}>
                   <FolderMark mark={f.color} size={22}/>
                   <div style={{fontFamily:"Outfit,sans-serif",fontWeight:600,fontSize:15,letterSpacing:"-.2px",minWidth:0,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{f.name}</div>
-                  {shared && <button onClick={e=>{e.stopPropagation();setSharedInfo({name:f.name,sharers:f.sharers||[]});}} title={t.sharedFrom} style={{display:"inline-flex",alignItems:"center",gap:4,fontSize:9,fontWeight:600,color:"var(--shared-fg)",background:"var(--shared-bg)",border:"1px solid var(--shared-border)",borderRadius:99,padding:"2px 7px",textTransform:"uppercase",letterSpacing:".06em",cursor:"pointer",fontFamily:"inherit",transition:"all .15s",flexShrink:0}}>🔗 {t.sharedBadge}</button>}
+                  {shared && <button onClick={e=>{e.stopPropagation();setSharedInfo({name:f.name,sharers:f.sharers||[]});}} title={t.sharedFrom+" — "+(f.sharers||[]).join(", ")} style={{display:"inline-flex",alignItems:"center",gap:4,fontSize:9,lineHeight:1,fontWeight:600,color:"var(--shared-fg)",background:"var(--shared-bg)",border:"1px solid var(--shared-border)",borderRadius:99,padding:"4px 8px",textTransform:"uppercase",letterSpacing:".06em",cursor:"pointer",fontFamily:"inherit",transition:"all .15s",flexShrink:0}}>🔗 {t.sharedBadge}</button>}
                 </div>
-                <div style={{fontSize:12,color:"var(--muted)",whiteSpace:"nowrap"}}>{setsInFolder.length} {t.sets} · {cardsInFolder.length} {t.cardsCount}</div>
+                <div style={{fontSize:12,color:"var(--muted)",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{setsInFolder.length} {t.sets} · {cardsInFolder.length} {t.cardsCount}</div>
               </div>
               <ProgressCircle pct={prog} size={44} stroke={4}/>
             </div>
