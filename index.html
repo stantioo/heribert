@@ -2429,8 +2429,8 @@ function Dashboard({session, onLogout}) {
       {modal?.type==="cardAction" && <CardActionModal
         card={modal.card}
         action={modal.action}
-        sets={data.sets.filter(s=>!s.isSharedWithMe)}
-        folders={data.folders}
+        sets={data.sets.filter(s=>!s.isSharedWithMe || s.canEdit)}
+        folders={[...data.folders, ...sharedFolders.filter(f=>f.sourceFolderId).map(f=>({id:f.sourceFolderId,name:f.name,color:f.color}))]}
         currentSetId={sel.setId}
         onConfirm={async(targetSetId)=>{
           if(modal.action==="copy") await copyCard(modal.card,targetSetId);
