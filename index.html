@@ -340,6 +340,7 @@ html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;background:var(
 // \u2500\u2500\u2500 UTILS \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 const CHANGELOG = {
   de: [
+    {version:"2.3", date:"23.09.2026", items:["Der Ordner-Eigentümer sieht jetzt auch die Sets und Karten, die andere in seinem Ordner angelegt haben — vorher blieb der Ordner bei ihm leer","Mit Bearbeiten-Recht darf man im geteilten Ordner alles: neue Sets anlegen, weitere Leute einladen, Karten ändern und löschen","Reihenfolge von Sets und Karten selbst festlegen — Knopf „Verschieben“, ziehen oder Pfeile; die Reihenfolge gilt für alle im Ordner","Sortierung wählbar: eigene Reihenfolge, neueste/älteste zuerst, A–Z, Z–A","Karten anlegen: Enter springt von der Frage in die Antwort und speichert dort. Am iPhone heißt die Taste dafür jetzt „Weiter“ bzw. „Fertig“","Zeilenumbruch weiterhin mit Shift+Enter — und neu über den Knopf in der Formatleiste (der einzige Weg auf dem Telefon)"]},
     {version:"2.2", date:"30.04.2026", items:["Globale Suche auf jeder Ebene (Ordner/Sets/Karten) direkt in der Button-Leiste","Unterordner: Ordner können einem Überordner zugeordnet werden","Geteilte Ordner zeigen den echten Ordnernamen statt ‚Geteilt mit mir'","Mehrere geteilte Ordner bleiben getrennt (nach Original-Folder gruppiert)","Import-Fix: alte .doc/.ppt-Formate zeigen klare Fehlermeldung","Karteikarten-Editor: 18 Farben + Farbkreis + Hex-Eingabe + Aufzählungs-/Nummernlisten","Lernset-Titel direkt im Header bearbeitbar","Bestätigungspopup nur noch bei echtem Fortschritt","Badge ‚Geteilt mit mir' verkürzt zu ‚GETEILT'"]},
     {version:"2.0", date:"17.04.2026", items:["Fragen in Kartenliste mit Fade-Out abgeschnitten — ausklappbar in voller Länge","Fortschrittskreis mit Lade-Animation und Hover-Effekt","~15 fehlerhafte deutsche Motivationstexte korrigiert (keine Denglisch-Fragmente mehr)","Logo-Klick während Lernsession zeigt stilisierten Bestätigungsdialog","Ordnername + Farbe/Emoji direkt im Ordner-Header bearbeitbar","Neue-Karte-Button mit sichtbarer Outline im Light-Mode"]},
     {version:"1.9", date:"17.04.2026", items:["Ladesymbole einheitlich: der rotierende Heribert-Stern mit Ease-in-out-Loop","Karten-Grid vollständig responsive (auto-fill mit min. 340px pro Karte) — kein Abschneiden mehr","Zahl im Lern-Dialog jetzt gestrichelt unterstrichen als Klickhinweis"]},
@@ -354,6 +355,7 @@ const CHANGELOG = {
     {version:"1.0", date:"14.04.2026", items:["Ordner & Sets erstellen","Karteikarten mit Rich-Text","Fortschritts-Tracking","Teilen per E-Mail"]},
   ],
   en: [
+    {version:"2.3", date:"23.09.2026", items:["Folder owners now also see the sets and cards other people created in their folder — the folder used to look empty to them","With edit rights you can do everything in a shared folder: create sets, invite others, change and delete cards","Set your own order for sets and cards — \"Reorder\" button, drag or arrows; the order applies to everyone in the folder","Choose a sort order: custom, newest/oldest first, A–Z, Z–A","Creating cards: Enter jumps from question to answer and saves there. On iPhone the key is now labelled \"next\" / \"done\"","Line breaks still work with Shift+Enter — and now with the button in the format bar (the only way on a phone)"]},
     {version:"2.2", date:"30.04.2026", items:["Global search on every level (folders/sets/cards) inline with action buttons","Sub-folders: folders can be nested under a parent folder","Shared folders now show the original folder name instead of 'Shared with me'","Multiple shared folders stay separate (grouped by original folder)","Import fix: old .doc/.ppt formats show clear error message","Card editor: 18 colors + color wheel + hex input + bullet/numbered lists","Set title editable directly from header","Confirm popup only shown when there's actual progress","'Shared with me' badge shortened to 'SHARED'"]},
     {version:"2.0", date:"17.04.2026", items:["Questions in card list fade-out when truncated — expand for full text","Progress circle with draw animation and hover glow","~15 broken German motivation texts fixed (no more Denglish)","Logo click during study session shows styled confirmation dialog","Folder name + color/emoji editable from folder header","New Card button with visible border in light mode"]},
     {version:"1.9", date:"17.04.2026", items:["All loaders unified: spinning Heribert star with ease-in-out loop","Card grid fully responsive (auto-fill, min 340px per card) — no more clipping","Number in study dialog now has a dotted underline to hint it's editable"]},
@@ -525,6 +527,22 @@ const T = {
     editCardCount: "Anzahl anpassen — klicken zum Ändern",
     aiLimitTitle: "KI vorübergehend nicht verfügbar",
     aiLimitSub: "Die Gemini-Token sind gerade aufgebraucht oder das Kontingent ist erschöpft. Wir nutzen automatisch Fallback-Optionen — oder versuch es in ein paar Minuten nochmal.",
+    sortBy: "Sortierung",
+    sortManual: "Eigene Reihenfolge",
+    sortNewest: "Neueste zuerst",
+    sortOldest: "Älteste zuerst",
+    sortAZ: "A – Z",
+    sortZA: "Z – A",
+    reorder: "Verschieben",
+    reorderSetsTitle: "Reihenfolge der Sets",
+    reorderCardsTitle: "Reihenfolge der Karten",
+    reorderHint: "Am Griff ziehen oder die Pfeile benutzen. Die Reihenfolge gilt für alle, die den Ordner sehen.",
+    reorderSaved: "Reihenfolge gespeichert",
+    moveUp: "Nach oben",
+    moveDown: "Nach unten",
+    lineBreak: "Zeilenumbruch",
+    enterHintQ: "Enter springt zur Antwort",
+    enterHintA: "Enter speichert die Karte",
   },
   en: {
     overview: "Overview",
@@ -681,6 +699,22 @@ const T = {
     editCardCount: "Tap to edit count",
     aiLimitTitle: "AI temporarily unavailable",
     aiLimitSub: "Gemini tokens are currently exhausted or the quota is used up. We're using fallback options — or try again in a few minutes.",
+    sortBy: "Sort",
+    sortManual: "Custom order",
+    sortNewest: "Newest first",
+    sortOldest: "Oldest first",
+    sortAZ: "A – Z",
+    sortZA: "Z – A",
+    reorder: "Reorder",
+    reorderSetsTitle: "Order of sets",
+    reorderCardsTitle: "Order of cards",
+    reorderHint: "Drag the handle or use the arrows. The order applies to everyone who sees this folder.",
+    reorderSaved: "Order saved",
+    moveUp: "Move up",
+    moveDown: "Move down",
+    lineBreak: "Line break",
+    enterHintQ: "Enter jumps to the answer",
+    enterHintA: "Enter saves the card",
   }
 };
 
@@ -690,6 +724,18 @@ const greetingNames = {
 };
 
 const uid = () => Math.random().toString(36).slice(2,8) + Date.now().toString(36).slice(-4);
+
+// Geteilte Ordner laufen in der Oberflaeche unter einer kuenstlichen ID
+// ("__shared_<echte-id>"), damit sie sich nicht mit den eigenen beissen.
+// Alles, was in die Datenbank geht, braucht die echte ID zurueck.
+const SHARED_PREFIX = "__shared_";
+const resolveFolderId = fid => {
+  if (!fid) return null;
+  const s = String(fid);
+  if (!s.startsWith(SHARED_PREFIX)) return s;
+  const real = s.slice(SHARED_PREFIX.length);
+  return (!real || real === "__unknown") ? null : real;
+};
 
 // --- Adressbuch -----------------------------------------------------------
 // Wen man schon einmal eingeladen hat, soll man nicht wieder abtippen muessen.
@@ -805,8 +851,38 @@ const calcProgress = cards => {
   return Math.round(cards.reduce((s,c) => s+ratingScore(c.lastRating??null), 0) / cards.length * 100);
 };
 const toFolder = r => ({id:r.id, name:r.name, color:r.color, parentId:r.parent_id});
-const toSet    = r => ({id:r.id, folderId:r.folder_id, name:r.name, description:r.description||"", createdAt:r.created_at});
-const toCard   = r => ({id:r.id, setId:r.set_id, questionHtml:r.question_html||"", answerHtml:r.answer_html||"", lastRating:r.last_rating, mcqOptions:r.mcq_options, createdAt:r.created_at});
+const toSet    = r => ({id:r.id, folderId:r.folder_id, name:r.name, description:r.description||"", createdAt:r.created_at, position:r.position});
+const toCard   = r => ({id:r.id, setId:r.set_id, questionHtml:r.question_html||"", answerHtml:r.answer_html||"", lastRating:r.last_rating, mcqOptions:r.mcq_options, createdAt:r.created_at, position:r.position});
+
+// --- Reihenfolge & Sortierung ---------------------------------------------
+// "position" ist die von Hand gesetzte Reihenfolge. Sie steht in der Datenbank
+// und gilt damit fuer ALLE, die den Ordner sehen -- sonst waere ein gemeinsam
+// sortiertes Set bei jedem anders. Welche Sortierung jemand ANSCHAUT, ist
+// dagegen Geschmackssache und bleibt lokal im Browser.
+const SORT_MODES = ["manual","newest","oldest","az","za"];
+const byPosition = (a,b) => {
+  const pa = a.position==null ? Number.MAX_SAFE_INTEGER : a.position;
+  const pb = b.position==null ? Number.MAX_SAFE_INTEGER : b.position;
+  if (pa !== pb) return pa - pb;
+  return String(a.createdAt||"").localeCompare(String(b.createdAt||""));
+};
+const sortLabelOf = (item,kind) => kind==="cards" ? strip(item.questionHtml) : (item.name||"");
+const cmpText = (a,b) => a.localeCompare(b,"de",{sensitivity:"base",numeric:true});
+const applySort = (list,mode,kind) => {
+  const arr = [...list];
+  switch (mode) {
+    case "newest": return arr.sort((a,b)=>String(b.createdAt||"").localeCompare(String(a.createdAt||"")));
+    case "oldest": return arr.sort((a,b)=>String(a.createdAt||"").localeCompare(String(b.createdAt||"")));
+    case "az":     return arr.sort((a,b)=>cmpText(sortLabelOf(a,kind),sortLabelOf(b,kind)));
+    case "za":     return arr.sort((a,b)=>cmpText(sortLabelOf(b,kind),sortLabelOf(a,kind)));
+    default:       return arr.sort(byPosition);
+  }
+};
+const readSort  = key => { try { const v=localStorage.getItem("heribert.sort."+key); return SORT_MODES.includes(v)?v:"manual"; } catch { return "manual"; } };
+const writeSort = (key,v) => { try { localStorage.setItem("heribert.sort."+key,v); } catch {} };
+// Neue Eintraege haengen sich hinten an, statt sich zwischen die von Hand
+// sortierten zu draengen.
+const nextPosition = list => list.reduce((m,x)=> (x.position!=null && x.position>m) ? x.position : m, -1) + 1;
 
 const esc = s => s.replace(/</g,"&lt;").replace(/>/g,"&gt;");
 
@@ -1129,6 +1205,7 @@ const ITrash  = () => <svg width="13" height="13" viewBox="0 0 24 24" fill="none
 const IEdit   = () => <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>;
 const IFolder = ({c="#F5631A",s=16}) => <svg width={s} height={s} viewBox="0 0 24 24" fill={c}><path d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"/></svg>;
 const IShare  = () => <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.59 13.51l6.83 3.98M15.41 6.51l-6.82 3.98"/></svg>;
+const IDrag   = () => <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M8 6h.01M8 12h.01M8 18h.01M16 6h.01M16 12h.01M16 18h.01" strokeLinecap="round"/></svg>;
 const ILogout = () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>;
 const IBook   = () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>;
 const IPdf    = () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>;
@@ -1377,7 +1454,9 @@ function useSheetDrag(){
       const s = e.target.closest?.(".modal");
       if (!s) return;
       // In Eingabefeldern nicht ziehen, das kollidiert mit der Textauswahl.
-      if (e.target.closest?.("input, textarea, [contenteditable='true']")) return;
+      // data-nodrag: Listen, in denen man selbst zieht (Reihenfolge aendern).
+      // Ohne das schliesst die erste Zieh-Bewegung das ganze Fenster.
+      if (e.target.closest?.("input, textarea, [contenteditable='true'], [data-nodrag]")) return;
       sheet = s;
       scroller = findScroller(e.target, s);
       startY = e.touches[0].clientY; dy = 0; dragging = false; decided = false;
@@ -1554,6 +1633,12 @@ function Dashboard({session, onLogout}) {
   const [menuOpen,setMenuOpen]=useState(false);
   const [sideCollapsed,setSideCollapsed]=useState(false);
   const [sideFilter,setSideFilter]=useState("all"); // "all"|"own"|"shared"
+  // Sortierung ist Ansichtssache und bleibt im Browser; die Hand-Reihenfolge
+  // steht dagegen in der Datenbank und gilt fuer alle im Ordner.
+  const [setSort,setSetSortState]  = useState(()=>readSort("sets"));
+  const [cardSort,setCardSortState]= useState(()=>readSort("cards"));
+  const setSetSort  = v => { setSetSortState(v);  writeSort("sets",v); };
+  const setCardSort = v => { setCardSortState(v); writeSort("cards",v); };
   // Shared-folder visibility preference (persisted in localStorage).
   const [hideShared, setHideSharedState] = useState(() => {
     try { return localStorage.getItem("heribert.hideShared") === "1"; } catch { return false; }
@@ -1637,26 +1722,46 @@ function Dashboard({session, onLogout}) {
 
       const shares = shr.data || [];
       const myEmail = (user.email || "").toLowerCase();
+      // Die Ordner-Abfrage liefert dank RLS auch fremde Ordner mit, die mir
+      // freigegeben sind -- daraus kommen Name und Farbe fuer die Kacheln.
+      const folderById = new Map((fr.data||[]).map(f=>[f.id,f]));
+      const myFolderIds = new Set((fr.data||[]).filter(f=>f.user_id===user.id).map(f=>f.id));
+      // Einladungen an MICH, nach Ordner. Daraus kommt das Bearbeiten-Recht
+      // fuer Sets, zu denen es (noch) gar keine eigene Freigabe-Zeile gibt.
+      const myFolderInvites = new Map((ivr.data||[])
+        .filter(iv => (iv.invited_email||"").toLowerCase() === myEmail)
+        .map(iv => [iv.folder_id, !!iv.can_edit]));
       const sets = (sr.data||[]).map(r => {
         const s = toSet(r);
         s.ownerId = r.user_id;
         s.isSharedWithMe = r.user_id !== user.id;
-        if (s.isSharedWithMe) {
-          const sh = shares.find(x => x.set_id === s.id && (x.invited_email || "").toLowerCase() === myEmail);
-          s.sharedBy = sh?.owner_email || null;
-          s.canEdit = !!sh?.can_edit;
-          s.sourceFolderId = sh?.folder_id || s.folderId || null;
-          s.sourceFolderName = sh?.folder_name || null;
-          s.sourceFolderColor = sh?.folder_color || null;
-          s.parentFolderName = sh?.parent_folder_name || null;
-          s.parentFolderColor = sh?.parent_folder_color || null;
-        }
+        const sh = shares.find(x => x.set_id === s.id && (x.invited_email || "").toLowerCase() === myEmail);
+        // Bearbeiten darf ich, wenn das Set mir gehoert, wenn es mir mit
+        // Bearbeiten-Recht freigegeben wurde -- ODER wenn es in einem Ordner
+        // liegt, der mir gehoert bzw. an dem ich Bearbeiten-Recht habe.
+        // Der dritte Fall fehlte: der Ordner-Eigentuemer stand vor Sets, die
+        // jemand anderes in SEINEM Ordner angelegt hatte, wie ein Gast.
+        s.canEdit = !s.isSharedWithMe
+                 || !!sh?.can_edit
+                 || (!!s.folderId && myFolderIds.has(s.folderId))
+                 || (!!s.folderId && myFolderInvites.get(s.folderId) === true);
+        s.sharedBy = s.isSharedWithMe ? (sh?.owner_email || null) : null;
+        // Die Herkunft wird fuer JEDES Set gesetzt, nicht nur fuer
+        // freigegebene: ein Set, das ich selbst in einem fremden Ordner
+        // angelegt habe, gehoert in dessen Kachel und nicht in meine Wurzel.
+        s.sourceFolderId = s.folderId || null;
+        const srcF = s.sourceFolderId ? folderById.get(s.sourceFolderId) : null;
+        s.sourceFolderName  = srcF?.name  || null;
+        s.sourceFolderColor = srcF?.color || null;
+        const parF = srcF?.parent_id ? folderById.get(srcF.parent_id) : null;
+        s.parentFolderName  = parF?.name  || sh?.parent_folder_name  || null;
+        s.parentFolderColor = parF?.color || sh?.parent_folder_color || null;
         return s;
       });
 
-      // For shared sets missing folder metadata: look up the original folders
-      // from the DB. This works even when set_shares doesn't have folder_* columns.
-      const sharedMissingInfo = sets.filter(s=>s.isSharedWithMe && s.sourceFolderId && !s.sourceFolderName);
+      // Ordner, die in der folders-Abfrage fehlen (alte Freigaben ohne
+      // folder_invites-Zeile): Name und Farbe einzeln nachladen.
+      const sharedMissingInfo = sets.filter(s=>s.sourceFolderId && !s.sourceFolderName);
       if (sharedMissingInfo.length > 0) {
         const folderIds = [...new Set(sharedMissingInfo.map(s=>s.sourceFolderId).filter(Boolean))];
         try {
@@ -1686,9 +1791,6 @@ function Dashboard({session, onLogout}) {
           if (userRatings.has(c.id)) c.lastRating = userRatings.get(c.id);
         }
       }
-      // Die Ordner-Abfrage liefert dank RLS auch fremde Ordner mit, die mir
-      // freigegeben sind -- daraus kommen Name und Farbe fuer die Kacheln.
-      const folderById = new Map((fr.data||[]).map(f=>[f.id,f]));
       const invitedFolders = (ivr.data||[])
         .filter(iv => (iv.invited_email||"").toLowerCase() === myEmail)
         .map(iv => {
@@ -1777,12 +1879,17 @@ function Dashboard({session, onLogout}) {
   const updateFolder = async (fid,name,color,parentId) => { const {error}=await sb.from("folders").update({name,color,parent_id:parentId===undefined?undefined:(parentId||null)}).eq("id",fid); if(fail(error,"Ordner konnte nicht gespeichert werden"))return; setData(d=>({...d,folders:d.folders.map(f=>f.id===fid?{...f,name,color,...(parentId!==undefined?{parentId:parentId||null}:{})}:f)})); setModal(null); };
   const createSet = async (name,desc) => {
     const id=uid(); const now=new Date().toISOString();
+    // In einem GETEILTEN Ordner steht in sel.folderId die kuenstliche
+    // "__shared_"-ID. Ungeprueft weitergereicht landete sie als folder_id in
+    // der Datenbank -- und lief in den Fremdschluessel.
+    const folderId = resolveFolderId(sel.folderId);
     // Never swallow this error. If the insert fails, the set does not exist in
     // the DB -- but the optimistic setData() below would still show it. Every
     // follow-up action (inviting someone, saving a card) then points at a set
     // that isn't there and dies with a confusing "violates row-level security"
     // message somewhere else entirely.
-    const {error:setError} = await sb.from("sets").insert({id,user_id:user.id,folder_id:sel.folderId,name,description:desc,created_at:now});
+    const pos = nextPosition(data.sets.filter(x=>x.folderId===folderId));
+    const {error:setError} = await sb.from("sets").insert({id,user_id:user.id,folder_id:folderId,name,description:desc,created_at:now,position:pos});
     if (fail(setError,"Set konnte nicht angelegt werden")) return;
     // Propagate folder-level shares to the new set: find all emails currently
     // sharing any sibling set in this folder and add shares for the new set.
@@ -1791,14 +1898,16 @@ function Dashboard({session, onLogout}) {
     // Nachbarsets. Vorher gab es nur Letztere -- in einem frisch angelegten
     // Ordner konnte man deshalb niemanden einladen.
     const recipients = new Map();
-    if (sel.folderId) {
-      const {data:inv} = await sb.from("folder_invites").select("invited_email,can_edit").eq("folder_id", sel.folderId);
+    if (folderId) {
+      const {data:inv} = await sb.from("folder_invites").select("invited_email,can_edit").eq("folder_id", folderId);
       for (const iv of (inv||[])) {
         const m = (iv.invited_email||"").toLowerCase();
         if (m) recipients.set(m, !!iv.can_edit);
       }
     }
-    const siblingIds = data.sets.filter(s=>!s.isSharedWithMe && s.folderId===sel.folderId).map(s=>s.id);
+    // Geschwister sind ALLE Sets im Ordner -- in einem geteilten Ordner sind
+    // die von jemand anderem, das aendert an den Freigaben nichts.
+    const siblingIds = data.sets.filter(s=>s.folderId===folderId).map(s=>s.id);
     if (siblingIds.length > 0) {
       const {data:sh} = await sb.from("set_shares").select("invited_email,can_edit").in("set_id", siblingIds);
       for (const x of (sh||[])) {
@@ -1806,6 +1915,9 @@ function Dashboard({session, onLogout}) {
         if (m) recipients.set(m, recipients.get(m) || !!x.can_edit);
       }
     }
+    // Sich selbst laedt man nicht ein -- in einem fremden Ordner steht die
+    // eigene Adresse sonst in den Einladungen und man teilt mit sich selbst.
+    recipients.delete((user.email||"").toLowerCase());
     if (recipients.size > 0) {
       // Nicht abbrechen: das Set steht schon. Aber melden, sonst wundert man
       // sich spaeter, warum die anderen das neue Set nicht sehen.
@@ -1813,11 +1925,26 @@ function Dashboard({session, onLogout}) {
         Array.from(recipients, ([mail,ce]) => ({set_id:id, invited_email:mail, owner_email:user.email, owner_id:user.id, can_edit:ce})));
       fail(shareError,"Set angelegt, aber die Freigaben des Ordners wurden nicht uebernommen");
     }
-    setData(d=>({...d,sets:[...d.sets,{id,folderId:sel.folderId,name,description:desc,createdAt:now}]}));
+    setData(d=>({...d,sets:[...d.sets,{id,folderId,name,description:desc,createdAt:now,position:pos,canEdit:true,sourceFolderId:folderId}]}));
     setModal(null);
   };
   const removeSet = async (sid) => { const {error}=await sb.from("sets").delete().eq("id",sid); if(fail(error,"Set konnte nicht geloescht werden"))return; setData(d=>({...d,sets:d.sets.filter(s=>s.id!==sid),cards:d.cards.filter(c=>c.setId!==sid)})); if(sel.setId===sid)setSel(p=>({...p,setId:null})); };
   const renameSet = async (sid,name) => { const {error}=await sb.from("sets").update({name}).eq("id",sid); if(fail(error,"Set konnte nicht umbenannt werden"))return; setData(d=>({...d,sets:d.sets.map(s=>s.id===sid?{...s,name}:s)})); };
+
+  // --- Reihenfolge von Hand ------------------------------------------------
+  // Eine Zeile pro Karte waeren bei 100 Karten 100 Anfragen. Die beiden
+  // RPC-Funktionen setzen alle Positionen in einem Rutsch; sie laufen mit den
+  // Rechten des Aufrufers, es greifen also dieselben RLS-Regeln wie sonst.
+  const reorderSets = async (ids) => {
+    setData(d=>({...d,sets:d.sets.map(s=>{const i=ids.indexOf(s.id);return i<0?s:{...s,position:i};})}));
+    const {error} = await sb.rpc("reorder_sets",{p_ids:ids});
+    if (fail(error,"Reihenfolge konnte nicht gespeichert werden")) return;
+  };
+  const reorderCards = async (ids) => {
+    setData(d=>({...d,cards:d.cards.map(c=>{const i=ids.indexOf(c.id);return i<0?c:{...c,position:i};})}));
+    const {error} = await sb.rpc("reorder_cards",{p_ids:ids});
+    if (fail(error,"Reihenfolge konnte nicht gespeichert werden")) return;
+  };
 
   const saveCard = async (card) => {
     const isNew = !card.id; setSaving(true);
@@ -1825,11 +1952,12 @@ function Dashboard({session, onLogout}) {
     const a = safeHtml(card.answerHtml);
     if (isNew) {
       const id=uid(); const now=new Date().toISOString();
-      const {error} = await sb.from("cards").insert({id,user_id:user.id,set_id:sel.setId,question_html:q,answer_html:a,last_rating:null,mcq_options:null,created_at:now});
+      const pos = nextPosition(data.cards.filter(c=>c.setId===sel.setId));
+      const {error} = await sb.from("cards").insert({id,user_id:user.id,set_id:sel.setId,question_html:q,answer_html:a,last_rating:null,mcq_options:null,created_at:now,position:pos});
       // Bail out BEFORE closing the editor, so a failed save doesn't throw away
       // what the user just typed.
       if (error) { setSaving(false); fail(error,"Karte konnte nicht gespeichert werden"); return; }
-      setData(d=>({...d,cards:[...d.cards,{id,setId:sel.setId,questionHtml:q,answerHtml:a,lastRating:null,mcqOptions:null,createdAt:now}]}));
+      setData(d=>({...d,cards:[...d.cards,{id,setId:sel.setId,questionHtml:q,answerHtml:a,lastRating:null,mcqOptions:null,createdAt:now,position:pos}]}));
     } else {
       const {error} = await sb.from("cards").update({question_html:q,answer_html:a,mcq_options:null}).eq("id",card.id);
       if (error) { setSaving(false); fail(error,"Aenderung konnte nicht gespeichert werden"); return; }
@@ -1840,14 +1968,18 @@ function Dashboard({session, onLogout}) {
   const removeCard = async (cid) => { const {error}=await sb.from("cards").delete().eq("id",cid); if(fail(error,"Karte konnte nicht geloescht werden"))return; setData(d=>({...d,cards:d.cards.filter(c=>c.id!==cid)})); };
   const copyCard = async (card, targetSetId) => {
     const id=uid(); const now=new Date().toISOString();
-    const {error} = await sb.from("cards").insert({id,user_id:user.id,set_id:targetSetId,question_html:card.questionHtml,answer_html:card.answerHtml,last_rating:null,mcq_options:null,created_at:now});
+    const pos = nextPosition(data.cards.filter(c=>c.setId===targetSetId));
+    const {error} = await sb.from("cards").insert({id,user_id:user.id,set_id:targetSetId,question_html:card.questionHtml,answer_html:card.answerHtml,last_rating:null,mcq_options:null,created_at:now,position:pos});
     if (fail(error,"Karte konnte nicht kopiert werden")) return;
-    setData(d=>({...d,cards:[...d.cards,{id,setId:targetSetId,questionHtml:card.questionHtml,answerHtml:card.answerHtml,lastRating:null,mcqOptions:null,createdAt:now}]}));
+    setData(d=>({...d,cards:[...d.cards,{id,setId:targetSetId,questionHtml:card.questionHtml,answerHtml:card.answerHtml,lastRating:null,mcqOptions:null,createdAt:now,position:pos}]}));
   };
   const moveCard = async (card, targetSetId) => {
-    const {error} = await sb.from("cards").update({set_id:targetSetId}).eq("id",card.id);
+    // Eine verschobene Karte haengt sich hinten an. Behielte sie ihre alte
+    // Position, stuende sie im Zielset mitten zwischen fremden Karten.
+    const pos = nextPosition(data.cards.filter(c=>c.setId===targetSetId));
+    const {error} = await sb.from("cards").update({set_id:targetSetId,position:pos}).eq("id",card.id);
     if (fail(error,"Karte konnte nicht verschoben werden")) return;
-    setData(d=>({...d,cards:d.cards.map(c=>c.id===card.id?{...c,setId:targetSetId}:c)}));
+    setData(d=>({...d,cards:d.cards.map(c=>c.id===card.id?{...c,setId:targetSetId,position:pos}:c)}));
   };
   const updateCardRating = async (cid,rating) => {
     if (hasRatingsTable.current) {
@@ -1952,15 +2084,16 @@ function Dashboard({session, onLogout}) {
   const confirmPDFImport = async (approvedCards) => {
     if (!approvedCards.length || !sel.setId) { setModal(null); return; }
     const now = new Date().toISOString();
-    const rows = approvedCards.map(c => ({
+    const base = nextPosition(data.cards.filter(c=>c.setId===sel.setId));
+    const rows = approvedCards.map((c,i) => ({
       id:uid(), user_id:user.id, set_id:sel.setId,
       question_html:safeHtml(`<p>${esc(c.q)}</p>`),
       answer_html:safeHtml(`<p>${esc(c.a)}</p>`),
-      last_rating:null, mcq_options:null, created_at:now,
+      last_rating:null, mcq_options:null, created_at:now, position:base+i,
     }));
     const {error} = await sb.from("cards").insert(rows);
     if (error) { setModal({type:"pdfError", msg:"Die Karten konnten nicht gespeichert werden:\n\n" + error.message}); return; }
-    setData(d=>({...d,cards:[...d.cards,...rows.map(r=>({id:r.id,setId:r.set_id,questionHtml:r.question_html,answerHtml:r.answer_html,lastRating:null,mcqOptions:null,createdAt:r.created_at}))]}));
+    setData(d=>({...d,cards:[...d.cards,...rows.map(r=>({id:r.id,setId:r.set_id,questionHtml:r.question_html,answerHtml:r.answer_html,lastRating:null,mcqOptions:null,createdAt:r.created_at,position:r.position}))]}));
     setModal({type:"pdfDone", count:rows.length});
   };
 
@@ -1984,10 +2117,14 @@ function Dashboard({session, onLogout}) {
   // tile with the original name and color, plus a small "Geteilt mit mir"
   // label. Legacy shares without source metadata fall back into a single
   // "Geteilt mit mir" bucket.
-  const sharedSets = data.sets.filter(s => s.isSharedWithMe);
-  const ownedSets = data.sets.filter(s => !s.isSharedWithMe);
+  // Ein Set gehoert dorthin, wo sein ORDNER liegt -- nicht dorthin, wo sein
+  // Ersteller sitzt. Sonst landet das Set, das Fiona in Lilos Ordner anlegt,
+  // bei Fiona lose in der Wurzel und bei Lilo ueberhaupt nicht.
+  const myFolderIds = new Set(data.folders.map(f=>f.id));
+  const sharedSets = data.sets.filter(s => s.folderId ? !myFolderIds.has(s.folderId) : s.isSharedWithMe);
+  const ownedSets  = data.sets.filter(s => s.folderId ?  myFolderIds.has(s.folderId) : !s.isSharedWithMe);
   const set = data.sets.find(s=>s.id===sel.setId);
-  const setCCards = data.cards.filter(c=>c.setId===sel.setId);
+  const setCCards = applySort(data.cards.filter(c=>c.setId===sel.setId), cardSort, "cards");
   const enrichFolder = f => {
     const children = data.folders.filter(cf=>cf.parentId===f.id);
     const childSets = children.flatMap(cf=>ownedSets.filter(s=>s.folderId===cf.id));
@@ -2017,18 +2154,20 @@ function Dashboard({session, onLogout}) {
           parentFolderColor: s.parentFolderColor || null,
           isVirtualShared: true,
           sourceFolderId: s.sourceFolderId || null,
+          canEdit: false,
           sets: [],
           sharers: new Set(),
         });
       }
       const g = groups.get(key);
       g.sets.push(s);
+      if (s.canEdit) g.canEdit = true;
       if (s.sharedBy) g.sharers.add(s.sharedBy.toLowerCase());
     }
     // Eingeladene Ordner, in denen (noch) kein Set liegt. Sie bekommen eine
     // eigene, leere Kachel -- sonst waere von der Einladung nichts zu sehen.
     for (const inv of invitedFolders) {
-      if (groups.has(inv.id)) continue;
+      if (groups.has(inv.id)) { if (inv.canEdit) groups.get(inv.id).canEdit = true; continue; }
       groups.set(inv.id, {
         id: "__shared_" + inv.id,
         name: inv.name || "Geteilt mit mir",
@@ -2038,6 +2177,7 @@ function Dashboard({session, onLogout}) {
         parentFolderColor: inv.parentFolderColor,
         isVirtualShared: true,
         sourceFolderId: inv.id,
+        canEdit: !!inv.canEdit,
         sets: [],
         sharers: new Set(inv.sharedBy ? [inv.sharedBy.toLowerCase()] : []),
       });
@@ -2089,9 +2229,13 @@ function Dashboard({session, onLogout}) {
   const folder = isViewingShared
     ? currentSharedFolder
     : data.folders.find(f=>f.id===sel.folderId);
-  const folderSets = isViewingShared
+  const folderSets = applySort(isViewingShared
     ? (currentSharedFolder?.sets || [])
-    : ownedSets.filter(s=>s.folderId===sel.folderId);
+    : ownedSets.filter(s=>s.folderId===sel.folderId), setSort, "sets");
+  // In einem geteilten Ordner haengt alles am Bearbeiten-Recht. Eigene Ordner
+  // darf man immer. Das war die zweite Haelfte des Problems: die Knoepfe waren
+  // fuer geteilte Ordner pauschal ausgeblendet, egal welche Rechte man hatte.
+  const canEditFolder = isViewingShared ? !!currentSharedFolder?.canEdit : !!sel.folderId;
 
   if (studyMode) {
     const Exit=()=>{studyHasProgress.current=false;setStudyMode(null);};
@@ -2189,6 +2333,8 @@ function Dashboard({session, onLogout}) {
           {!sel.folderId && <HomeView userName={userName} data={data} rootFolders={rootFolders} onSelectFolder={openFolder} t={t} lang={lang}/>}
           {sel.folderId && !sel.setId && (
             <FolderView folder={folder} sets={folderSets} data={data} t={t}
+              canEdit={canEditFolder} sort={setSort} onSort={setSetSort}
+              onReorder={folderSets.length>1?(()=>setModal({type:"reorderSets"})):null}
               onBack={()=>setSel({folderId:null,setId:null})} onNewSet={()=>setModal({type:"set"})}
               onSelectSet={sid=>setSel(p=>({...p,setId:sid}))}
               onLearnSet={(s,sc)=>setStudyConfig({sourceName:s.name,cards:sc,isFolder:false})}
@@ -2198,11 +2344,13 @@ function Dashboard({session, onLogout}) {
                 setStudyConfig({sourceName:folder.name,cards:fc,isFolder:true});
               }}
               onDeleteSet={sid=>{if(confirm(t.setDelete))removeSet(sid);}} onRenameSet={renameSet}
-              onShareFolder={()=>!isViewingShared && setModal({type:"folderShare",folderId:folder.id})}
+              onShareFolder={()=>setModal({type:"folderShare",folderId:resolveFolderId(sel.folderId)})}
               onEditFolder={()=>{if(!isViewingShared){setEditFolder(folder);setModal({type:"folder"});}}}/>
           )}
           {sel.setId && (
             <SetView set={set} folder={folder} cards={setCCards} t={t}
+              sort={cardSort} onSort={setCardSort}
+              onReorder={setCCards.length>1?(()=>setModal({type:"reorderCards"})):null}
               onBack={()=>setSel(p=>({...p,setId:null}))} onNewCard={()=>setModal({type:"card"})}
               onEditCard={c=>{setEditCard(c);setModal({type:"card"});}} onDeleteCard={removeCard}
               onCopyCard={c=>setModal({type:"cardAction",card:c,action:"copy"})}
@@ -2234,18 +2382,33 @@ function Dashboard({session, onLogout}) {
         t={t} lang={lang} setLang={setLang}/>}
       {modal?.type==="folder" && <FolderModal initial={editFolder} folders={data.folders} t={t} onSave={(name,color,parentId)=>{editFolder?updateFolder(editFolder.id,name,color,parentId):createFolder(name,color,parentId);setEditFolder(null);}} onClose={()=>{setModal(null);setEditFolder(null);}}/>}
       {modal?.type==="set" && <SetModal onSave={createSet} onClose={()=>setModal(null)} t={t}/>}
+      {modal?.type==="reorderSets" && <OrderModal t={t} title={t.reorderSetsTitle} hint={t.reorderHint}
+        items={applySort(folderSets,"manual","sets")} renderLabel={x=>x.name}
+        onSave={async ids=>{setSetSort("manual");await reorderSets(ids);}} onClose={()=>setModal(null)}/>}
+      {modal?.type==="reorderCards" && <OrderModal t={t} title={t.reorderCardsTitle} hint={t.reorderHint}
+        items={applySort(setCCards,"manual","cards")} renderLabel={x=>strip(x.questionHtml)||"—"}
+        onSave={async ids=>{setCardSort("manual");await reorderCards(ids);}} onClose={()=>setModal(null)}/>}
       {modal?.type==="card" && <CardModal card={editCard} saving={saving} t={t} onSave={c=>{saveCard(c);setEditCard(null);}} onClose={()=>{setModal(null);setEditCard(null);}}/>}
-      {modal?.type==="folderShare" && <FolderShareModal t={t}
-        folder={data.folders.find(x=>x.id===modal.folderId)}
+      {modal?.type==="folderShare" && (()=>{
+        // Auch aus einem GETEILTEN Ordner heraus einladen: dann steht der
+        // Ordner nicht in data.folders, Name und Farbe kommen aus der Kachel.
+        const fid = modal.folderId;
+        const own = data.folders.find(x=>x.id===fid);
+        const virt = own ? null : sharedFolders.find(f=>f.sourceFolderId===fid);
+        const f = own || (virt ? {id:fid, name:virt.name, color:virt.color, parentId:null} : null);
+        if (!f) return null;
+        return <FolderShareModal t={t}
+        folder={f}
         allFolders={data.folders}
-        folderSets={data.sets.filter(s=>!s.isSharedWithMe && s.folderId===modal.folderId)}
+        folderSets={data.sets.filter(s=>s.folderId===fid)}
         ownerEmail={user.email}
         ownerId={user.id}
         ownerAvatar={avatarUrl}
         ownerName={userName}
         knownContacts={contacts}
         onRemember={(email)=>setContacts(rememberContacts(user.id,[email]))}
-        onClose={()=>{setModal(null);loadAll();}}/>}
+        onClose={()=>{setModal(null);loadAll();}}/>;
+      })()}
       {modal?.type==="pdfLoading" && <SimpleModal title="📄 PDF verarbeiten" onClose={undefined}>
         <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:14,padding:"8px 0 4px"}}>
           <ISpin s={32}/>
@@ -2289,7 +2452,7 @@ function Dashboard({session, onLogout}) {
 }
 
 // \u2500\u2500\u2500 FOLDER VIEW \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
-function FolderView({folder,sets,data,onBack,onNewSet,onSelectSet,onLearnSet,onLearnFolder,onDeleteSet,onRenameSet,onShareFolder,onEditFolder,t}) {
+function FolderView({folder,sets,data,onBack,onNewSet,onSelectSet,onLearnSet,onLearnFolder,onDeleteSet,onRenameSet,onShareFolder,onEditFolder,canEdit,sort,onSort,onReorder,t}) {
   const isShared = folder?.isVirtualShared;
   const folderCards = data.cards.filter(c=>sets.some(s=>s.id===c.setId));
   const folderProg = calcProgress(folderCards);
@@ -2327,15 +2490,17 @@ function FolderView({folder,sets,data,onBack,onNewSet,onSelectSet,onLearnSet,onL
         </div>
         <div style={{display:"flex",gap:8,flexWrap:"wrap",alignItems:"center"}}>
           {sets.length>0 && <SearchInput value={setSearch} onChange={setSetSearch} placeholder={t.searchSets} inline/>}
+          {sets.length>1 && <SortMenu value={sort} onChange={onSort} t={t}/>}
+          {canEdit && onReorder && <button className="btn-sm" onClick={onReorder} title={t.reorderSetsTitle}><IDrag/> {t.reorder}</button>}
           {folderCards.length>0 && <button className="btn-o" onClick={onLearnFolder}><IBook/> {t.learnFolder}</button>}
-          {!isShared && <button className="btn-sm" onClick={onShareFolder}><IShare/> {t.share}</button>}
-          {!isShared && <button className="btn-g" onClick={onNewSet}><IPlus/> {t.newSet}</button>}
+          {canEdit && <button className="btn-sm" onClick={onShareFolder}><IShare/> {t.share}</button>}
+          {canEdit && <button className="btn-g" onClick={onNewSet}><IPlus/> {t.newSet}</button>}
         </div>
       </div>
       {(()=>{
         const filtered=setSearch.trim().length>=1?sets.filter(s=>s.name.toLowerCase().includes(setSearch.trim().toLowerCase())):sets;
         return filtered.length===0 && sets.length===0
-          ? <EmptyState icon={isShared?"👥":"📚"} title={isShared?t.sharedWithMe:t.noSets} sub={isShared?t.sharedWithMe:t.noSetsSub} btnLabel={isShared?null:"+ "+t.newSet} onBtn={isShared?null:onNewSet}/>
+          ? <EmptyState icon={isShared?"👥":"📚"} title={isShared?t.sharedWithMe:t.noSets} sub={isShared?t.sharedWithMe:t.noSetsSub} btnLabel={canEdit?"+ "+t.newSet:null} onBtn={canEdit?onNewSet:null}/>
           : filtered.length===0
             ? <div style={{padding:"20px 0",color:"var(--muted)",fontSize:14,textAlign:"center"}}>{t.noSearchResults}</div>
             : <div className="hb-g-sets" style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(240px,1fr))",gap:16}}>
@@ -2347,7 +2512,7 @@ function FolderView({folder,sets,data,onBack,onNewSet,onSelectSet,onLearnSet,onL
 }
 
 // \u2500\u2500\u2500 SET VIEW \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
-function SetView({set,folder,cards,onBack,onNewCard,onEditCard,onDeleteCard,onCopyCard,onMoveCard,onLearn,onImportPDF,onExport,onRenameSet,t}) {
+function SetView({set,folder,cards,onBack,onNewCard,onEditCard,onDeleteCard,onCopyCard,onMoveCard,onLearn,onImportPDF,onExport,onRenameSet,sort,onSort,onReorder,t}) {
   const prog = calcProgress(cards);
   const readOnly = set?.isSharedWithMe && !set?.canEdit;
   const [editing,setEditing]=useState(false);
@@ -2380,6 +2545,8 @@ function SetView({set,folder,cards,onBack,onNewCard,onEditCard,onDeleteCard,onCo
         </div>
         <div style={{display:"flex",gap:8,flexWrap:"wrap",alignItems:"center"}}>
           {cards.length>0 && <SearchInput value={cardSearch} onChange={setCardSearch} placeholder={t.searchCards} inline/>}
+          {cards.length>1 && <SortMenu value={sort} onChange={onSort} t={t}/>}
+          {!readOnly && onReorder && <button className="btn-sm" onClick={onReorder} title={t.reorderCardsTitle}><IDrag/> {t.reorder}</button>}
           {!readOnly && <label className="btn-sm" style={{cursor:"pointer"}}><IPdf/> {t.import||"Import"} <input type="file" accept=".pdf,.docx,.pptx" style={{display:"none"}} onChange={e=>e.target.files[0]&&onImportPDF(e.target.files[0])}/></label>}
           {cards.length>0 && <button className="btn-sm" onClick={onExport}><IDownload/> {t.export}</button>}
           {cards.length>0 && <button className="btn-o" onClick={onLearn}><IBook/> {t.learn}</button>}
@@ -3235,6 +3402,15 @@ function SetModal({onSave,onClose,t}) {
 }
 
 const richFmt=(cmd,val=null)=>document.execCommand(cmd,false,val);
+// Enter bestaetigt die Karte (siehe CardModal) -- der Zeilenumbruch braucht
+// deshalb einen eigenen Weg. Am Rechner Shift+Enter, auf dem Telefon dieser
+// Knopf: Shift gibt es auf der iOS-Tastatur in Verbindung mit Enter nicht.
+const richLineBreak=(ref)=>{
+  ref?.current?.focus();
+  let done=false;
+  try { done = document.execCommand("insertLineBreak"); } catch {}
+  if (!done) { try { document.execCommand("insertHTML",false,"<br>"); } catch {} }
+};
 const richInsImg=async(file,ref)=>{const reader=new FileReader();reader.onload=e=>{ref.current?.focus();document.execCommand("insertImage",false,e.target.result);};reader.readAsDataURL(file);};
 function RichToolBar({targetRef,compact}){
     const fmt=richFmt;
@@ -3266,6 +3442,9 @@ function RichToolBar({targetRef,compact}){
       <div style={{width:1,height:18,background:"var(--border)",margin:"0 2px"}}/>
       <TB cmd="insertUnorderedList" lbl={<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="9" y1="6" x2="20" y2="6"/><line x1="9" y1="12" x2="20" y2="12"/><line x1="9" y1="18" x2="20" y2="18"/><circle cx="4" cy="6" r="1.5" fill="currentColor" stroke="none"/><circle cx="4" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="4" cy="18" r="1.5" fill="currentColor" stroke="none"/></svg>}/>
       <TB cmd="insertOrderedList" lbl={<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="10" y1="6" x2="20" y2="6"/><line x1="10" y1="12" x2="20" y2="12"/><line x1="10" y1="18" x2="20" y2="18"/><text x="2" y="8" fontSize="8" fill="currentColor" stroke="none" fontFamily="sans-serif">1</text><text x="2" y="14" fontSize="8" fill="currentColor" stroke="none" fontFamily="sans-serif">2</text><text x="2" y="20" fontSize="8" fill="currentColor" stroke="none" fontFamily="sans-serif">3</text></svg>}/>
+      <button onMouseDown={e=>{e.preventDefault();richLineBreak(targetRef);}} onTouchStart={e=>{e.preventDefault();richLineBreak(targetRef);}} title="Zeilenumbruch (Shift+Enter)" style={{width:26,height:26,border:"1px solid var(--border)",borderRadius:5,background:"var(--btn-sm-bg)",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",color:"var(--text)"}}>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 5v6a3 3 0 01-3 3H4"/><path d="M8 10l-4 4 4 4"/></svg>
+      </button>
       <div style={{width:1,height:18,background:"var(--border)",margin:"0 2px"}}/>
       <select value={fontFamily} onMouseDown={e=>e.stopPropagation()} onChange={e=>{applyFontFamily(e.target.value);}} style={{height:26,padding:"0 4px",border:"1px solid var(--border)",borderRadius:5,background:"var(--btn-sm-bg)",color:"var(--text)",fontSize:11,cursor:"pointer",outline:"none",maxWidth:80}}>
         {[["DM Sans","Sans"],["Outfit","Outfit"],["Georgia","Serif"],["Courier New","Mono"],["Comic Sans MS","Comic"]].map(([v,l])=><option key={v} value={v} style={{fontFamily:v}}>{l}</option>)}
@@ -3309,20 +3488,158 @@ function RichToolBar({targetRef,compact}){
     </div>);
 }
 
+// Der Cursor ans Ende, wenn man vom Frage- ins Antwortfeld springt.
+const caretToEnd = el => {
+  if (!el) return;
+  try {
+    const r=document.createRange(); r.selectNodeContents(el); r.collapse(false);
+    const s=window.getSelection(); s.removeAllRanges(); s.addRange(r);
+  } catch {}
+};
+// Steht der Cursor in einer Aufzaehlung? Dort muss Enter den naechsten Punkt
+// anlegen, sonst laesst sich keine Liste tippen.
+const caretInList = () => {
+  const sel=window.getSelection(); let n=sel&&sel.anchorNode;
+  while (n) { if (n.nodeType===1 && /^(LI|UL|OL)$/.test(n.nodeName)) return true; n=n.parentNode; }
+  return false;
+};
+
 function CardModal({card,saving,onSave,onClose,t}) {
   const qRef=useRef(); const aRef=useRef();
+  const saveRef=useRef(()=>{});
   useEffect(()=>{if(qRef.current)qRef.current.innerHTML=safeHtml(card?.questionHtml);if(aRef.current)aRef.current.innerHTML=safeHtml(card?.answerHtml);},[]);
   const save=()=>{const q=qRef.current?.innerHTML||"";const a=aRef.current?.innerHTML||"";if(!strip(q)&&!strip(a))return;onSave({...(card||{}),questionHtml:q,answerHtml:a,mcqOptions:null});};
+  saveRef.current=save;
+  // Enter im Fragefeld springt zur Antwort, Enter im Antwortfeld speichert.
+  // Auf dem iPhone gibt es kein Shift+Enter -- die Return-Taste ist dort der
+  // einzige Bestaetigungs-Knopf, den die Tastatur hergibt. "enterkeyhint"
+  // beschriftet sie passend mit "Weiter" bzw. "Fertig".
+  // Abgefangen wird "beforeinput"/insertParagraph statt keydown: das ist der
+  // Weg, den iOS-Safari zuverlaessig meldet. Shift+Enter erzeugt dagegen
+  // "insertLineBreak" und laeuft unangetastet durch.
+  useEffect(()=>{
+    const wire = (el, isAnswer) => {
+      if (!el) return null;
+      el.setAttribute("enterkeyhint", isAnswer ? "done" : "next");
+      const h = e => {
+        if (e.inputType !== "insertParagraph") return;
+        if (caretInList()) return;
+        e.preventDefault();
+        if (isAnswer) saveRef.current();
+        else { aRef.current?.focus(); caretToEnd(aRef.current); }
+      };
+      el.addEventListener("beforeinput", h);
+      return () => el.removeEventListener("beforeinput", h);
+    };
+    const offQ = wire(qRef.current,false), offA = wire(aRef.current,true);
+    return ()=>{ offQ&&offQ(); offA&&offA(); };
+  },[]);
   return(<div className="overlay" onClick={onClose}><div className="modal si" style={{maxWidth:580,padding:0}} onClick={e=>e.stopPropagation()}>
     <div style={{padding:"24px 28px 16px",borderBottom:"1px solid var(--border)",background:"var(--glass-hover)",position:"relative"}}><ModalX onClose={onClose}/><h3 style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:18}}>{card?t.editCard:t.newCard}</h3></div>
-    {[{label:t.question,ref:qRef,ph:t.question+" …"},{label:t.answer,ref:aRef,ph:t.answer+" …"}].map(({label,ref,ph})=>(<div key={label} style={{borderBottom:"1px solid var(--border)"}}>
-      <div style={{fontSize:12,fontWeight:600,color:"var(--muted)",padding:"10px 14px 0",textTransform:"uppercase",letterSpacing:".06em"}}>{label}</div>
+    {[{label:t.question,ref:qRef,ph:t.question+" …",hint:t.enterHintQ},{label:t.answer,ref:aRef,ph:t.answer+" …",hint:t.enterHintA}].map(({label,ref,ph,hint})=>(<div key={label} style={{borderBottom:"1px solid var(--border)"}}>
+      <div style={{display:"flex",alignItems:"baseline",justifyContent:"space-between",gap:10,padding:"10px 14px 0"}}>
+        <span style={{fontSize:12,fontWeight:600,color:"var(--muted)",textTransform:"uppercase",letterSpacing:".06em"}}>{label}</span>
+        <span style={{fontSize:10.5,color:"var(--muted2)",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{hint}</span>
+      </div>
       <RichToolBar targetRef={ref}/>
       <div className="rich" contentEditable ref={ref} data-ph={ph} onDrop={e=>{e.preventDefault();const f=e.dataTransfer?.files?.[0];if(f?.type.startsWith("image/"))richInsImg(f,ref);}} onDragOver={e=>e.preventDefault()} style={{minHeight:90,fontSize:15}}/>
     </div>))}
     <div style={{padding:"16px 28px",display:"flex",gap:10,justifyContent:"flex-end",background:"var(--glass)"}}>
       <button className="btn-g" onClick={onClose}>{t.cancel}</button>
       <button className="btn-o" onClick={save} disabled={saving}>{saving?<ISpin c="#fff" s={16}/>:(card?t.save:t.create)}</button>
+    </div>
+  </div></div>);
+}
+
+// ─── SORTIERUNG & REIHENFOLGE ──────────────────────────────────────
+// Die gewaehlte Sortierung ist reine Ansichtssache und bleibt im Browser.
+// Die HAND-Reihenfolge dagegen steht in der Datenbank und gilt fuer alle.
+function SortMenu({value,onChange,t}){
+  const [open,setOpen]=useState(false);
+  const ref=useRef();
+  useEffect(()=>{
+    if(!open)return;
+    const h=e=>{if(ref.current&&!ref.current.contains(e.target))setOpen(false);};
+    document.addEventListener("click",h,true);
+    return()=>document.removeEventListener("click",h,true);
+  },[open]);
+  const opts=[["manual",t.sortManual],["newest",t.sortNewest],["oldest",t.sortOldest],["az",t.sortAZ],["za",t.sortZA]];
+  const cur=opts.find(o=>o[0]===value)||opts[0];
+  return <div ref={ref} style={{position:"relative",flexShrink:0}}>
+    <button className="btn-sm" title={t.sortBy} onClick={e=>{e.stopPropagation();setOpen(p=>!p);}}>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M3 6h13M3 12h9M3 18h5"/><path d="M18 9l3-3 3 3" transform="translate(-2 0)"/><path d="M19 6v12"/></svg>
+      <span>{cur[1]}</span>
+    </button>
+    {open && <div style={{position:"absolute",top:"100%",right:0,marginTop:6,minWidth:190,background:"var(--glass-modal)",backdropFilter:"blur(40px) saturate(190%)",WebkitBackdropFilter:"blur(40px) saturate(190%)",border:"1px solid var(--glass-bdr)",borderRadius:14,boxShadow:"0 16px 48px rgba(0,0,0,.25),var(--glass-inset)",padding:5,zIndex:999,animation:"scaleIn .12s ease"}}>
+      <div style={{fontSize:10,fontWeight:700,color:"var(--muted2)",letterSpacing:".08em",textTransform:"uppercase",padding:"6px 10px 4px"}}>{t.sortBy}</div>
+      {opts.map(([k,lbl])=>(
+        <button key={k} onClick={e=>{e.stopPropagation();onChange(k);setOpen(false);}} style={{display:"flex",alignItems:"center",gap:8,width:"100%",padding:"8px 10px",border:"none",background:k===value?"var(--glass-hover)":"none",cursor:"pointer",fontSize:13,fontWeight:k===value?600:500,color:k===value?"var(--orange)":"var(--text)",fontFamily:"inherit",borderRadius:8,textAlign:"left"}}>
+          <span style={{width:12,flexShrink:0}}>{k===value?"✓":""}</span>{lbl}
+        </button>
+      ))}
+    </div>}
+  </div>;
+}
+
+// Ziehen laeuft ueber Pointer-Events, nicht ueber HTML5-Drag-and-drop: das
+// gibt es auf dem iPhone schlicht nicht. Die Pfeiltasten daneben sind kein
+// Zierrat, sondern der Weg, der auch mit dicken Fingern sicher trifft.
+function OrderModal({title,hint,items,renderLabel,onSave,onClose,t}){
+  const [list,setList]=useState(items);
+  const listRef=useRef(items);
+  const [dragId,setDragId]=useState(null);
+  const [busy,setBusy]=useState(false);
+  const put=v=>{listRef.current=v;setList(v);};
+  const moveTo=(id,to)=>{
+    const cur=listRef.current;
+    const from=cur.findIndex(x=>x.id===id);
+    if(from<0||to<0||to>=cur.length||to===from)return;
+    const a=[...cur];const [x]=a.splice(from,1);a.splice(to,0,x);put(a);
+  };
+  const bump=(id,delta)=>{const i=listRef.current.findIndex(x=>x.id===id);moveTo(id,i+delta);};
+  const startDrag=(e,id)=>{
+    if(e.button!=null&&e.button!==0)return;
+    e.preventDefault();e.stopPropagation();
+    setDragId(id);
+    const onMove=ev=>{
+      const el=document.elementFromPoint(ev.clientX,ev.clientY);
+      const row=el&&el.closest?el.closest("[data-oi]"):null;
+      if(row){const to=Number(row.getAttribute("data-oi"));if(!Number.isNaN(to))moveTo(id,to);}
+      if(ev.cancelable)ev.preventDefault();
+    };
+    const end=()=>{
+      setDragId(null);
+      window.removeEventListener("pointermove",onMove);
+      window.removeEventListener("pointerup",end);
+      window.removeEventListener("pointercancel",end);
+    };
+    window.addEventListener("pointermove",onMove,{passive:false});
+    window.addEventListener("pointerup",end);
+    window.addEventListener("pointercancel",end);
+  };
+  const save=async()=>{setBusy(true);await onSave(list.map(x=>x.id));setBusy(false);onClose();};
+  return(<div className="overlay" onClick={onClose}><div className="modal si" style={{maxWidth:520,padding:0,display:"flex",flexDirection:"column",maxHeight:"84vh"}} onClick={e=>e.stopPropagation()}>
+    <div style={{padding:"22px 26px 14px",borderBottom:"1px solid var(--border)",background:"var(--glass-hover)",position:"relative",flexShrink:0}}>
+      <ModalX onClose={onClose}/>
+      <h3 style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:18,marginRight:36}}>{title}</h3>
+      <p style={{color:"var(--muted)",fontSize:12.5,marginTop:6,lineHeight:1.5}}>{hint}</p>
+    </div>
+    <div data-nodrag style={{flex:1,overflowY:"auto",padding:"10px 14px",touchAction:"pan-y"}}>
+      {list.map((it,i)=>(
+        <div key={it.id} data-oi={i} style={{display:"flex",alignItems:"center",gap:8,padding:"9px 10px",marginBottom:6,borderRadius:12,border:"1px solid "+(dragId===it.id?"var(--orange)":"var(--glass-bdr)"),background:dragId===it.id?"var(--glass-hover)":"var(--glass)",boxShadow:dragId===it.id?"0 8px 24px rgba(245,99,26,.18)":"none",transition:"border-color .12s, box-shadow .12s"}}>
+          <div data-nodrag onPointerDown={e=>startDrag(e,it.id)} title={t.reorder} style={{cursor:"grab",touchAction:"none",padding:"4px 2px",color:"var(--muted2)",display:"flex",flexShrink:0}}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.6"/><circle cx="15" cy="6" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="18" r="1.6"/><circle cx="15" cy="18" r="1.6"/></svg>
+          </div>
+          <span style={{fontSize:11,fontWeight:700,color:"var(--muted2)",width:22,flexShrink:0,fontVariantNumeric:"tabular-nums"}}>{i+1}</span>
+          <div style={{flex:1,minWidth:0,fontSize:13.5,fontWeight:500,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{renderLabel(it)}</div>
+          <button title={t.moveUp}   disabled={i===0}             onClick={()=>bump(it.id,-1)} style={{width:28,height:28,borderRadius:8,border:"1px solid var(--glass-bdr)",background:"var(--btn-sm-bg)",cursor:i===0?"default":"pointer",opacity:i===0?.3:1,color:"var(--text)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6"><path d="M18 15l-6-6-6 6"/></svg></button>
+          <button title={t.moveDown} disabled={i===list.length-1} onClick={()=>bump(it.id, 1)} style={{width:28,height:28,borderRadius:8,border:"1px solid var(--glass-bdr)",background:"var(--btn-sm-bg)",cursor:i===list.length-1?"default":"pointer",opacity:i===list.length-1?.3:1,color:"var(--text)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6"><path d="M6 9l6 6 6-6"/></svg></button>
+        </div>
+      ))}
+    </div>
+    <div style={{padding:"14px 26px",display:"flex",gap:10,justifyContent:"flex-end",background:"var(--glass)",borderTop:"1px solid var(--border)",flexShrink:0}}>
+      <button className="btn-g" onClick={onClose}>{t.cancel}</button>
+      <button className="btn-o" onClick={save} disabled={busy}>{busy?<ISpin c="#fff" s={16}/>:t.save}</button>
     </div>
   </div></div>);
 }
