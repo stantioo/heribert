@@ -2,6 +2,11 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8"/>
+  <!-- Stand dieser Datei. Die laufende App vergleicht ihn regelmaessig mit der
+       ausgelieferten index.html; weicht er ab, sperrt sie sich bis zum
+       Neuladen. BEI JEDER VEROEFFENTLICHUNG HOCHZAEHLEN -- zusammen mit dem
+       obersten CHANGELOG-Eintrag und CACHE_VERSION in sw.js. -->
+  <meta name="heribert-version" content="2.4"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
 
   <!-- Zweite Verteidigungslinie hinter DOMPurify: selbst wenn Schadcode ins
@@ -291,6 +296,7 @@ html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;background:var(
 @keyframes ringDraw{from{stroke-dashoffset:160.22;}}
 @keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
 @keyframes scaleIn{from{opacity:0;transform:scale(.95);}to{opacity:1;transform:scale(1);}}
+@keyframes gateIn{from{opacity:0;}to{opacity:1;}}
 @keyframes popIn{from{opacity:0;transform:translate(-50%,-50%) scale(.9);}to{opacity:1;transform:translate(-50%,-50%) scale(1);}}
 @keyframes spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
 .au{animation:fadeUp .22s ease both;}
@@ -340,6 +346,7 @@ html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;background:var(
 // \u2500\u2500\u2500 UTILS \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 const CHANGELOG = {
   de: [
+    {version:"2.4", date:"23.09.2026", items:["Neue Fassungen werden jetzt erzwungen: liegt eine neue Version bereit, legt sich ein Fenster über die App und gibt sie erst nach dem Aktualisieren wieder frei — damit nie wieder zwei Leute mit unterschiedlichen Ständen arbeiten","Die App prüft selbst auf neue Fassungen (beim Zurückkehren und alle 10 Minuten), nicht nur beim vollständigen Neuladen"]},
     {version:"2.3", date:"23.09.2026", items:["Der Ordner-Eigentümer sieht jetzt auch die Sets und Karten, die andere in seinem Ordner angelegt haben — vorher blieb der Ordner bei ihm leer","Mit Bearbeiten-Recht darf man im geteilten Ordner alles: neue Sets anlegen, weitere Leute einladen, Karten ändern und löschen","Reihenfolge von Sets und Karten selbst festlegen — Knopf „Verschieben“, ziehen oder Pfeile; die Reihenfolge gilt für alle im Ordner","Sortierung wählbar: eigene Reihenfolge, neueste/älteste zuerst, A–Z, Z–A","Karten anlegen: Enter springt von der Frage in die Antwort und speichert dort. Am iPhone heißt die Taste dafür jetzt „Weiter“ bzw. „Fertig“","Zeilenumbruch weiterhin mit Shift+Enter — und neu über den Knopf in der Formatleiste (der einzige Weg auf dem Telefon)"]},
     {version:"2.2", date:"30.04.2026", items:["Globale Suche auf jeder Ebene (Ordner/Sets/Karten) direkt in der Button-Leiste","Unterordner: Ordner können einem Überordner zugeordnet werden","Geteilte Ordner zeigen den echten Ordnernamen statt ‚Geteilt mit mir'","Mehrere geteilte Ordner bleiben getrennt (nach Original-Folder gruppiert)","Import-Fix: alte .doc/.ppt-Formate zeigen klare Fehlermeldung","Karteikarten-Editor: 18 Farben + Farbkreis + Hex-Eingabe + Aufzählungs-/Nummernlisten","Lernset-Titel direkt im Header bearbeitbar","Bestätigungspopup nur noch bei echtem Fortschritt","Badge ‚Geteilt mit mir' verkürzt zu ‚GETEILT'"]},
     {version:"2.0", date:"17.04.2026", items:["Fragen in Kartenliste mit Fade-Out abgeschnitten — ausklappbar in voller Länge","Fortschrittskreis mit Lade-Animation und Hover-Effekt","~15 fehlerhafte deutsche Motivationstexte korrigiert (keine Denglisch-Fragmente mehr)","Logo-Klick während Lernsession zeigt stilisierten Bestätigungsdialog","Ordnername + Farbe/Emoji direkt im Ordner-Header bearbeitbar","Neue-Karte-Button mit sichtbarer Outline im Light-Mode"]},
@@ -355,6 +362,7 @@ const CHANGELOG = {
     {version:"1.0", date:"14.04.2026", items:["Ordner & Sets erstellen","Karteikarten mit Rich-Text","Fortschritts-Tracking","Teilen per E-Mail"]},
   ],
   en: [
+    {version:"2.4", date:"23.09.2026", items:["Updates are now enforced: when a new version is available, a dialog covers the app and only releases it once you have updated — so two people never work with different versions again","The app checks for new versions on its own (when you come back and every 10 minutes), not just on a full reload"]},
     {version:"2.3", date:"23.09.2026", items:["Folder owners now also see the sets and cards other people created in their folder — the folder used to look empty to them","With edit rights you can do everything in a shared folder: create sets, invite others, change and delete cards","Set your own order for sets and cards — \"Reorder\" button, drag or arrows; the order applies to everyone in the folder","Choose a sort order: custom, newest/oldest first, A–Z, Z–A","Creating cards: Enter jumps from question to answer and saves there. On iPhone the key is now labelled \"next\" / \"done\"","Line breaks still work with Shift+Enter — and now with the button in the format bar (the only way on a phone)"]},
     {version:"2.2", date:"30.04.2026", items:["Global search on every level (folders/sets/cards) inline with action buttons","Sub-folders: folders can be nested under a parent folder","Shared folders now show the original folder name instead of 'Shared with me'","Multiple shared folders stay separate (grouped by original folder)","Import fix: old .doc/.ppt formats show clear error message","Card editor: 18 colors + color wheel + hex input + bullet/numbered lists","Set title editable directly from header","Confirm popup only shown when there's actual progress","'Shared with me' badge shortened to 'SHARED'"]},
     {version:"2.0", date:"17.04.2026", items:["Questions in card list fade-out when truncated — expand for full text","Progress circle with draw animation and hover glow","~15 broken German motivation texts fixed (no more Denglish)","Logo click during study session shows styled confirmation dialog","Folder name + color/emoji editable from folder header","New Card button with visible border in light mode"]},
@@ -527,6 +535,10 @@ const T = {
     editCardCount: "Anzahl anpassen — klicken zum Ändern",
     aiLimitTitle: "KI vorübergehend nicht verfügbar",
     aiLimitSub: "Die Gemini-Token sind gerade aufgebraucht oder das Kontingent ist erschöpft. Wir nutzen automatisch Fallback-Optionen — oder versuch es in ein paar Minuten nochmal.",
+    updateTitle: "Neue Version verfügbar",
+    updateBody: "Heribert wurde aktualisiert. Bitte einmal neu laden — so arbeiten alle mit demselben Stand und niemand sieht veraltete Karten.",
+    updateBtn: "Jetzt aktualisieren",
+    updateBusy: "Wird geladen …",
     sortBy: "Sortierung",
     sortManual: "Eigene Reihenfolge",
     sortNewest: "Neueste zuerst",
@@ -699,6 +711,10 @@ const T = {
     editCardCount: "Tap to edit count",
     aiLimitTitle: "AI temporarily unavailable",
     aiLimitSub: "Gemini tokens are currently exhausted or the quota is used up. We're using fallback options — or try again in a few minutes.",
+    updateTitle: "New version available",
+    updateBody: "Heribert has been updated. Please reload once — that way everyone works with the same version and nobody sees outdated cards.",
+    updateBtn: "Update now",
+    updateBusy: "Loading …",
     sortBy: "Sort",
     sortManual: "Custom order",
     sortNewest: "Newest first",
@@ -820,6 +836,10 @@ const safeImgSrc = u => (typeof u === "string" && /^data:image\/(png|jpe?g|gif|w
 // "auto" folgt dem Geraet, "light"/"dark" sind feste Entscheidungen. Wird beim
 // Laden sofort angewendet, damit die Seite nicht kurz im falschen Schema
 // aufblitzt.
+// Merkzettel fuer "gerade eben aktualisiert" -- gilt nur fuer diesen Tab
+// bzw. diesen App-Start und verhindert eine Endlos-Sperre, solange das CDN
+// noch die alte Datei ausliefert.
+const GRACE_KEY = "heribert.justUpdated";
 const THEME_KEY = "heribert.theme";
 function getTheme(){
   try { const v = localStorage.getItem(THEME_KEY); return (v === "light" || v === "dark") ? v : "auto"; }
@@ -1506,9 +1526,76 @@ function useEdgeSwipeBack(){
   },[]);
 }
 
+// ─── UPDATE-SPERRE ──────────────────────────────────────────────────────
+// Bewusst eine Sperre und kein wegklickbarer Hinweis: am 19.09.2026 lief ein
+// Geraet den ganzen Tag auf dem Stand von morgens und meldete Fehler, die
+// laengst behoben waren. Solange verschiedene Leute verschiedene Fassungen
+// benutzen, sucht man Fehler, die es nicht mehr gibt. Erst der Knopf gibt die
+// App wieder frei.
+function UpdateGate({t}) {
+  const [busy,setBusy]=useState(false);
+  const btn=useRef();
+  useEffect(()=>{
+    btn.current?.focus({preventScroll:true});
+    const prev=document.body.style.overflow;
+    document.body.style.overflow="hidden";
+    // Auch mit der Tastatur kommt man nicht hinter die Sperre.
+    const trap=e=>{ if(e.key==="Tab"){e.preventDefault();btn.current?.focus();} };
+    document.addEventListener("keydown",trap,true);
+    return()=>{document.body.style.overflow=prev;document.removeEventListener("keydown",trap,true);};
+  },[]);
+  const apply=async()=>{
+    setBusy(true);
+    // GitHub Pages liefert bis zu zehn Minuten lang noch die alte Datei aus
+    // dem CDN. Ohne diese Schonfrist schlaegt die Sperre nach dem Neuladen
+    // sofort wieder zu und der Knopf fuehrt im Kreis. Der Service Worker
+    // bleibt davon unberuehrt -- wechselt DER, ist es eine echte neue Fassung.
+    try { sessionStorage.setItem(GRACE_KEY, String(Date.now() + 8*60*1000)); } catch {}
+    try {
+      const reg = navigator.serviceWorker ? await navigator.serviceWorker.getRegistration() : null;
+      if (reg) await reg.update().catch(()=>{});
+      // Nur die Seiten-Eintraege wegwerfen. Die Dateien in vendor/ tragen ihre
+      // Version im Namen, die duerfen bleiben -- sonst laedt jedes Update
+      // ueberfluessig anderthalb Megabyte nach.
+      if (window.caches) {
+        const keys = await caches.keys();
+        await Promise.all(keys.map(async k => {
+          const c = await caches.open(k);
+          await Promise.all(["./","index.html",location.href].map(u=>c.delete(u).catch(()=>{})));
+        }));
+      }
+    } catch {}
+    window.location.reload();
+  };
+  return (<div role="alertdialog" aria-modal="true" style={{position:"fixed",inset:0,zIndex:9000,display:"flex",alignItems:"center",justifyContent:"center",padding:24,
+      background:"rgba(18,8,6,.46)",backdropFilter:"blur(16px) saturate(120%)",WebkitBackdropFilter:"blur(16px) saturate(120%)",animation:"gateIn .22s ease both"}}>
+    <div style={{width:"100%",maxWidth:380,textAlign:"center",padding:"34px 28px 28px",borderRadius:24,
+        background:"var(--glass-modal)",border:"1px solid var(--glass-bdr)",
+        boxShadow:"0 24px 70px rgba(0,0,0,.35),var(--glass-inset)",animation:"scaleIn .24s cubic-bezier(.32,.72,0,1) both"}}>
+      <div style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:28,marginBottom:16,background:"var(--grad)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}}>Heribert <Star spin/></div>
+      <h2 style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:20,marginBottom:10,color:"var(--text)"}}>{t.updateTitle}</h2>
+      <p style={{fontSize:14,lineHeight:1.55,color:"var(--muted)",marginBottom:24}}>{t.updateBody}</p>
+      {/* Der Knopf bekommt den Fokus, damit die Tastatur-Falle etwas hat, woran
+          sie festhalten kann. Den Standard-Fokusring braucht er nicht: er ist
+          das einzige bedienbare Element auf dem Bildschirm. */}
+      <button ref={btn} className="btn-o" onClick={apply} disabled={busy} style={{width:"100%",justifyContent:"center",padding:"13px",fontSize:15,fontWeight:600,borderRadius:14,outline:"none"}}>
+        {busy ? <ISpin c="#fff" s={18}/> : t.updateBtn}
+      </button>
+    </div>
+  </div>);
+}
+
 function App() {
   const [session, setSession] = useState(undefined);
   const [splash,setSplash]=useState(false);
+  // Die Sperre haengt bewusst hier oben und nicht im Dashboard: sie muss auch
+  // ueber dem Anmeldebildschirm und ueber dem Begruessungsbild liegen.
+  const [mustUpdate,setMustUpdate]=useState(false);
+  useEffect(()=>{
+    const on=()=>setMustUpdate(true);
+    window.addEventListener("heribert:update",on);
+    return()=>window.removeEventListener("heribert:update",on);
+  },[]);
   useSheetDrag();
   useEdgeSwipeBack();
   useEffect(() => {
@@ -1519,19 +1606,22 @@ function App() {
     return () => subscription.unsubscribe();
   }, []);
 
-  if (session === undefined) return (
+  const gateLang = session?.user?.user_metadata?.lang || (()=>{try{return localStorage.getItem("heribert.lang")}catch{return null}})() || "de";
+  const gate = mustUpdate ? <UpdateGate t={T[gateLang]||T.de}/> : null;
+
+  if (session === undefined) return (<>{gate}
     <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:"var(--grad-bg)"}}>
       <div style={{textAlign:"center"}}>
         <div style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:28,background:"var(--grad)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",marginBottom:20}}>Heribert <Star spin/></div>
         <ISpin/>
       </div>
     </div>
-  );
+  </>);
 
-  if (!session) return <AuthScreen/>;
+  if (!session) return <>{gate}<AuthScreen/></>;
   const uname=(session.user.user_metadata?.display_name||session.user.email.split("@")[0]).split(" ")[0];
   const splashLang = session.user.user_metadata?.lang || (()=>{try{return localStorage.getItem("heribert.lang")}catch{return null}})() || "de";
-  return(<>{splash&&<SplashScreen name={uname} lang={splashLang} onDone={()=>setSplash(false)}/>}<Dashboard key={session.user.id} session={session} onLogout={()=>sb.auth.signOut()}/></>);
+  return(<>{gate}{splash&&<SplashScreen name={uname} lang={splashLang} onDone={()=>setSplash(false)}/>}<Dashboard key={session.user.id} session={session} onLogout={()=>sb.auth.signOut()}/></>);
 }
 
 // \u2500\u2500\u2500 AUTH \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
@@ -1847,14 +1937,6 @@ function Dashboard({session, onLogout}) {
     loadAll();
     return true;
   };
-
-  // Eine neue Fassung hat uebernommen (siehe Service-Worker-Registrierung).
-  const [updateReady,setUpdateReady] = useState(false);
-  useEffect(() => {
-    const onUpdate = () => setUpdateReady(true);
-    window.addEventListener("heribert:update", onUpdate);
-    return () => window.removeEventListener("heribert:update", onUpdate);
-  }, []);
 
   const createFolder = async (name,color,parentId) => {
     const id=uid();
@@ -2439,10 +2521,6 @@ function Dashboard({session, onLogout}) {
         }}
         onClose={()=>setModal(null)}
         t={t}/>}
-      {updateReady && <div role="status" style={{position:"fixed",left:"50%",top:"max(14px, calc(env(safe-area-inset-top,0px) + 10px))",transform:"translateX(-50%)",zIndex:3000,display:"flex",alignItems:"center",gap:12,width:"max-content",maxWidth:"min(520px, calc(100vw - 32px))",padding:"10px 12px 10px 16px",borderRadius:99,background:"var(--surface)",border:"1.5px solid var(--orange)",color:"var(--text)",fontSize:13,boxShadow:"0 10px 30px rgba(0,0,0,.2)"}}>
-        <span>Neue Version verfügbar</span>
-        <button className="btn-o" style={{padding:"6px 14px",fontSize:13}} onClick={()=>window.location.reload()}>Neu laden</button>
-      </div>}
       {toast && <div onClick={()=>setToast(null)} role="alert" style={{position:"fixed",left:"50%",bottom:"max(20px, calc(env(safe-area-inset-bottom,0px) + 16px))",transform:"translateX(-50%)",zIndex:3000,width:"max-content",maxWidth:"min(520px, calc(100vw - 32px))",padding:"12px 16px",borderRadius:14,background:"var(--surface)",border:"1.5px solid var(--red)",color:"var(--text)",fontSize:13,lineHeight:1.5,boxShadow:"0 12px 36px rgba(0,0,0,.28)",cursor:"pointer",animation:"scaleIn .15s ease"}}>
         <div style={{fontWeight:600,color:"var(--red)",marginBottom:2}}>Nicht gespeichert</div>
         <div style={{wordBreak:"break-word"}}>{toast}</div>
@@ -4096,7 +4174,7 @@ if ("serviceWorker" in navigator) {
       setInterval(checkForUpdate, 20 * 60 * 1000);
 
       // Nicht ungefragt neu laden: das wuerde eine halb getippte Karte
-      // wegwerfen. Die App zeigt stattdessen einen Hinweis mit Knopf.
+      // wegwerfen. Die App legt stattdessen die Update-Sperre darueber.
       navigator.serviceWorker.addEventListener("controllerchange", () => {
         if (hadController) window.dispatchEvent(new CustomEvent("heribert:update"));
       });
@@ -4105,6 +4183,53 @@ if ("serviceWorker" in navigator) {
     }
   });
 }
+
+// --- Versionswaechter ------------------------------------------------------
+// Der Service Worker meldet sich nur, wenn sich sw.js SELBST geaendert hat.
+// Aendert sich bloss index.html, bleibt ein Geraet, das die App nur fortsetzt
+// statt sie neu zu laden, beliebig lange auf dem alten Stand -- genau so kam
+// es am 19.09.2026 dazu, dass jemand den ganzen Tag Fehler meldete, die
+// laengst behoben waren. Deshalb hier zusaetzlich ein eigener Abgleich.
+//
+// Verglichen wird gegen die AUSGELIEFERTE index.html, nicht gegen eine
+// separate Versionsdatei. Das ist Absicht: eine separate Datei koennte "2.5"
+// sagen, waehrend die ausgelieferte Seite noch 2.4 ist -- dann sperrt sich
+// die App nach dem Neuladen sofort wieder aus, und zwar bei allen
+// gleichzeitig. So kann das nicht passieren: nach dem Neuladen IST die
+// laufende Fassung die ausgelieferte.
+const APP_VERSION = document.querySelector('meta[name="heribert-version"]')?.content || "";
+let versionCheckRunning = false;
+const checkAppVersion = async () => {
+  if (!APP_VERSION || versionCheckRunning) return;
+  if (navigator.onLine === false) return;
+  // Schonfrist nach einem Update-Neuladen (siehe UpdateGate).
+  try {
+    const until = Number(sessionStorage.getItem(GRACE_KEY) || 0);
+    if (until && Date.now() < until) return;
+    if (until) sessionStorage.removeItem(GRACE_KEY);
+  } catch {}
+  versionCheckRunning = true;
+  try {
+    // Nur die ersten 1024 Byte holen: die Versionsmarke steht ganz oben im
+    // Kopf der Datei. Ignoriert ein Server den Range-Kopf, kommt die ganze
+    // Datei zurueck -- das Ergebnis stimmt dann trotzdem.
+    const res = await fetch("index.html", {cache:"no-store", headers:{Range:"bytes=0-1023"}});
+    if (!res.ok) return;
+    const head = await res.text();
+    const m = head.match(/name="heribert-version"\s+content="([^"]+)"/);
+    if (m && m[1] && m[1] !== APP_VERSION) {
+      window.dispatchEvent(new CustomEvent("heribert:update"));
+    }
+  } catch (e) { /* Funkloch: kein Grund, jemanden auszusperren */ }
+  finally { versionCheckRunning = false; }
+};
+// Beim Zurueckkehren in die App, alle 10 Minuten und einmal kurz nach dem
+// Start (da ist der Service Worker gerade mit sich selbst beschaeftigt).
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") checkAppVersion();
+});
+setInterval(checkAppVersion, 10 * 60 * 1000);
+setTimeout(checkAppVersion, 15000);
 
 createRoot(document.getElementById('root')).render(<App/>);
 </script>

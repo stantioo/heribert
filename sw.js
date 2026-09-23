@@ -9,8 +9,12 @@
 //     kämen sonst veraltet zurück, und Antworten mit Sitzungsbezug haben in
 //     einem geteilten Cache ohnehin nichts verloren.
 //
-// CACHE_VERSION hochzählen, wenn sich Dateien in vendor/ oder icons/ ändern.
-const CACHE_VERSION = "heribert-v2";
+// CACHE_VERSION bei JEDER Veröffentlichung hochzählen — zusammen mit
+// <meta name="heribert-version"> in index.html und dem obersten
+// CHANGELOG-Eintrag. Ändert sich sw.js nicht, merkt ein Gerät, das die App nur
+// fortsetzt statt sie neu zu laden, gar nichts von einer neuen Fassung; der
+// Wechsel hier löst "controllerchange" aus und damit die Update-Sperre.
+const CACHE_VERSION = "heribert-v3";
 
 // Nur die Dateien, die für den ersten Start gebraucht werden. Die großen
 // Import-Bibliotheken (pdf.js, mammoth, jszip) landen erst im Cache, wenn sie
@@ -59,6 +63,15 @@ self.addEventListener("fetch", event => {
 
   // Supabase und alles andere Fremde: unverändert ins Netz.
   if (!sameOrigin) return;
+
+  // Der Versionswächter der App holt sich die ersten Bytes von index.html mit
+  // einem Range-Kopf. Diese Anfrage darf NIE aus dem Cache bedient werden —
+  // sonst vergleicht die App ihre eigene alte Fassung mit sich selbst und
+  // meldet nie ein Update.
+  if (req.headers.has("range")) {
+    event.respondWith(fetch(req).catch(() => Response.error()));
+    return;
+  }
 
   // Seitenaufrufe: erst Netz, bei Funkloch die zuletzt gesehene Fassung.
   if (req.mode === "navigate") {
