@@ -6,7 +6,7 @@
        ausgelieferten index.html; weicht er ab, sperrt sie sich bis zum
        Neuladen. BEI JEDER VEROEFFENTLICHUNG HOCHZAEHLEN -- zusammen mit dem
        obersten CHANGELOG-Eintrag und CACHE_VERSION in sw.js. -->
-  <meta name="heribert-version" content="2.5"/>
+  <meta name="heribert-version" content="2.6"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
 
   <!-- Zweite Verteidigungslinie hinter DOMPurify: selbst wenn Schadcode ins
@@ -346,6 +346,7 @@ html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;background:var(
 // \u2500\u2500\u2500 UTILS \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 const CHANGELOG = {
   de: [
+    {version:"2.6", date:"23.09.2026", items:["Wer zu einem Ordner hinzugefügt wurde und bearbeiten darf, kann jetzt wirklich alles: Sets anlegen, umsortieren, Karten ändern und löschen, weitere Leute einladen, deren Rechte umstellen und den Ordner umbenennen — vorher ging manches nur beim Ersteller","Statt „Löschen“ gibt es bei geteilten Ordnern „Verlassen“: der eigene Zugang geht zurück, die Inhalte des Eigentümers bleiben unangetastet","Löschen des Ordners bleibt beim Eigentümer — es würde die Sets und Karten aller anderen mitreißen"]},
     {version:"2.5", date:"23.09.2026", items:["Karten werden beim Tippen laufend gesichert — klickt man daneben oder geht die App zu, fragt sie beim Öffnen nach und stellt den Entwurf wieder her","Am Telefon macht Enter wieder ganz normal einen Zeilenumbruch; bestätigt wird über die Leiste, die mit der Tastatur mitwandert. Am Rechner bleibt es bei Enter = weiter/speichern und Shift+Enter = Zeilenumbruch","Löschen fragt jetzt immer nach — bei Karten, Sets und Ordnern, mit Angabe, wie viel daran hängt","Der Update-Hinweis kommt sofort beim Start statt erst nach ein paar Sekunden — vorher sah man kurz die normale App, bevor sich das Fenster davorlegte"]},
     {version:"2.4", date:"23.09.2026", items:["Neue Fassungen werden jetzt erzwungen: liegt eine neue Version bereit, legt sich ein Fenster über die App und gibt sie erst nach dem Aktualisieren wieder frei — damit nie wieder zwei Leute mit unterschiedlichen Ständen arbeiten","Die App prüft selbst auf neue Fassungen (beim Zurückkehren und alle 10 Minuten), nicht nur beim vollständigen Neuladen"]},
     {version:"2.3", date:"23.09.2026", items:["Der Ordner-Eigentümer sieht jetzt auch die Sets und Karten, die andere in seinem Ordner angelegt haben — vorher blieb der Ordner bei ihm leer","Mit Bearbeiten-Recht darf man im geteilten Ordner alles: neue Sets anlegen, weitere Leute einladen, Karten ändern und löschen","Reihenfolge von Sets und Karten selbst festlegen — Knopf „Verschieben“, ziehen oder Pfeile; die Reihenfolge gilt für alle im Ordner","Sortierung wählbar: eigene Reihenfolge, neueste/älteste zuerst, A–Z, Z–A","Karten anlegen: Enter springt von der Frage in die Antwort und speichert dort. Am iPhone heißt die Taste dafür jetzt „Weiter“ bzw. „Fertig“","Zeilenumbruch weiterhin mit Shift+Enter — und neu über den Knopf in der Formatleiste (der einzige Weg auf dem Telefon)"]},
@@ -363,6 +364,7 @@ const CHANGELOG = {
     {version:"1.0", date:"14.04.2026", items:["Ordner & Sets erstellen","Karteikarten mit Rich-Text","Fortschritts-Tracking","Teilen per E-Mail"]},
   ],
   en: [
+    {version:"2.6", date:"23.09.2026", items:["Anyone added to a folder with edit rights can now really do everything: create sets, reorder, change and delete cards, invite more people, change their rights and rename the folder — some of this used to be limited to the creator","Shared folders offer \"Leave\" instead of \"Delete\": you hand back your own access, the owner's content stays untouched","Deleting the folder stays with the owner — it would take everyone else's sets and cards with it"]},
     {version:"2.5", date:"23.09.2026", items:["Cards are saved continuously while you type — if you click beside the dialog or the app closes, your draft is restored next time you open it","On phones, Enter is a plain line break again; you confirm with the bar that follows the keyboard. On a computer, Enter still means next/save and Shift+Enter is a line break","Deleting always asks first now — cards, sets and folders, including how much is attached to them","The update dialog appears right at startup instead of a few seconds in — you used to briefly see the normal app before it took over"]},
     {version:"2.4", date:"23.09.2026", items:["Updates are now enforced: when a new version is available, a dialog covers the app and only releases it once you have updated — so two people never work with different versions again","The app checks for new versions on its own (when you come back and every 10 minutes), not just on a full reload"]},
     {version:"2.3", date:"23.09.2026", items:["Folder owners now also see the sets and cards other people created in their folder — the folder used to look empty to them","With edit rights you can do everything in a shared folder: create sets, invite others, change and delete cards","Set your own order for sets and cards — \"Reorder\" button, drag or arrows; the order applies to everyone in the folder","Choose a sort order: custom, newest/oldest first, A–Z, Z–A","Creating cards: Enter jumps from question to answer and saves there. On iPhone the key is now labelled \"next\" / \"done\"","Line breaks still work with Shift+Enter — and now with the button in the format bar (the only way on a phone)"]},
@@ -537,6 +539,11 @@ const T = {
     editCardCount: "Anzahl anpassen — klicken zum Ändern",
     aiLimitTitle: "KI vorübergehend nicht verfügbar",
     aiLimitSub: "Die Gemini-Token sind gerade aufgebraucht oder das Kontingent ist erschöpft. Wir nutzen automatisch Fallback-Optionen — oder versuch es in ein paar Minuten nochmal.",
+    leaveFolder: "Verlassen",
+    leaveFolderTitle: "Ordner verlassen?",
+    leaveFolderBody: name => `„${name}" verschwindet aus deiner Übersicht. Gelöscht wird nichts — die Inhalte bleiben beim Eigentümer, du siehst sie nur nicht mehr.`,
+    leaveYes: "Verlassen",
+    sharedFrom: "Geteilt von",
     removeAllSharedBody: "Alle Ordner und Sets, die andere mit dir geteilt haben, verschwinden aus deiner Übersicht. Die Inhalte selbst bleiben bei ihren Besitzern.",
     removeAccessTitle: "Zugriff entfernen?",
     removeAccessBody: (mail,ordner) => `${mail} verliert den Zugriff auf „${ordner}" und alle Sets darin.`,
@@ -730,6 +737,11 @@ const T = {
     editCardCount: "Tap to edit count",
     aiLimitTitle: "AI temporarily unavailable",
     aiLimitSub: "Gemini tokens are currently exhausted or the quota is used up. We're using fallback options — or try again in a few minutes.",
+    leaveFolder: "Leave",
+    leaveFolderTitle: "Leave folder?",
+    leaveFolderBody: name => `"${name}" disappears from your overview. Nothing is deleted — the content stays with its owner, you just stop seeing it.`,
+    leaveYes: "Leave",
+    sharedFrom: "Shared by",
     removeAllSharedBody: "Every folder and set others shared with you disappears from your overview. The content itself stays with its owners.",
     removeAccessTitle: "Remove access?",
     removeAccessBody: (mail,folder) => `${mail} will lose access to "${folder}" and every set inside it.`,
@@ -1266,6 +1278,7 @@ const IEdit   = () => <svg width="13" height="13" viewBox="0 0 24 24" fill="none
 const IFolder = ({c="#F5631A",s=16}) => <svg width={s} height={s} viewBox="0 0 24 24" fill={c}><path d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"/></svg>;
 const IShare  = () => <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.59 13.51l6.83 3.98M15.41 6.51l-6.82 3.98"/></svg>;
 const IDrag   = () => <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M8 6h.01M8 12h.01M8 18h.01M16 6h.01M16 12h.01M16 18h.01" strokeLinecap="round"/></svg>;
+const ILeave  = () => <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>;
 const ILogout = () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>;
 const IBook   = () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>;
 const IPdf    = () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>;
@@ -2018,7 +2031,42 @@ function Dashboard({session, onLogout}) {
     if(sel.folderId===fid)setSel({folderId:null,setId:null});
   };
   const renameFolder = async (fid,name) => { const {error}=await sb.from("folders").update({name}).eq("id",fid); if(fail(error,"Ordner konnte nicht umbenannt werden"))return; setData(d=>({...d,folders:d.folders.map(f=>f.id===fid?{...f,name}:f)})); };
-  const updateFolder = async (fid,name,color,parentId) => { const {error}=await sb.from("folders").update({name,color,parent_id:parentId===undefined?undefined:(parentId||null)}).eq("id",fid); if(fail(error,"Ordner konnte nicht gespeichert werden"))return; setData(d=>({...d,folders:d.folders.map(f=>f.id===fid?{...f,name,color,...(parentId!==undefined?{parentId:parentId||null}:{})}:f)})); setModal(null); };
+  // Auch ein GETEILTER Ordner laesst sich umbenennen und umfaerben, sofern man
+  // Bearbeiten-Recht hat. Er traegt in der Oberflaeche die kuenstliche
+  // "__shared_"-ID und steht nicht in data.folders -- deshalb die echte ID
+  // aufloesen und danach frisch laden statt den lokalen Stand zu flicken.
+  // Den Ueberordner darf nur der Eigentuemer setzen (ein Trigger in der
+  // Datenbank raeumt das sonst ohnehin wieder auf).
+  const updateFolder = async (fid,name,color,parentId) => {
+    const realId = resolveFolderId(fid);
+    const eigener = data.folders.some(f=>f.id===realId);
+    const patch = eigener
+      ? {name,color,parent_id:parentId===undefined?undefined:(parentId||null)}
+      : {name,color};
+    const {error}=await sb.from("folders").update(patch).eq("id",realId);
+    if(fail(error,"Ordner konnte nicht gespeichert werden"))return;
+    setModal(null);
+    if (!eigener) { loadAll(); return; }
+    setData(d=>({...d,folders:d.folders.map(f=>f.id===realId?{...f,name,color,...(parentId!==undefined?{parentId:parentId||null}:{})}:f)}));
+  };
+  // Das Gegenstueck zum Loeschen fuer Eingeladene: den eigenen Zugang
+  // zurueckgeben, ohne die Inhalte des Eigentuemers anzufassen.
+  const leaveFolder = async (f) => {
+    const realId = f.sourceFolderId || resolveFolderId(f.id);
+    const myEmail = (user.email || "").toLowerCase();
+    const setIds = (f.sets||[]).map(x=>x.id);
+    if (setIds.length) {
+      const {error} = await sb.from("set_shares").delete().eq("invited_email",myEmail).in("set_id",setIds);
+      if (fail(error,"Ordner konnte nicht verlassen werden")) return;
+    }
+    if (realId) {
+      // Ohne diese Zeile holt das naechste neue Set einen sofort wieder herein.
+      const {error} = await sb.from("folder_invites").delete().eq("invited_email",myEmail).eq("folder_id",realId);
+      if (fail(error,"Ordner konnte nicht verlassen werden")) return;
+    }
+    setSel({folderId:null,setId:null});
+    loadAll();
+  };
   const createSet = async (name,desc) => {
     const id=uid(); const now=new Date().toISOString();
     // In einem GETEILTEN Ordner steht in sel.folderId die kuenstliche
@@ -2374,6 +2422,8 @@ function Dashboard({session, onLogout}) {
     const n  = data.cards.filter(c=>c.setId===sid).length;
     setConfirmDel({ title: t.deleteSetTitle, sub: t.deleteSetBody(st?.name||"", n), onYes: () => removeSet(sid) });
   };
+  const askLeaveFolder = f => setConfirmDel({
+    title: t.leaveFolderTitle, sub: t.leaveFolderBody(f.name||""), label: t.leaveYes, onYes: () => leaveFolder(f) });
   const askDeleteFolder = f => {
     const kinder = data.folders.filter(x=>x.parentId===f.id).map(x=>x.id);
     const sets   = data.sets.filter(x=>x.folderId===f.id||kinder.includes(x.folderId));
@@ -2450,8 +2500,14 @@ function Dashboard({session, onLogout}) {
                 const sq=searchQuery.trim().toLowerCase();
                 if(sq.length>=1) list=list.filter(f=>f.name.toLowerCase().includes(sq)||(f.children||[]).some(cf=>cf.name.toLowerCase().includes(sq)));
                 return list.map(f => <React.Fragment key={f.id}>
-                  <SidebarFolder folder={f} t={t} isActive={sel.folderId===f.id} onClick={()=>openFolder(f.id)} onDelete={f.isVirtualShared?null:()=>askDeleteFolder(f)} onEdit={f.isVirtualShared?null:()=>{setEditFolder(f);setModal({type:"folder"});setMenuOpen(false);}}/>
-                  {(f.children||[]).filter(cf=>!sq||cf.name.toLowerCase().includes(sq)||f.name.toLowerCase().includes(sq)).map(cf=><div key={cf.id} style={{paddingLeft:16}}><SidebarFolder folder={cf} t={t} isActive={sel.folderId===cf.id} onClick={()=>openFolder(cf.id)} onDelete={()=>askDeleteFolder(cf)} onEdit={()=>{setEditFolder(cf);setModal({type:"folder"});setMenuOpen(false);}}/></div>)}
+                  <SidebarFolder folder={f} t={t} isActive={sel.folderId===f.id} onClick={()=>openFolder(f.id)}
+                    onDelete={f.isVirtualShared?null:()=>askDeleteFolder(f)}
+                    onLeave={(f.isVirtualShared&&f.sourceFolderId)?()=>askLeaveFolder(f):null}
+                    onEdit={(f.isParentGroup||(f.isVirtualShared&&!f.canEdit))?null:()=>{setEditFolder(f);setModal({type:"folder"});setMenuOpen(false);}}/>
+                  {(f.children||[]).filter(cf=>!sq||cf.name.toLowerCase().includes(sq)||f.name.toLowerCase().includes(sq)).map(cf=><div key={cf.id} style={{paddingLeft:16}}><SidebarFolder folder={cf} t={t} isActive={sel.folderId===cf.id} onClick={()=>openFolder(cf.id)}
+                    onDelete={cf.isVirtualShared?null:()=>askDeleteFolder(cf)}
+                    onLeave={(cf.isVirtualShared&&cf.sourceFolderId)?()=>askLeaveFolder(cf):null}
+                    onEdit={(cf.isVirtualShared&&!cf.canEdit)?null:()=>{setEditFolder(cf);setModal({type:"folder"});setMenuOpen(false);}}/></div>)}
                 </React.Fragment>);
               })()
           }
@@ -2502,7 +2558,8 @@ function Dashboard({session, onLogout}) {
               }}
               onDeleteSet={askDeleteSet} onRenameSet={renameSet}
               onShareFolder={()=>setModal({type:"folderShare",folderId:resolveFolderId(sel.folderId)})}
-              onEditFolder={()=>{if(!isViewingShared){setEditFolder(folder);setModal({type:"folder"});}}}/>
+              onLeave={(isViewingShared&&currentSharedFolder?.sourceFolderId)?(()=>askLeaveFolder(currentSharedFolder)):null}
+              onEditFolder={canEditFolder?(()=>{setEditFolder(folder);setModal({type:"folder"});}):null}/>
           )}
           {sel.setId && (
             <SetView set={set} folder={folder} cards={setCCards} t={t}
@@ -2522,7 +2579,7 @@ function Dashboard({session, onLogout}) {
       </div>
 
       {confirmDel && <ConfirmOverlay danger title={confirmDel.title} sub={confirmDel.sub}
-        confirmLabel={t.deleteYes} cancelLabel={t.cancel}
+        confirmLabel={confirmDel.label||t.deleteYes} cancelLabel={t.cancel}
         onConfirm={()=>{const f=confirmDel.onYes;setConfirmDel(null);f();}}
         onCancel={()=>setConfirmDel(null)}/>}
       {studyConfig && <StudyConfigModal config={studyConfig} t={t} onStart={cfg=>{
@@ -2611,7 +2668,7 @@ function Dashboard({session, onLogout}) {
 }
 
 // \u2500\u2500\u2500 FOLDER VIEW \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
-function FolderView({folder,sets,data,onBack,onNewSet,onSelectSet,onLearnSet,onLearnFolder,onDeleteSet,onRenameSet,onShareFolder,onEditFolder,canEdit,sort,onSort,onReorder,t}) {
+function FolderView({folder,sets,data,onBack,onNewSet,onSelectSet,onLearnSet,onLearnFolder,onDeleteSet,onRenameSet,onShareFolder,onEditFolder,onLeave,canEdit,sort,onSort,onReorder,t}) {
   const isShared = folder?.isVirtualShared;
   const folderCards = data.cards.filter(c=>sets.some(s=>s.id===c.setId));
   const folderProg = calcProgress(folderCards);
@@ -2632,10 +2689,10 @@ function FolderView({folder,sets,data,onBack,onNewSet,onSelectSet,onLearnSet,onL
             <div style={{display:"inline-flex",alignItems:"center",gap:4,fontSize:10,fontWeight:600,color:"var(--shared-fg)",background:"var(--shared-bg)",border:"1px solid var(--shared-border)",borderRadius:99,padding:"2px 8px",marginBottom:10,textTransform:"uppercase",letterSpacing:".06em"}}>🔗 {t.sharedBadge}</div>
           )}
           <h1 style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:30,display:"flex",alignItems:"center",gap:12,letterSpacing:"-.5px"}}>
-            {!isShared && onEditFolder
+            {onEditFolder
               ? <span onClick={onEditFolder} title={t.editFolder} style={{cursor:"pointer",display:"inline-flex",borderRadius:10,padding:"2px 4px",transition:"background .15s"}} onMouseEnter={e=>e.currentTarget.style.background="var(--glass-hover)"} onMouseLeave={e=>e.currentTarget.style.background="transparent"}><FolderMark mark={folder?.color} size={34}/></span>
               : <FolderMark mark={folder?.color} size={34}/>}
-            {!isShared && onEditFolder
+            {onEditFolder
               ? <span onClick={onEditFolder} title={t.editFolder} style={{cursor:"pointer",borderRadius:8,padding:"2px 6px",transition:"background .15s"}} onMouseEnter={e=>e.currentTarget.style.background="var(--glass-hover)"} onMouseLeave={e=>e.currentTarget.style.background="transparent"}>{folder?.name}</span>
               : folder?.name}
           </h1>
@@ -2654,6 +2711,7 @@ function FolderView({folder,sets,data,onBack,onNewSet,onSelectSet,onLearnSet,onL
           {folderCards.length>0 && <button className="btn-o" onClick={onLearnFolder}><IBook/> {t.learnFolder}</button>}
           {canEdit && <button className="btn-sm" onClick={onShareFolder}><IShare/> {t.share}</button>}
           {canEdit && <button className="btn-g" onClick={onNewSet}><IPlus/> {t.newSet}</button>}
+          {onLeave && <button className="btn-sm" onClick={onLeave} title={t.leaveFolderTitle}><ILeave/> {t.leaveFolder}</button>}
         </div>
       </div>
       {(()=>{
@@ -2726,7 +2784,7 @@ function SetView({set,folder,cards,onBack,onNewCard,onEditCard,onDeleteCard,onCo
 }
 
 // \u2500\u2500\u2500 SUB-COMPONENTS \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
-function SidebarFolder({folder,isActive,onClick,onDelete,onEdit,t}) {
+function SidebarFolder({folder,isActive,onClick,onDelete,onEdit,onLeave,t}) {
   const virtualShared = folder.isVirtualShared;
   return (<div className={`folder-row${isActive?" active":""}`} onClick={onClick}>
     <FolderMark mark={folder.color} size={18}/>
@@ -2737,8 +2795,12 @@ function SidebarFolder({folder,isActive,onClick,onDelete,onEdit,t}) {
       </div>
       <div style={{fontSize:11,color:"var(--muted2)",marginTop:1}}>{folder.setCount} {t.sets} · {folder.cardCount} {t.cardsCount}{folder.cardCount>0&&<span style={{marginLeft:4,color:folder.progress>=80?"var(--green)":"var(--orange)"}}>· {folder.progress}%</span>}</div>
     </div>
-    {!virtualShared && onEdit && <button className="icon-btn edit" title="Bearbeiten" onClick={e=>{e.stopPropagation();onEdit();}}><IEdit/></button>}
-    {!virtualShared && <button className="icon-btn" title="Löschen" onClick={e=>{e.stopPropagation();onDelete();}}><ITrash/></button>}
+    {onEdit && <button className="icon-btn edit" title="Bearbeiten" onClick={e=>{e.stopPropagation();onEdit();}}><IEdit/></button>}
+    {/* Bei einem geteilten Ordner steht an derselben Stelle "Verlassen": den
+        Ordner eines anderen zu loeschen wuerde dessen Sets und Karten
+        mitreissen -- das ist keine Funktion, die einem fehlt. */}
+    {onLeave  && <button className="icon-btn" title={t.leaveFolderTitle} onClick={e=>{e.stopPropagation();onLeave();}}><ILeave/></button>}
+    {onDelete && <button className="icon-btn" title="Löschen" onClick={e=>{e.stopPropagation();onDelete();}}><ITrash/></button>}
   </div>);
 }
 
@@ -2812,6 +2874,9 @@ function HomeView({userName,data,rootFolders,onSelectFolder,t,lang}){
   const dark=useDarkMode();
   const overallProg=calcProgress(data.cards); const superCards=data.cards.filter(c=>c.lastRating===3).length;
   const [folderFilter,setFolderFilter]=useState("all"); // "all" | "own" | "shared"
+  // Statt eines System-Hinweisfensters: in der installierten App ist das ein
+  // Fremdkoerper und laesst sich nicht gestalten.
+  const [sharedInfo,setSharedInfo]=useState(null);
   const hasShared = rootFolders.some(f=>f.isVirtualShared);
   const filteredFolders = folderFilter==="all" ? rootFolders : folderFilter==="own" ? rootFolders.filter(f=>!f.isVirtualShared) : rootFolders.filter(f=>f.isVirtualShared);
   const greetingRef = useRef(null);
@@ -2988,7 +3053,8 @@ function HomeView({userName,data,rootFolders,onSelectFolder,t,lang}){
     {label:t.cards,         val:data.cards.length,  icon:"🃏",c:"#F43F5E",rgb:"244,63,94"},
     {label:t.mastered,      val:superCards,         icon:"😎",c:"#DC2626",rgb:"220,38,38"},
   ];
-  return (<div className="au">
+  return (<>
+  <div className="au">
     <div style={{marginBottom:28}}>
       <h1 style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:32,marginBottom:4,letterSpacing:"-.5px"}}>{t.overview}</h1>
       <p style={{color:"var(--muted)",fontSize:15}}>{greetingText}, {userName.split(" ")[0]} — {greetingRef.current.suffix}</p>
@@ -3076,7 +3142,7 @@ function HomeView({userName,data,rootFolders,onSelectFolder,t,lang}){
           <div key={f.id} className="card-hover glass-card" style={{background:`radial-gradient(ellipse 125% 95% at 100% 115%,${tintColor}32 0%,${tintColor}10 40%,transparent 65%),var(--card-bg)`,border:`1px solid ${tintColor}22`,borderRadius:"var(--r-md)",padding:"18px",cursor:"pointer"}} onClick={()=>onSelectFolder(f.id)}>
             <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between"}}>
               <div style={{flex:1,marginRight:8}}>
-                {shared && <div style={{display:"flex",width:"100%",justifyContent:"center",marginBottom:6}}><button onClick={e=>{e.stopPropagation();alert("Geteilt von:\n"+(f.sharers||[]).join("\n"));}} style={{display:"inline-flex",alignItems:"center",gap:4,fontSize:9,fontWeight:600,color:"var(--shared-fg)",background:"var(--shared-bg)",border:"1px solid var(--shared-border)",borderRadius:99,padding:"2px 7px",textTransform:"uppercase",letterSpacing:".06em",cursor:"pointer",fontFamily:"inherit",transition:"all .15s"}}>🔗 {t.sharedBadge}</button></div>}
+                {shared && <div style={{display:"flex",width:"100%",justifyContent:"center",marginBottom:6}}><button onClick={e=>{e.stopPropagation();setSharedInfo({name:f.name,sharers:f.sharers||[]});}} style={{display:"inline-flex",alignItems:"center",gap:4,fontSize:9,fontWeight:600,color:"var(--shared-fg)",background:"var(--shared-bg)",border:"1px solid var(--shared-border)",borderRadius:99,padding:"2px 7px",textTransform:"uppercase",letterSpacing:".06em",cursor:"pointer",fontFamily:"inherit",transition:"all .15s"}}>🔗 {t.sharedBadge}</button></div>}
                 <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}>
                   <FolderMark mark={f.color} size={22}/>
                   <div style={{fontFamily:"Outfit,sans-serif",fontWeight:600,fontSize:15,letterSpacing:"-.2px"}}>{f.name}</div>
@@ -3090,7 +3156,14 @@ function HomeView({userName,data,rootFolders,onSelectFolder,t,lang}){
       </div>
     </>}
     {data.folders.length===0 && <EmptyState icon="✦" title={t.welcome} sub={t.welcomeSub} btnLabel={null} onBtn={null}/>}
-  </div>);
+  </div>
+  {sharedInfo && <SimpleModal title={"🔗 " + sharedInfo.name} onClose={()=>setSharedInfo(null)}>
+    <div style={{fontSize:13,color:"var(--muted)",marginBottom:12}}>{t.sharedFrom}:</div>
+    {sharedInfo.sharers.length===0
+      ? <div style={{fontSize:14,color:"var(--muted2)"}}>—</div>
+      : sharedInfo.sharers.map(m=><div key={m} style={{display:"flex",alignItems:"center",gap:10,padding:"7px 0"}}><Avatar name={m} size={28}/><span style={{fontSize:14,wordBreak:"break-all"}}>{m}</span></div>)}
+  </SimpleModal>}
+  </>);
 }
 
 // Map lastRating → filter key (null → "unrated", 0..3 → rating keys)
@@ -3502,8 +3575,9 @@ function FolderModal({onSave,onClose,initial,folders,t}) {
   const [customEmoji,setCustomEmoji]=useState("");
   const [showCustomColor,setShowCustomColor]=useState(false);
   const [hexInput,setHexInput]=useState(isEmojiMark(initial?.color)?"#F5631A":(initial?.color||"#F5631A"));
-  const parentOptions = (folders||[]).filter(f=>!f.parentId && f.id!==initial?.id);
-  const submit = () => { if(name.trim()) onSave(name.trim(), mark, parentId||null); };
+  const fremd = !!initial?.isVirtualShared;
+  const parentOptions = fremd ? [] : (folders||[]).filter(f=>!f.parentId && f.id!==initial?.id);
+  const submit = () => { if(name.trim()) onSave(name.trim(), mark, fremd ? undefined : (parentId||null)); };
   return(<div className="overlay" onClick={onClose}><div className="modal si" style={{maxWidth:420,padding:32}} onClick={e=>e.stopPropagation()}>
     <ModalX onClose={onClose}/>
     <h3 style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:20,marginBottom:4,display:"flex",alignItems:"center",gap:10}}>
