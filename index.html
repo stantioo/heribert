@@ -6,7 +6,7 @@
        ausgelieferten index.html; weicht er ab, sperrt sie sich bis zum
        Neuladen. BEI JEDER VEROEFFENTLICHUNG HOCHZAEHLEN -- zusammen mit dem
        obersten CHANGELOG-Eintrag und CACHE_VERSION in sw.js. -->
-  <meta name="heribert-version" content="2.4"/>
+  <meta name="heribert-version" content="2.5"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
 
   <!-- Zweite Verteidigungslinie hinter DOMPurify: selbst wenn Schadcode ins
@@ -346,6 +346,7 @@ html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;background:var(
 // \u2500\u2500\u2500 UTILS \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 const CHANGELOG = {
   de: [
+    {version:"2.5", date:"23.09.2026", items:["Karten werden beim Tippen laufend gesichert — klickt man daneben oder geht die App zu, fragt sie beim Öffnen nach und stellt den Entwurf wieder her","Am Telefon macht Enter wieder ganz normal einen Zeilenumbruch; bestätigt wird über die Leiste, die mit der Tastatur mitwandert. Am Rechner bleibt es bei Enter = weiter/speichern und Shift+Enter = Zeilenumbruch","Löschen fragt jetzt immer nach — bei Karten, Sets und Ordnern, mit Angabe, wie viel daran hängt","Der Update-Hinweis kommt sofort beim Start statt erst nach ein paar Sekunden — vorher sah man kurz die normale App, bevor sich das Fenster davorlegte"]},
     {version:"2.4", date:"23.09.2026", items:["Neue Fassungen werden jetzt erzwungen: liegt eine neue Version bereit, legt sich ein Fenster über die App und gibt sie erst nach dem Aktualisieren wieder frei — damit nie wieder zwei Leute mit unterschiedlichen Ständen arbeiten","Die App prüft selbst auf neue Fassungen (beim Zurückkehren und alle 10 Minuten), nicht nur beim vollständigen Neuladen"]},
     {version:"2.3", date:"23.09.2026", items:["Der Ordner-Eigentümer sieht jetzt auch die Sets und Karten, die andere in seinem Ordner angelegt haben — vorher blieb der Ordner bei ihm leer","Mit Bearbeiten-Recht darf man im geteilten Ordner alles: neue Sets anlegen, weitere Leute einladen, Karten ändern und löschen","Reihenfolge von Sets und Karten selbst festlegen — Knopf „Verschieben“, ziehen oder Pfeile; die Reihenfolge gilt für alle im Ordner","Sortierung wählbar: eigene Reihenfolge, neueste/älteste zuerst, A–Z, Z–A","Karten anlegen: Enter springt von der Frage in die Antwort und speichert dort. Am iPhone heißt die Taste dafür jetzt „Weiter“ bzw. „Fertig“","Zeilenumbruch weiterhin mit Shift+Enter — und neu über den Knopf in der Formatleiste (der einzige Weg auf dem Telefon)"]},
     {version:"2.2", date:"30.04.2026", items:["Globale Suche auf jeder Ebene (Ordner/Sets/Karten) direkt in der Button-Leiste","Unterordner: Ordner können einem Überordner zugeordnet werden","Geteilte Ordner zeigen den echten Ordnernamen statt ‚Geteilt mit mir'","Mehrere geteilte Ordner bleiben getrennt (nach Original-Folder gruppiert)","Import-Fix: alte .doc/.ppt-Formate zeigen klare Fehlermeldung","Karteikarten-Editor: 18 Farben + Farbkreis + Hex-Eingabe + Aufzählungs-/Nummernlisten","Lernset-Titel direkt im Header bearbeitbar","Bestätigungspopup nur noch bei echtem Fortschritt","Badge ‚Geteilt mit mir' verkürzt zu ‚GETEILT'"]},
@@ -362,6 +363,7 @@ const CHANGELOG = {
     {version:"1.0", date:"14.04.2026", items:["Ordner & Sets erstellen","Karteikarten mit Rich-Text","Fortschritts-Tracking","Teilen per E-Mail"]},
   ],
   en: [
+    {version:"2.5", date:"23.09.2026", items:["Cards are saved continuously while you type — if you click beside the dialog or the app closes, your draft is restored next time you open it","On phones, Enter is a plain line break again; you confirm with the bar that follows the keyboard. On a computer, Enter still means next/save and Shift+Enter is a line break","Deleting always asks first now — cards, sets and folders, including how much is attached to them","The update dialog appears right at startup instead of a few seconds in — you used to briefly see the normal app before it took over"]},
     {version:"2.4", date:"23.09.2026", items:["Updates are now enforced: when a new version is available, a dialog covers the app and only releases it once you have updated — so two people never work with different versions again","The app checks for new versions on its own (when you come back and every 10 minutes), not just on a full reload"]},
     {version:"2.3", date:"23.09.2026", items:["Folder owners now also see the sets and cards other people created in their folder — the folder used to look empty to them","With edit rights you can do everything in a shared folder: create sets, invite others, change and delete cards","Set your own order for sets and cards — \"Reorder\" button, drag or arrows; the order applies to everyone in the folder","Choose a sort order: custom, newest/oldest first, A–Z, Z–A","Creating cards: Enter jumps from question to answer and saves there. On iPhone the key is now labelled \"next\" / \"done\"","Line breaks still work with Shift+Enter — and now with the button in the format bar (the only way on a phone)"]},
     {version:"2.2", date:"30.04.2026", items:["Global search on every level (folders/sets/cards) inline with action buttons","Sub-folders: folders can be nested under a parent folder","Shared folders now show the original folder name instead of 'Shared with me'","Multiple shared folders stay separate (grouped by original folder)","Import fix: old .doc/.ppt formats show clear error message","Card editor: 18 colors + color wheel + hex input + bullet/numbered lists","Set title editable directly from header","Confirm popup only shown when there's actual progress","'Shared with me' badge shortened to 'SHARED'"]},
@@ -535,6 +537,23 @@ const T = {
     editCardCount: "Anzahl anpassen — klicken zum Ändern",
     aiLimitTitle: "KI vorübergehend nicht verfügbar",
     aiLimitSub: "Die Gemini-Token sind gerade aufgebraucht oder das Kontingent ist erschöpft. Wir nutzen automatisch Fallback-Optionen — oder versuch es in ein paar Minuten nochmal.",
+    removeAllSharedBody: "Alle Ordner und Sets, die andere mit dir geteilt haben, verschwinden aus deiner Übersicht. Die Inhalte selbst bleiben bei ihren Besitzern.",
+    removeAccessTitle: "Zugriff entfernen?",
+    removeAccessBody: (mail,ordner) => `${mail} verliert den Zugriff auf „${ordner}" und alle Sets darin.`,
+    draftSaved: "Entwurf gesichert",
+    draftRestored: "Entwurf wiederhergestellt",
+    discardTitle: "Karte verwerfen?",
+    discardBody: "Was du gerade eingegeben hast, geht dann verloren.",
+    discardYes: "Verwerfen",
+    keepEditing: "Weiter bearbeiten",
+    toAnswer: "Zur Antwort",
+    deleteYes: "Löschen",
+    deleteCardTitle: "Karte löschen?",
+    deleteCardBody: "Die Karte wird für alle entfernt, die dieses Set sehen. Das lässt sich nicht rückgängig machen.",
+    deleteSetTitle: "Set löschen?",
+    deleteSetBody: (name,n) => `„${name}" wird mit ${n===1?"1 Karte":n+" Karten"} gelöscht — für alle, die das Set sehen. Das lässt sich nicht rückgängig machen.`,
+    deleteFolderTitle: "Ordner löschen?",
+    deleteFolderBody: (name,sets,cards) => `„${name}" wird mit ${sets===1?"1 Set":sets+" Sets"} und ${cards===1?"1 Karte":cards+" Karten"} gelöscht — für alle, die den Ordner sehen. Das lässt sich nicht rückgängig machen.`,
     updateTitle: "Neue Version verfügbar",
     updateBody: "Heribert wurde aktualisiert. Bitte einmal neu laden — so arbeiten alle mit demselben Stand und niemand sieht veraltete Karten.",
     updateBtn: "Jetzt aktualisieren",
@@ -711,6 +730,23 @@ const T = {
     editCardCount: "Tap to edit count",
     aiLimitTitle: "AI temporarily unavailable",
     aiLimitSub: "Gemini tokens are currently exhausted or the quota is used up. We're using fallback options — or try again in a few minutes.",
+    removeAllSharedBody: "Every folder and set others shared with you disappears from your overview. The content itself stays with its owners.",
+    removeAccessTitle: "Remove access?",
+    removeAccessBody: (mail,folder) => `${mail} will lose access to "${folder}" and every set inside it.`,
+    draftSaved: "Draft saved",
+    draftRestored: "Draft restored",
+    discardTitle: "Discard card?",
+    discardBody: "What you just typed will be lost.",
+    discardYes: "Discard",
+    keepEditing: "Keep editing",
+    toAnswer: "To the answer",
+    deleteYes: "Delete",
+    deleteCardTitle: "Delete card?",
+    deleteCardBody: "The card is removed for everyone who sees this set. This cannot be undone.",
+    deleteSetTitle: "Delete set?",
+    deleteSetBody: (name,n) => `"${name}" will be deleted with ${n===1?"1 card":n+" cards"} — for everyone who sees the set. This cannot be undone.`,
+    deleteFolderTitle: "Delete folder?",
+    deleteFolderBody: (name,sets,cards) => `"${name}" will be deleted with ${sets===1?"1 set":sets+" sets"} and ${cards===1?"1 card":cards+" cards"} — for everyone who sees the folder. This cannot be undone.`,
     updateTitle: "New version available",
     updateBody: "Heribert has been updated. Please reload once — that way everyone works with the same version and nobody sees outdated cards.",
     updateBtn: "Update now",
@@ -840,6 +876,10 @@ const safeImgSrc = u => (typeof u === "string" && /^data:image\/(png|jpe?g|gif|w
 // bzw. diesen App-Start und verhindert eine Endlos-Sperre, solange das CDN
 // noch die alte Datei ausliefert.
 const GRACE_KEY = "heribert.justUpdated";
+// Wird ganz unten belegt, BEVOR die App gerendert wird (siehe
+// Versionswaechter). Die erste Ansicht wartet kurz darauf, sonst sieht man
+// beim Start erst die normale App und Sekunden spaeter die Sperre.
+let initialVersionCheck = null;
 const THEME_KEY = "heribert.theme";
 function getTheme(){
   try { const v = localStorage.getItem(THEME_KEY); return (v === "light" || v === "dark") ? v : "auto"; }
@@ -1567,7 +1607,7 @@ function UpdateGate({t}) {
     } catch {}
     window.location.reload();
   };
-  return (<div role="alertdialog" aria-modal="true" style={{position:"fixed",inset:0,zIndex:9000,display:"flex",alignItems:"center",justifyContent:"center",padding:24,
+  return (<div role="alertdialog" aria-modal="true" style={{position:"fixed",inset:0,zIndex:10000,display:"flex",alignItems:"center",justifyContent:"center",padding:24,
       background:"rgba(18,8,6,.46)",backdropFilter:"blur(16px) saturate(120%)",WebkitBackdropFilter:"blur(16px) saturate(120%)",animation:"gateIn .22s ease both"}}>
     <div style={{width:"100%",maxWidth:380,textAlign:"center",padding:"34px 28px 28px",borderRadius:24,
         background:"var(--glass-modal)",border:"1px solid var(--glass-bdr)",
@@ -1596,6 +1636,19 @@ function App() {
     window.addEventListener("heribert:update",on);
     return()=>window.removeEventListener("heribert:update",on);
   },[]);
+  // Solange der erste Versions-Abgleich laeuft, bleibt der Startbildschirm
+  // stehen -- sonst blitzt die fertige App auf und wird eine Sekunde spaeter
+  // von der Sperre verdeckt. Die Anfrage ist knapp ein Kilobyte und im WLAN
+  // in Millisekunden durch; laenger als 1,8 Sekunden wird trotzdem nie
+  // gewartet, damit ein schlechtes Netz den Start nicht aufhaelt.
+  const [versionChecked,setVersionChecked]=useState(false);
+  useEffect(()=>{
+    let fertig=false;
+    const weiter=()=>{ if(!fertig){ fertig=true; setVersionChecked(true); } };
+    const t=setTimeout(weiter,1800);
+    Promise.resolve(initialVersionCheck).then(weiter,weiter);
+    return()=>clearTimeout(t);
+  },[]);
   useSheetDrag();
   useEdgeSwipeBack();
   useEffect(() => {
@@ -1609,7 +1662,7 @@ function App() {
   const gateLang = session?.user?.user_metadata?.lang || (()=>{try{return localStorage.getItem("heribert.lang")}catch{return null}})() || "de";
   const gate = mustUpdate ? <UpdateGate t={T[gateLang]||T.de}/> : null;
 
-  if (session === undefined) return (<>{gate}
+  if (session === undefined || !versionChecked) return (<>{gate}
     <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:"var(--grad-bg)"}}>
       <div style={{textAlign:"center"}}>
         <div style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:28,background:"var(--grad)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",marginBottom:20}}>Heribert <Star spin/></div>
@@ -1621,7 +1674,9 @@ function App() {
   if (!session) return <>{gate}<AuthScreen/></>;
   const uname=(session.user.user_metadata?.display_name||session.user.email.split("@")[0]).split(" ")[0];
   const splashLang = session.user.user_metadata?.lang || (()=>{try{return localStorage.getItem("heribert.lang")}catch{return null}})() || "de";
-  return(<>{gate}{splash&&<SplashScreen name={uname} lang={splashLang} onDone={()=>setSplash(false)}/>}<Dashboard key={session.user.id} session={session} onLogout={()=>sb.auth.signOut()}/></>);
+  // Steht die Sperre, hat das Begruessungsbild nichts mehr zu suchen -- es
+  // liegt auf zIndex 9999 und wuerde sich sonst davorschieben.
+  return(<>{gate}{splash&&!mustUpdate&&<SplashScreen name={uname} lang={splashLang} onDone={()=>setSplash(false)}/>}<Dashboard key={session.user.id} session={session} onLogout={()=>sb.auth.signOut()}/></>);
 }
 
 // \u2500\u2500\u2500 AUTH \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
@@ -1738,6 +1793,11 @@ function Dashboard({session, onLogout}) {
     try { localStorage.setItem("heribert.hideShared", v ? "1" : "0"); } catch {}
   };
   const [confirmGoHome,setConfirmGoHome]=useState(false);
+  // Eine einzige Rueckfrage fuer alle drei Loeschwege. Vorher haben Ordner und
+  // Set das native confirm() benutzt (in der installierten App auf dem iPhone
+  // ein Fremdkoerper) und die KARTE fragte ueberhaupt nicht -- ein Fehlgriff
+  // im Drei-Punkte-Menue war sie los.
+  const [confirmDel,setConfirmDel]=useState(null); // {title,sub,onYes}
   const studyHasProgress=useRef(false);
   const goHome = () => {
     if (studyMode) {
@@ -2038,14 +2098,15 @@ function Dashboard({session, onLogout}) {
       const {error} = await sb.from("cards").insert({id,user_id:user.id,set_id:sel.setId,question_html:q,answer_html:a,last_rating:null,mcq_options:null,created_at:now,position:pos});
       // Bail out BEFORE closing the editor, so a failed save doesn't throw away
       // what the user just typed.
-      if (error) { setSaving(false); fail(error,"Karte konnte nicht gespeichert werden"); return; }
+      if (error) { setSaving(false); fail(error,"Karte konnte nicht gespeichert werden"); return false; }
       setData(d=>({...d,cards:[...d.cards,{id,setId:sel.setId,questionHtml:q,answerHtml:a,lastRating:null,mcqOptions:null,createdAt:now,position:pos}]}));
     } else {
       const {error} = await sb.from("cards").update({question_html:q,answer_html:a,mcq_options:null}).eq("id",card.id);
-      if (error) { setSaving(false); fail(error,"Aenderung konnte nicht gespeichert werden"); return; }
+      if (error) { setSaving(false); fail(error,"Aenderung konnte nicht gespeichert werden"); return false; }
       setData(d=>({...d,cards:d.cards.map(c=>c.id===card.id?{...c,questionHtml:q,answerHtml:a,mcqOptions:null}:c)}));
     }
     setSaving(false); setEditCard(null); setModal(null);
+    return true;
   };
   const removeCard = async (cid) => { const {error}=await sb.from("cards").delete().eq("id",cid); if(fail(error,"Karte konnte nicht geloescht werden"))return; setData(d=>({...d,cards:d.cards.filter(c=>c.id!==cid)})); };
   const copyCard = async (card, targetSetId) => {
@@ -2306,6 +2367,20 @@ function Dashboard({session, onLogout}) {
     }
     rootFolders.push(...topLevelShared);
   }
+  const askDeleteCard = cid => setConfirmDel({
+    title: t.deleteCardTitle, sub: t.deleteCardBody, onYes: () => removeCard(cid) });
+  const askDeleteSet = sid => {
+    const st = data.sets.find(x=>x.id===sid);
+    const n  = data.cards.filter(c=>c.setId===sid).length;
+    setConfirmDel({ title: t.deleteSetTitle, sub: t.deleteSetBody(st?.name||"", n), onYes: () => removeSet(sid) });
+  };
+  const askDeleteFolder = f => {
+    const kinder = data.folders.filter(x=>x.parentId===f.id).map(x=>x.id);
+    const sets   = data.sets.filter(x=>x.folderId===f.id||kinder.includes(x.folderId));
+    const karten = data.cards.filter(c=>sets.some(x=>x.id===c.setId)).length;
+    setConfirmDel({ title: t.deleteFolderTitle, sub: t.deleteFolderBody(f.name||"", sets.length, karten), onYes: () => removeFolder(f.id) });
+  };
+
   const isViewingShared = sel.folderId && String(sel.folderId).startsWith("__shared_");
   const currentSharedFolder = isViewingShared ? sharedFolders.find(f => f.id === sel.folderId) : null;
   const folder = isViewingShared
@@ -2375,8 +2450,8 @@ function Dashboard({session, onLogout}) {
                 const sq=searchQuery.trim().toLowerCase();
                 if(sq.length>=1) list=list.filter(f=>f.name.toLowerCase().includes(sq)||(f.children||[]).some(cf=>cf.name.toLowerCase().includes(sq)));
                 return list.map(f => <React.Fragment key={f.id}>
-                  <SidebarFolder folder={f} t={t} isActive={sel.folderId===f.id} onClick={()=>openFolder(f.id)} onDelete={f.isVirtualShared?null:()=>{if(confirm(`"${f.name}" ${t.deleteConfirm}`))removeFolder(f.id);}} onEdit={f.isVirtualShared?null:()=>{setEditFolder(f);setModal({type:"folder"});setMenuOpen(false);}}/>
-                  {(f.children||[]).filter(cf=>!sq||cf.name.toLowerCase().includes(sq)||f.name.toLowerCase().includes(sq)).map(cf=><div key={cf.id} style={{paddingLeft:16}}><SidebarFolder folder={cf} t={t} isActive={sel.folderId===cf.id} onClick={()=>openFolder(cf.id)} onDelete={()=>{if(confirm(`"${cf.name}" ${t.deleteConfirm}`))removeFolder(cf.id);}} onEdit={()=>{setEditFolder(cf);setModal({type:"folder"});setMenuOpen(false);}}/></div>)}
+                  <SidebarFolder folder={f} t={t} isActive={sel.folderId===f.id} onClick={()=>openFolder(f.id)} onDelete={f.isVirtualShared?null:()=>askDeleteFolder(f)} onEdit={f.isVirtualShared?null:()=>{setEditFolder(f);setModal({type:"folder"});setMenuOpen(false);}}/>
+                  {(f.children||[]).filter(cf=>!sq||cf.name.toLowerCase().includes(sq)||f.name.toLowerCase().includes(sq)).map(cf=><div key={cf.id} style={{paddingLeft:16}}><SidebarFolder folder={cf} t={t} isActive={sel.folderId===cf.id} onClick={()=>openFolder(cf.id)} onDelete={()=>askDeleteFolder(cf)} onEdit={()=>{setEditFolder(cf);setModal({type:"folder"});setMenuOpen(false);}}/></div>)}
                 </React.Fragment>);
               })()
           }
@@ -2425,7 +2500,7 @@ function Dashboard({session, onLogout}) {
                 if(fc.length===0) return;
                 setStudyConfig({sourceName:folder.name,cards:fc,isFolder:true});
               }}
-              onDeleteSet={sid=>{if(confirm(t.setDelete))removeSet(sid);}} onRenameSet={renameSet}
+              onDeleteSet={askDeleteSet} onRenameSet={renameSet}
               onShareFolder={()=>setModal({type:"folderShare",folderId:resolveFolderId(sel.folderId)})}
               onEditFolder={()=>{if(!isViewingShared){setEditFolder(folder);setModal({type:"folder"});}}}/>
           )}
@@ -2434,7 +2509,7 @@ function Dashboard({session, onLogout}) {
               sort={cardSort} onSort={setCardSort}
               onReorder={setCCards.length>1?(()=>setModal({type:"reorderCards"})):null}
               onBack={()=>setSel(p=>({...p,setId:null}))} onNewCard={()=>setModal({type:"card"})}
-              onEditCard={c=>{setEditCard(c);setModal({type:"card"});}} onDeleteCard={removeCard}
+              onEditCard={c=>{setEditCard(c);setModal({type:"card"});}} onDeleteCard={askDeleteCard}
               onCopyCard={c=>setModal({type:"cardAction",card:c,action:"copy"})}
               onMoveCard={c=>setModal({type:"cardAction",card:c,action:"move"})}
               onLearn={()=>setStudyConfig({sourceName:set.name,cards:setCCards,isFolder:false})}
@@ -2446,6 +2521,10 @@ function Dashboard({session, onLogout}) {
       </main>
       </div>
 
+      {confirmDel && <ConfirmOverlay danger title={confirmDel.title} sub={confirmDel.sub}
+        confirmLabel={t.deleteYes} cancelLabel={t.cancel}
+        onConfirm={()=>{const f=confirmDel.onYes;setConfirmDel(null);f();}}
+        onCancel={()=>setConfirmDel(null)}/>}
       {studyConfig && <StudyConfigModal config={studyConfig} t={t} onStart={cfg=>{
         const pool = cfg.cards || studyConfig.cards;
         const picked = pickStudyCards(pool, cfg.count);
@@ -2470,7 +2549,9 @@ function Dashboard({session, onLogout}) {
       {modal?.type==="reorderCards" && <OrderModal t={t} title={t.reorderCardsTitle} hint={t.reorderHint}
         items={applySort(setCCards,"manual","cards")} renderLabel={x=>strip(x.questionHtml)||"—"}
         onSave={async ids=>{setCardSort("manual");await reorderCards(ids);}} onClose={()=>setModal(null)}/>}
-      {modal?.type==="card" && <CardModal card={editCard} saving={saving} t={t} onSave={c=>{saveCard(c);setEditCard(null);}} onClose={()=>{setModal(null);setEditCard(null);}}/>}
+      {modal?.type==="card" && <CardModal card={editCard} setId={sel.setId} saving={saving} t={t}
+        onSave={async c=>{ const ok = await saveCard(c); if (ok) setEditCard(null); return ok; }}
+        onClose={()=>{setModal(null);setEditCard(null);}}/>}
       {modal?.type==="folderShare" && (()=>{
         // Auch aus einem GETEILTEN Ordner heraus einladen: dann steht der
         // Ordner nicht in data.folders, Name und Farbe kommen aus der Kachel.
@@ -3281,6 +3362,7 @@ function MCQMode({set,cards,onExit,onGoHome,onRate,onCacheMCQ,onProgress,readOnl
 }
 
 function ProfileModal({user,userName,onLogout,onClose,hideShared,setHideShared,onRemoveAllShared,hasSharedFolders,t,lang,setLang}) {
+  const [askAll,setAskAll]=useState(false);
   const [theme,setThemeState]=useState(getTheme);
   const setTheme=v=>{applyTheme(v);setThemeState(v);};
   const [name,setName]=useState(userName);
@@ -3318,7 +3400,8 @@ function ProfileModal({user,userName,onLogout,onClose,hideShared,setHideShared,o
       setErr(e?.message || "Bild konnte nicht geladen werden.");
     } finally { setUploading(false); }
   };
-  return(<div className="overlay" onClick={onClose}><div className="modal si modal-flex" style={{maxWidth:460,padding:0}} onClick={e=>e.stopPropagation()}>
+  return(<>
+  <div className="overlay" onClick={onClose}><div className="modal si modal-flex" style={{maxWidth:460,padding:0}} onClick={e=>e.stopPropagation()}>
     <div style={{flexShrink:0,padding:"24px 32px 12px",background:"var(--glass-modal)",borderBottom:"1px solid var(--border-soft)",display:"flex",alignItems:"flex-start",justifyContent:"space-between",borderRadius:"var(--r-xl) var(--r-xl) 0 0"}}>
       <div><h3 style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:20,marginBottom:4}}>{t.profile}</h3><p style={{color:"var(--muted)",fontSize:14}}>{user.email}</p></div>
       <button onClick={onClose} title="Schließen" style={{width:32,height:32,borderRadius:10,border:"1px solid var(--glass-bdr)",background:"var(--btn-sm-bg)",backdropFilter:"blur(12px)",WebkitBackdropFilter:"blur(12px)",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",color:"var(--muted)",transition:"all .15s",flexShrink:0,boxShadow:"var(--sh-sm)"}} onMouseEnter={e=>{e.currentTarget.style.color="var(--red)";e.currentTarget.style.background="var(--glass-danger)";e.currentTarget.style.borderColor="var(--red)";}} onMouseLeave={e=>{e.currentTarget.style.color="var(--muted)";e.currentTarget.style.background="var(--btn-sm-bg)";e.currentTarget.style.borderColor="var(--glass-bdr)";}}><IClose2/></button>
@@ -3382,7 +3465,7 @@ function ProfileModal({user,userName,onLogout,onClose,hideShared,setHideShared,o
             <span style={{position:"absolute",top:2,left:hideShared?22:2,width:20,height:20,borderRadius:"50%",background:"#fff",transition:"all .18s",boxShadow:"0 1px 3px rgba(0,0,0,.2)"}}/>
           </button>
         </div>
-        <button onClick={()=>{if(confirm(t.removeAllShared+"?")){onRemoveAllShared();onClose();}}} style={{width:"100%",padding:"9px 12px",fontSize:12,fontWeight:500,background:"var(--glass-danger)",color:"var(--red)",border:"1px solid rgba(220,38,38,.2)",borderRadius:10,cursor:"pointer",fontFamily:"inherit",transition:"all .15s"}}>{t.removeAllShared}</button>
+        <button onClick={()=>setAskAll(true)} style={{width:"100%",padding:"9px 12px",fontSize:12,fontWeight:500,background:"var(--glass-danger)",color:"var(--red)",border:"1px solid rgba(220,38,38,.2)",borderRadius:10,cursor:"pointer",fontFamily:"inherit",transition:"all .15s"}}>{t.removeAllShared}</button>
       </div>
     )}
     <div style={{paddingTop:16,borderTop:"1px solid var(--border-soft)",marginBottom:12}}>
@@ -3401,7 +3484,13 @@ function ProfileModal({user,userName,onLogout,onClose,hideShared,setHideShared,o
     </div>
     {onLogout && <button onClick={()=>{onClose();onLogout();}} style={{width:"100%",display:"inline-flex",alignItems:"center",justifyContent:"center",gap:8,padding:"11px",background:"var(--glass-danger)",color:"var(--red)",border:"1.5px solid #FCA5A5",borderRadius:10,fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"inherit",transition:"all .15s",marginTop:4}}><ILogout/> {t.logout}</button>}
     </div>
-  </div></div>);
+  </div></div>
+  {askAll && <ConfirmOverlay danger title={t.removeAllShared+"?"}
+    sub={t.removeAllSharedBody}
+    confirmLabel={t.deleteYes} cancelLabel={t.cancel}
+    onConfirm={()=>{setAskAll(false);onRemoveAllShared();onClose();}}
+    onCancel={()=>setAskAll(false)}/>}
+  </>);
 }
 
 function FolderModal({onSave,onClose,initial,folders,t}) {
@@ -3566,6 +3655,24 @@ function RichToolBar({targetRef,compact}){
     </div>);
 }
 
+// Hat das Geraet eine echte Tastatur? Nur dort darf Enter etwas anderes tun
+// als einen Zeilenumbruch: nur dort gibt es Shift+Enter als Ausweichweg.
+// Auf dem iPhone ist die Return-Taste die EINZIGE Moeglichkeit, eine Zeile
+// umzubrechen -- sie umzuwidmen kostet mehr, als sie einbringt.
+const hasRealKeyboard = () => {
+  try { return window.matchMedia("(any-pointer: fine)").matches; } catch { return true; }
+};
+
+// --- Entwuerfe -------------------------------------------------------------
+// Ein halb getippter Kartentext ist mit einem Fehlklick neben das Fenster weg.
+// Deshalb liegt waehrend des Tippens laufend eine Kopie im Browser. Bewusst
+// NICHT in der Datenbank: dann wuerde "Abbrechen" nichts mehr abbrechen und
+// alle anderen saehen jeden Zwischenstand mit.
+const DRAFT_KEY = (setId,cardId) => "heribert.draft." + (setId||"?") + "." + (cardId||"neu");
+const readDraft = k => { try { const r=localStorage.getItem(k); return r?JSON.parse(r):null; } catch { return null; } };
+const writeDraft = (k,v) => { try { localStorage.setItem(k,JSON.stringify(v)); } catch {} };
+const dropDraft = k => { try { localStorage.removeItem(k); } catch {} };
+
 // Der Cursor ans Ende, wenn man vom Frage- ins Antwortfeld springt.
 const caretToEnd = el => {
   if (!el) return;
@@ -3582,20 +3689,81 @@ const caretInList = () => {
   return false;
 };
 
-function CardModal({card,saving,onSave,onClose,t}) {
+function CardModal({card,setId,saving,onSave,onClose,t}) {
   const qRef=useRef(); const aRef=useRef();
   const saveRef=useRef(()=>{});
-  useEffect(()=>{if(qRef.current)qRef.current.innerHTML=safeHtml(card?.questionHtml);if(aRef.current)aRef.current.innerHTML=safeHtml(card?.answerHtml);},[]);
-  const save=()=>{const q=qRef.current?.innerHTML||"";const a=aRef.current?.innerHTML||"";if(!strip(q)&&!strip(a))return;onSave({...(card||{}),questionHtml:q,answerHtml:a,mcqOptions:null});};
-  saveRef.current=save;
-  // Enter im Fragefeld springt zur Antwort, Enter im Antwortfeld speichert.
-  // Auf dem iPhone gibt es kein Shift+Enter -- die Return-Taste ist dort der
-  // einzige Bestaetigungs-Knopf, den die Tastatur hergibt. "enterkeyhint"
-  // beschriftet sie passend mit "Weiter" bzw. "Fertig".
-  // Abgefangen wird "beforeinput"/insertParagraph statt keydown: das ist der
-  // Weg, den iOS-Safari zuverlaessig meldet. Shift+Enter erzeugt dagegen
-  // "insertLineBreak" und laeuft unangetastet durch.
+  const key = DRAFT_KEY(setId, card?.id);
+  const dirtyRef = useRef(false);
+  const timerRef = useRef(null);
+  const [status,setStatus] = useState(null);      // "saved" | "restored"
+  const [askDiscard,setAskDiscard] = useState(false);
+  const [kbGap,setKbGap] = useState(0);           // Hoehe der Bildschirmtastatur
+  const [inQuestion,setInQuestion] = useState(false);
+  const tippMitTastatur = hasRealKeyboard();
+
+  const snapshot = () => ({q:qRef.current?.innerHTML||"", a:aRef.current?.innerHTML||"", at:Date.now()});
+  const hatInhalt = () => !!(strip(qRef.current?.innerHTML||"") || strip(aRef.current?.innerHTML||""));
+
+  // Beim Oeffnen: liegt ein neuerer Entwurf herum, gewinnt der.
   useEffect(()=>{
+    const q0 = safeHtml(card?.questionHtml), a0 = safeHtml(card?.answerHtml);
+    const d = readDraft(key);
+    if (d && (strip(d.q||"")||strip(d.a||"")) && (d.q!==q0 || d.a!==a0)) {
+      if(qRef.current) qRef.current.innerHTML = safeHtml(d.q);
+      if(aRef.current) aRef.current.innerHTML = safeHtml(d.a);
+      dirtyRef.current = true;
+      setStatus("restored");
+    } else {
+      if(qRef.current) qRef.current.innerHTML = q0;
+      if(aRef.current) aRef.current.innerHTML = a0;
+    }
+  },[]);
+
+  // Laufend sichern, eine knappe Sekunde nach dem letzten Tastendruck --
+  // und auf jeden Fall, wenn die App in den Hintergrund geht: auf dem iPhone
+  // wird sie dort jederzeit abgeraeumt.
+  useEffect(()=>{
+    const sichern = () => { writeDraft(key, snapshot()); setStatus("saved"); };
+    const beiEingabe = () => {
+      dirtyRef.current = true;
+      clearTimeout(timerRef.current);
+      timerRef.current = setTimeout(sichern, 900);
+    };
+    const sofort = () => { if (dirtyRef.current) { clearTimeout(timerRef.current); writeDraft(key, snapshot()); } };
+    const beiSichtwechsel = () => { if (document.visibilityState === "hidden") sofort(); };
+    const els = [qRef.current,aRef.current].filter(Boolean);
+    els.forEach(el=>el.addEventListener("input",beiEingabe));
+    window.addEventListener("pagehide",sofort);
+    document.addEventListener("visibilitychange",beiSichtwechsel);
+    return ()=>{
+      clearTimeout(timerRef.current);
+      els.forEach(el=>el.removeEventListener("input",beiEingabe));
+      window.removeEventListener("pagehide",sofort);
+      document.removeEventListener("visibilitychange",beiSichtwechsel);
+    };
+  },[]);
+
+  const save=async()=>{
+    const q=qRef.current?.innerHTML||""; const a=aRef.current?.innerHTML||"";
+    if(!strip(q)&&!strip(a))return;
+    const ok = await onSave({...(card||{}),questionHtml:q,answerHtml:a,mcqOptions:null});
+    // Nur wegwerfen, wenn es wirklich in der Datenbank steht. Sonst waere der
+    // Text nach einem fehlgeschlagenen Speichern doppelt verloren.
+    if (ok !== false) { dropDraft(key); dirtyRef.current = false; }
+  };
+  saveRef.current=save;
+
+  const schliessen = () => {
+    if (dirtyRef.current && hatInhalt()) { setAskDiscard(true); return; }
+    dropDraft(key); onClose();
+  };
+  const verwerfen = () => { dropDraft(key); dirtyRef.current=false; setAskDiscard(false); onClose(); };
+
+  // Enter bestaetigt NUR an einer echten Tastatur, wo Shift+Enter den
+  // Zeilenumbruch uebernimmt. Auf dem Telefon bleibt Enter ein Enter --
+  // bestaetigt wird dort ueber die Leiste, die mit der Tastatur mitwandert.
+  useEffect(()=>{
+    if (!tippMitTastatur) return;
     const wire = (el, isAnswer) => {
       if (!el) return null;
       el.setAttribute("enterkeyhint", isAnswer ? "done" : "next");
@@ -3612,21 +3780,61 @@ function CardModal({card,saving,onSave,onClose,t}) {
     const offQ = wire(qRef.current,false), offA = wire(aRef.current,true);
     return ()=>{ offQ&&offQ(); offA&&offA(); };
   },[]);
-  return(<div className="overlay" onClick={onClose}><div className="modal si" style={{maxWidth:580,padding:0}} onClick={e=>e.stopPropagation()}>
-    <div style={{padding:"24px 28px 16px",borderBottom:"1px solid var(--border)",background:"var(--glass-hover)",position:"relative"}}><ModalX onClose={onClose}/><h3 style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:18}}>{card?t.editCard:t.newCard}</h3></div>
-    {[{label:t.question,ref:qRef,ph:t.question+" …",hint:t.enterHintQ},{label:t.answer,ref:aRef,ph:t.answer+" …",hint:t.enterHintA}].map(({label,ref,ph,hint})=>(<div key={label} style={{borderBottom:"1px solid var(--border)"}}>
+
+  // Wo endet der sichtbare Bereich, wenn die Bildschirmtastatur offen ist?
+  // position:fixed rechnet gegen das GANZE Fenster, die Tastatur liegt aber
+  // darueber -- ohne visualViewport landet die Leiste dahinter.
+  useEffect(()=>{
+    if (tippMitTastatur) return;
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const mess = () => {
+      const verdeckt = Math.max(0, window.innerHeight - (vv.height + vv.offsetTop));
+      setKbGap(verdeckt > 90 ? verdeckt : 0);
+    };
+    vv.addEventListener("resize",mess); vv.addEventListener("scroll",mess);
+    mess();
+    return ()=>{ vv.removeEventListener("resize",mess); vv.removeEventListener("scroll",mess); };
+  },[]);
+
+  const felder = [
+    {label:t.question, ref:qRef, ph:t.question+" …", hint:tippMitTastatur?t.enterHintQ:"", istAntwort:false},
+    {label:t.answer,   ref:aRef, ph:t.answer+" …",   hint:tippMitTastatur?t.enterHintA:"", istAntwort:true},
+  ];
+  return(<>
+  <div className="overlay" onClick={schliessen}><div className="modal si" style={{maxWidth:580,padding:0}} onClick={e=>e.stopPropagation()}>
+    <div style={{padding:"24px 28px 16px",borderBottom:"1px solid var(--border)",background:"var(--glass-hover)",position:"relative"}}><ModalX onClose={schliessen}/><h3 style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:18}}>{card?t.editCard:t.newCard}</h3></div>
+    {felder.map(({label,ref,ph,hint,istAntwort})=>(<div key={label} style={{borderBottom:"1px solid var(--border)"}}>
       <div style={{display:"flex",alignItems:"baseline",justifyContent:"space-between",gap:10,padding:"10px 14px 0"}}>
         <span style={{fontSize:12,fontWeight:600,color:"var(--muted)",textTransform:"uppercase",letterSpacing:".06em"}}>{label}</span>
-        <span style={{fontSize:10.5,color:"var(--muted2)",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{hint}</span>
+        {hint && <span style={{fontSize:10.5,color:"var(--muted2)",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{hint}</span>}
       </div>
       <RichToolBar targetRef={ref}/>
-      <div className="rich" contentEditable ref={ref} data-ph={ph} onDrop={e=>{e.preventDefault();const f=e.dataTransfer?.files?.[0];if(f?.type.startsWith("image/"))richInsImg(f,ref);}} onDragOver={e=>e.preventDefault()} style={{minHeight:90,fontSize:15}}/>
+      <div className="rich" contentEditable ref={ref} data-ph={ph}
+        onFocus={()=>setInQuestion(!istAntwort)}
+        onDrop={e=>{e.preventDefault();const f=e.dataTransfer?.files?.[0];if(f?.type.startsWith("image/"))richInsImg(f,ref);}} onDragOver={e=>e.preventDefault()} style={{minHeight:90,fontSize:15}}/>
     </div>))}
-    <div style={{padding:"16px 28px",display:"flex",gap:10,justifyContent:"flex-end",background:"var(--glass)"}}>
-      <button className="btn-g" onClick={onClose}>{t.cancel}</button>
+    <div style={{padding:"16px 28px",display:"flex",gap:10,alignItems:"center",background:"var(--glass)"}}>
+      <span style={{flex:1,minWidth:0,fontSize:11.5,color:"var(--muted2)",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>
+        {status==="restored" ? "↺ " + t.draftRestored : status==="saved" ? "✓ " + t.draftSaved : ""}
+      </span>
+      <button className="btn-g" onClick={schliessen}>{t.cancel}</button>
       <button className="btn-o" onClick={save} disabled={saving}>{saving?<ISpin c="#fff" s={16}/>:(card?t.save:t.create)}</button>
     </div>
-  </div></div>);
+  </div></div>
+  {/* Die Leiste ueber der Bildschirmtastatur. Sie ersetzt das, was Enter auf
+      dem Telefon frueher getan hat -- ohne die Return-Taste dafuer zu opfern. */}
+  {kbGap>0 && <div style={{position:"fixed",left:0,right:0,bottom:kbGap,zIndex:2100,display:"flex",alignItems:"center",gap:8,padding:"8px 12px",
+      background:"var(--glass-modal)",backdropFilter:"blur(24px) saturate(160%)",WebkitBackdropFilter:"blur(24px) saturate(160%)",
+      borderTop:"1px solid var(--glass-bdr)",boxShadow:"0 -6px 20px rgba(0,0,0,.14)"}}>
+    {inQuestion && <button className="btn-sm" onClick={()=>{aRef.current?.focus();caretToEnd(aRef.current);}}>{t.toAnswer} ↓</button>}
+    <span style={{flex:1,fontSize:11,color:"var(--muted2)",whiteSpace:"nowrap",overflow:"hidden"}}>{status==="saved"?"✓ "+t.draftSaved:""}</span>
+    <button className="btn-o" onClick={save} disabled={saving} style={{padding:"9px 18px"}}>{saving?<ISpin c="#fff" s={16}/>:(card?t.save:t.create)}</button>
+  </div>}
+  {askDiscard && <ConfirmOverlay danger title={t.discardTitle} sub={t.discardBody}
+    confirmLabel={t.discardYes} cancelLabel={t.keepEditing}
+    onConfirm={verwerfen} onCancel={()=>setAskDiscard(false)}/>}
+  </>);
 }
 
 // ─── SORTIERUNG & REIHENFOLGE ──────────────────────────────────────
@@ -3725,12 +3933,15 @@ function OrderModal({title,hint,items,renderLabel,onSave,onClose,t}){
 function ModalX({onClose}){
   return <button onClick={onClose} title="Schließen" style={{position:"absolute",top:16,right:16,zIndex:10,width:32,height:32,borderRadius:10,border:"1px solid var(--glass-bdr)",background:"var(--btn-sm-bg)",backdropFilter:"blur(12px)",WebkitBackdropFilter:"blur(12px)",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",color:"var(--muted)",transition:"all .15s",boxShadow:"var(--sh-sm)"}} onMouseEnter={e=>{e.currentTarget.style.color="var(--red)";e.currentTarget.style.background="var(--glass-danger)";e.currentTarget.style.borderColor="var(--red)";}} onMouseLeave={e=>{e.currentTarget.style.color="var(--muted)";e.currentTarget.style.background="var(--btn-sm-bg)";e.currentTarget.style.borderColor="var(--glass-bdr)";}}><IClose2/></button>;
 }
-function ConfirmOverlay({title,sub,confirmLabel,cancelLabel,onConfirm,onCancel}){
+function ConfirmOverlay({title,sub,confirmLabel,cancelLabel,onConfirm,onCancel,danger}){
+  // Der bestaetigende Knopf steht links und ist der leise -- der harmlose Weg
+  // ist der auffaellige. Bei "danger" bekommt er zusaetzlich Rot, damit man
+  // beim Loeschen nicht aus Gewohnheit durchklickt.
   return(<div className="overlay" onClick={onCancel} style={{zIndex:2000}}><div className="modal si" style={{maxWidth:400,padding:28}} onClick={e=>e.stopPropagation()}>
     <h3 style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:19,marginBottom:8}}>{title}</h3>
     {sub&&<p style={{color:"var(--muted)",fontSize:14,marginBottom:22,lineHeight:1.5}}>{sub}</p>}
     <div style={{display:"flex",gap:10,justifyContent:"flex-end"}}>
-      <button className="btn-g" onClick={onConfirm}>{confirmLabel}</button>
+      <button className="btn-g" onClick={onConfirm} style={danger?{color:"var(--red)",borderColor:"var(--red)"}:undefined}>{confirmLabel}</button>
       <button className="btn-o" onClick={onCancel}>{cancelLabel}</button>
     </div>
   </div></div>);
@@ -3759,6 +3970,9 @@ function FolderShareModal({folder,allFolders,folderSets,ownerEmail,ownerId,owner
   const [ok,setOk]=useState("");
   const [loading,setLoading]=useState(true);
   const [busy,setBusy]=useState(false);
+  // Zugriff entziehen ist nicht rueckgaengig zu machen -- deshalb dieselbe
+  // Rueckfrage wie beim Loeschen, statt des nativen confirm().
+  const [askRemove,setAskRemove]=useState(null);
 
   const setIds = folderSets.map(s=>s.id);
 
@@ -3881,7 +4095,6 @@ function FolderShareModal({folder,allFolders,folderSets,ownerEmail,ownerId,owner
   };
 
   const removeShare = async (invitedEmail) => {
-    if (!confirm(`Zugriff für ${invitedEmail} auf „${folder.name}" entfernen?`)) return;
     const key = (invitedEmail||"").toLowerCase();
     const ids = rows.filter(r => (r.invited_email||"").toLowerCase() === key).map(r=>r.id);
     const inviteIds = invites.filter(iv => (iv.invited_email||"").toLowerCase() === key).map(iv=>iv.id);
@@ -3899,7 +4112,8 @@ function FolderShareModal({folder,allFolders,folderSets,ownerEmail,ownerId,owner
   };
 
   if (!folder) return null;
-  return (<div className="overlay" onClick={onClose}><div className="modal si" style={{maxWidth:480,padding:0}} onClick={e=>e.stopPropagation()}>
+  return (<>
+  <div className="overlay" onClick={onClose}><div className="modal si" style={{maxWidth:480,padding:0}} onClick={e=>e.stopPropagation()}>
     <div style={{padding:"22px 26px 14px",borderBottom:"1px solid var(--border)",background:"var(--glass-hover)"}}>
       <ModalX onClose={onClose}/>
       <h3 style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:19,marginBottom:2,display:"flex",alignItems:"center",gap:8}}><FolderMark mark={folder.color} size={22}/> {t.shareFolder}</h3>
@@ -3964,7 +4178,7 @@ function FolderShareModal({folder,allFolders,folderSets,ownerEmail,ownerId,owner
                 <button onClick={async()=>{const nv=!g.canEdit;const upd={can_edit:nv};const jobs=g.rowIds.map(id=>sb.from("set_shares").update(upd).eq("id",id));if(g.inviteId)jobs.push(sb.from("folder_invites").update(upd).eq("id",g.inviteId));const res=await Promise.all(jobs);const bad=res.find(x=>x&&x.error);if(bad){setErr("Rechte konnten nicht geaendert werden: "+bad.error.message);return;}load();}} title={g.canEdit?"Auf nur-lesen setzen":"Bearbeitungsrechte geben"} style={{width:28,height:28,borderRadius:7,border:`1.5px solid ${g.canEdit?"var(--orange)":"var(--border)"}`,background:g.canEdit?"var(--orange)":"transparent",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",transition:"all .15s",flexShrink:0}}>
                   <IEdit/>
                 </button>
-                <button onClick={()=>removeShare(g.email)} className="icon-btn" title="Zugriff entfernen"><ITrash/></button>
+                <button onClick={()=>setAskRemove(g.email)} className="icon-btn" title="Zugriff entfernen"><ITrash/></button>
               </div>);
             })}
         </div>}
@@ -3973,7 +4187,14 @@ function FolderShareModal({folder,allFolders,folderSets,ownerEmail,ownerId,owner
         💡 Eingeladene Personen müssen sich mit derselben E-Mail-Adresse in Heribert registrieren/anmelden. Der Ordner erscheint dann bei ihnen unter „Geteilt mit mir". Über das Stift-Icon kannst du Bearbeitungsrechte pro Person ein- und ausschalten. Neue Sets werden automatisch mitgeteilt.
       </div>
     </div>
-  </div></div>);
+  </div></div>
+  {askRemove && <ConfirmOverlay danger
+    title={t.removeAccessTitle}
+    sub={t.removeAccessBody(askRemove, folder?.name||"")}
+    confirmLabel={t.deleteYes} cancelLabel={t.cancel}
+    onConfirm={()=>{const e=askRemove;setAskRemove(null);removeShare(e);}}
+    onCancel={()=>setAskRemove(null)}/>}
+  </>);
 }
 
 function PDFPreviewModal({cards,sourceName,pages,meta,onConfirm,onClose}){
@@ -4223,13 +4444,20 @@ const checkAppVersion = async () => {
   } catch (e) { /* Funkloch: kein Grund, jemanden auszusperren */ }
   finally { versionCheckRunning = false; }
 };
-// Beim Zurueckkehren in die App, alle 10 Minuten und einmal kurz nach dem
-// Start (da ist der Service Worker gerade mit sich selbst beschaeftigt).
+// Beim Zurueckkehren in die App und alle 10 Minuten. "pageshow" ist fuer die
+// installierte App auf dem iPhone wichtig: die wird oft aus dem Zwischen-
+// speicher wiederhergestellt, ohne dass die Seite neu laedt.
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible") checkAppVersion();
 });
+window.addEventListener("pageshow", () => checkAppVersion());
 setInterval(checkAppVersion, 10 * 60 * 1000);
-setTimeout(checkAppVersion, 15000);
+
+// Der erste Abgleich laeuft SOFORT los -- vorher stand er auf 15 Sekunden,
+// und genau deshalb sah man beim Start ein paar Sekunden die ganz normale
+// App, bevor die Sperre kam. Die Zuweisung muss vor dem Rendern stehen:
+// App() wartet auf genau dieses Versprechen.
+initialVersionCheck = checkAppVersion();
 
 createRoot(document.getElementById('root')).render(<App/>);
 </script>

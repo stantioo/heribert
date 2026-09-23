@@ -14,7 +14,7 @@
 // CHANGELOG-Eintrag. Ändert sich sw.js nicht, merkt ein Gerät, das die App nur
 // fortsetzt statt sie neu zu laden, gar nichts von einer neuen Fassung; der
 // Wechsel hier löst "controllerchange" aus und damit die Update-Sperre.
-const CACHE_VERSION = "heribert-v3";
+const CACHE_VERSION = "heribert-v4";
 
 // Nur die Dateien, die für den ersten Start gebraucht werden. Die großen
 // Import-Bibliotheken (pdf.js, mammoth, jszip) landen erst im Cache, wenn sie
