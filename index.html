@@ -6,7 +6,7 @@
        ausgelieferten index.html; weicht er ab, sperrt sie sich bis zum
        Neuladen. BEI JEDER VEROEFFENTLICHUNG HOCHZAEHLEN -- zusammen mit dem
        obersten CHANGELOG-Eintrag und CACHE_VERSION in sw.js. -->
-  <meta name="heribert-version" content="2.9"/>
+  <meta name="heribert-version" content="3.0"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
 
   <!-- Zweite Verteidigungslinie hinter DOMPurify: selbst wenn Schadcode ins
@@ -74,6 +74,10 @@ const CSS = `
   /* Base */
   --bg:#FAF4EB;--surface:#FFFFFF;--border:#E8DFD2;--border-soft:rgba(245,99,26,.12);
   --text:#1C1810;--muted:#7A7468;--muted2:#B8B2A8;
+  /* Farblose Toene in Karteninhalten (siehe inkTree). Im hellen Schema wird
+     weisse Schrift zur normalen Textfarbe und schwarzer Hintergrund
+     durchsichtig; alles Uebrige bleibt beim Originalwert. */
+  --hb-ink-l:var(--text);--hb-night:transparent;
   /* Warm accents — same in both modes */
   --orange:#F5631A;--orange-l:#FF8A3D;--orange-d:#D44A0B;
   --ol:#FFF3EC;--ob:#FDC9A8;
@@ -137,7 +141,8 @@ const CSS = `
 @media(prefers-color-scheme:dark){
   :root:not([data-theme="light"]){
     --bg:#140808;--surface:#1E0C0C;--border:rgba(245,99,26,.22);--border-soft:rgba(245,99,26,.12);
-    --text:#F5ECE3;--muted:#A89080;--muted2:#6B5848;
+    --text:#FFFFFF;--muted:#C2B6AD;--muted2:#8F817A;
+    --hb-ink-d:var(--text);--hb-paper:transparent;--hb-ink-l:initial;--hb-night:initial;
     --ol:rgba(245,99,26,.15);--ob:rgba(245,99,26,.3);
     --rl:rgba(220,38,38,.25);--gl:rgba(22,163,74,.18);
     --shared-bg:linear-gradient(160deg,rgba(146,64,14,.28),rgba(146,64,14,.38));
@@ -178,7 +183,8 @@ const CSS = `
 }
 :root[data-theme="dark"]{
     --bg:#140808;--surface:#1E0C0C;--border:rgba(245,99,26,.22);--border-soft:rgba(245,99,26,.12);
-    --text:#F5ECE3;--muted:#A89080;--muted2:#6B5848;
+    --text:#FFFFFF;--muted:#C2B6AD;--muted2:#8F817A;
+    --hb-ink-d:var(--text);--hb-paper:transparent;--hb-ink-l:initial;--hb-night:initial;
     --ol:rgba(245,99,26,.15);--ob:rgba(245,99,26,.3);
     --rl:rgba(220,38,38,.25);--gl:rgba(22,163,74,.18);
     --shared-bg:linear-gradient(160deg,rgba(146,64,14,.28),rgba(146,64,14,.38));
@@ -218,6 +224,11 @@ const CSS = `
 :root[data-theme="dark"] img{opacity:.92;}
 
 html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;color-scheme:light dark;}
+/* Fest gewaehltes Schema auch fuer alles, was der Browser selbst zeichnet
+   (Auswahllisten, Felder ohne eigene Farbe) -- "light dark" allein folgt
+   immer dem Geraet, auch wenn man in Heribert das andere gewaehlt hat. */
+:root[data-theme="dark"],:root[data-theme="dark"] body{color-scheme:dark;}
+:root[data-theme="light"],:root[data-theme="light"] body{color-scheme:light;}
 ::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-thumb{background:var(--border);border-radius:99px;}
 
 .glass{background:var(--glass);backdrop-filter:blur(22px) saturate(140%);-webkit-backdrop-filter:blur(22px) saturate(140%);border:1.5px solid var(--glass-bdr);box-shadow:var(--sh-sm),var(--glass-inset);}
@@ -250,7 +261,18 @@ html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;background:var(
 .rich{outline:none;min-height:90px;line-height:1.7;word-break:break-word;padding:14px;}
 .rich:empty::before{content:attr(data-ph);color:var(--muted2);pointer-events:none;}
 .rich ul,.rich ol{padding-left:22px;}
-.rich img{max-width:100%;border-radius:10px;display:block;margin:6px 0;}
+.rich img{max-width:100%;height:auto;border-radius:10px;display:block;margin:6px 0;}
+/* Bilder in angezeigten Karten: immer ganz zu sehen, nie beschnitten und nie
+   breiter als der Platz -- egal wie gross das Original ist. Ein Tipp darauf
+   oeffnet es bildschirmfuellend (ImageZoom). Die Hoehe ist mitbegrenzt, damit
+   ein Hochformatfoto nicht die ganze Karte fuellt und die Frage wegschiebt. */
+.card-html img{display:inline-block;max-width:100%;height:auto;max-height:55vh;vertical-align:middle;margin:6px 0;border-radius:10px;cursor:zoom-in;}
+.flip-f .card-html img,.flip-b .card-html img{max-height:40vh;}
+/* Eingeklappte Zeile in der Kartenliste: nur ein Vorschaubild in Zeilenhoehe */
+.card-line img{max-height:1.6em;margin:0 3px;border-radius:4px;}
+.hb-zoom{position:fixed;inset:0;z-index:5000;background:rgba(8,4,3,.94);display:flex;align-items:center;justify-content:center;padding:max(12px,env(safe-area-inset-top)) 12px max(12px,env(safe-area-inset-bottom));cursor:zoom-out;animation:gateIn .15s ease;}
+.hb-zoom img{max-width:100%;max-height:100%;object-fit:contain;border-radius:8px;opacity:1!important;box-shadow:0 20px 60px rgba(0,0,0,.5);}
+.hb-zoom-x{position:absolute;top:calc(env(safe-area-inset-top,0px) + 12px);right:12px;width:44px;height:44px;border-radius:99px;border:none;background:rgba(255,255,255,.14);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;}
 
 .flip-wrap{position:relative;perspective:1000px;}
 .flip-inner{position:relative;}
@@ -279,6 +301,41 @@ html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;background:var(
 @media(min-width:1024px){.card-grid{gap:12px;}}
 .inline-edit{border:none;background:transparent;font:inherit;color:inherit;padding:0 4px;outline:none;border-radius:4px;}
 .inline-edit:focus{background:var(--ol);}
+
+/* Lernmodi im Einrichten-Fenster: drei nebeneinander, am Telefon untereinander
+   (drei Spalten waeren dort je 100 Pixel -- "KI-Antwortoptionen" passt nicht). */
+.hb-modes{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:22px;}
+.hb-mode-icon{font-size:22px;margin-bottom:6px;}
+@media(max-width:480px){
+  .hb-modes{grid-template-columns:1fr;gap:8px;}
+  .hb-mode{display:flex!important;align-items:center;gap:12px;padding:11px 14px!important;}
+  .hb-mode-icon{margin-bottom:0;flex-shrink:0;}
+}
+
+/* Kartenfenster auf Geraeten OHNE echte Tastatur. Das Fenster wird auf die
+   Flaeche ueber der Bildschirmtastatur zugeschnitten (die Hoehe setzt
+   CardModal aus visualViewport). Dadurch steht die Kopfzeile mit Speichern
+   immer oben im Blick, und die Felder scrollen darunter -- statt einer Leiste,
+   die der Tastatur hinterherlaufen muss. */
+.overlay.hb-kb-fit{bottom:auto;height:100%;}
+.overlay.hb-kb-fit>.modal.hb-card-sheet{display:flex;flex-direction:column;overflow:hidden;padding:0;max-height:calc(100% - 24px);}
+@media(max-width:768px){
+  .overlay.hb-kb-fit>.modal.hb-card-sheet{position:absolute!important;left:0!important;right:0!important;bottom:0!important;top:auto!important;height:calc(100% - max(10px,env(safe-area-inset-top,0px)))!important;max-height:none!important;padding-bottom:0!important;}
+}
+.hb-sheet-head{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid var(--border);background:var(--glass-hover);flex-shrink:0;}
+.hb-sheet-head h3{font-family:Outfit,sans-serif;font-weight:700;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.hb-sheet-btn{min-height:40px;padding:0 10px;border:none;background:none;font:inherit;font-size:16px;cursor:pointer;color:var(--orange);-webkit-tap-highlight-color:transparent;}
+.hb-sheet-btn.save{justify-self:end;font-weight:700;}
+.hb-sheet-btn.cancel{justify-self:start;}
+.hb-sheet-btn:disabled{opacity:.45;}
+.hb-sheet-body{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding-bottom:env(safe-area-inset-bottom,0px);}
+/* Formatleiste am Telefon einzeilig und seitlich wischbar: umgebrochen war sie
+   doppelt so hoch, und ueber der Tastatur zaehlt jede Zeile. */
+@media(max-width:768px){
+  .hb-rtb{flex-wrap:nowrap!important;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;}
+  .hb-rtb::-webkit-scrollbar{display:none;}
+  .hb-rtb>*{flex-shrink:0;}
+}
 
 .hb-stat{display:flex;align-items:center;gap:14px;padding:16px 18px;border-radius:var(--r-md);backdrop-filter:blur(22px) saturate(140%);-webkit-backdrop-filter:blur(22px) saturate(140%);box-shadow:var(--sh-sm),var(--glass-inset);transition:all .25s cubic-bezier(.4,0,.2,1);position:relative;overflow:hidden;isolation:isolate;}
 .hb-stat:hover{transform:translateY(-2px);box-shadow:var(--sh-md),var(--glass-inset);}
@@ -347,6 +404,7 @@ html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;background:var(
 // \u2500\u2500\u2500 UTILS \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 const CHANGELOG = {
   de: [
+    {version:"3.0", date:"28.09.2026", items:["Neuer Lernmodus „Offene Fragen“: Antwort eintippen, Heribert vergleicht — Groß-/Kleinschreibung, Bindestriche und Satzzeichen spielen keine Rolle. Ist es falsch, siehst du die richtige Antwort","Dunkelmodus: Text ist jetzt reinweiß, und schwarze oder sehr dunkle Schrift in Karten (z. B. aus Word oder Safari kopiert) wird automatisch weiß. Echte Farben bleiben","Bilder in Karten passen sich jedem Bildschirm an und werden nie mehr abgeschnitten — antippen zeigt sie groß","Karte anlegen: die Formatleiste über der Frage wirkt nur noch auf die Frage, die über der Antwort nur auf die Antwort","Am Telefon: die Taste „Weiter“ auf der Tastatur springt von der Frage zur Antwort, Speichern steht oben rechts im Fenster und bleibt über der Tastatur sichtbar. In der Antwort macht die Eingabetaste weiter einen Zeilenumbruch"]},
     {version:"2.9", date:"23.09.2026", items:["Ordner-Kacheln nehmen am Telefon die volle Breite ein — vorher standen zwei nebeneinander, in die weder Name noch GETEILT-Zeichen noch Fortschrittsring richtig passten","Das GETEILT-Zeichen wird nicht mehr abgeschnitten: bei langen Ordnernamen wird jetzt der Name gekürzt, nicht das Zeichen dahinter"]},
     {version:"2.8", date:"23.09.2026", items:["Reihenfolge ändern: man kann eine Zeile jetzt auch einfach kurz gedrückt halten und verschieben — nicht mehr nur am Griff mit den Punkten links. Ein schneller Wisch scrollt weiterhin ganz normal"]},
     {version:"2.7", date:"23.09.2026", items:["Reihenfolge ändern geht jetzt auch am Telefon: der Ziehgriff war 19 Pixel breit und damit mit dem Finger praktisch nicht zu treffen — er ist jetzt über die volle Zeilenhöhe anfassbar, die Pfeile daneben sind größer","Das GETEILT-Zeichen sitzt jetzt neben dem Ordnernamen statt mittig darüber — geteilte und eigene Kacheln stehen dadurch wieder auf einer Linie"]},
@@ -368,6 +426,7 @@ const CHANGELOG = {
     {version:"1.0", date:"14.04.2026", items:["Ordner & Sets erstellen","Karteikarten mit Rich-Text","Fortschritts-Tracking","Teilen per E-Mail"]},
   ],
   en: [
+    {version:"3.0", date:"28.09.2026", items:["New study mode \"Open questions\": type the answer and Heribert checks it — case, hyphens and punctuation don't matter. If it's wrong, you see the correct answer","Dark mode: text is now pure white, and black or very dark text inside cards (e.g. copied from Word or Safari) turns white automatically. Real colours stay","Images in cards fit every screen and are never cropped — tap one to see it full size","Creating a card: the format bar above the question now only affects the question, the one above the answer only the answer","On phones: the keyboard's \"next\" key jumps from question to answer, and Save sits at the top right of the sheet, always visible above the keyboard. In the answer, return still makes a line break"]},
     {version:"2.9", date:"23.09.2026", items:["Folder tiles take the full width on phones — two side by side left no room for the name, the SHARED badge or the progress ring","The SHARED badge is no longer clipped: with long folder names the name is now truncated instead of the badge behind it"]},
     {version:"2.8", date:"23.09.2026", items:["Reordering: you can now press and hold any row to move it — not just the dotted handle on the left. A quick swipe still scrolls as usual"]},
     {version:"2.7", date:"23.09.2026", items:["Reordering now works on phones too: the drag handle was 19 pixels wide and almost impossible to hit with a finger — it now spans the full row height, and the arrows next to it are bigger","The SHARED badge now sits next to the folder name instead of centred above it — shared and own tiles line up again"]},
@@ -560,7 +619,6 @@ const T = {
     discardBody: "Was du gerade eingegeben hast, geht dann verloren.",
     discardYes: "Verwerfen",
     keepEditing: "Weiter bearbeiten",
-    toAnswer: "Zur Antwort",
     deleteYes: "Löschen",
     deleteCardTitle: "Karte löschen?",
     deleteCardBody: "Die Karte wird für alle entfernt, die dieses Set sehen. Das lässt sich nicht rückgängig machen.",
@@ -588,6 +646,16 @@ const T = {
     lineBreak: "Zeilenumbruch",
     enterHintQ: "Enter springt zur Antwort",
     enterHintA: "Enter speichert die Karte",
+    enterHintQTouch: "„Weiter“ springt zur Antwort",
+    openQuestions: "Offene Fragen",
+    typeAnswer: "Antwort eintippen",
+    answerPlaceholder: "Deine Antwort …",
+    check: "Prüfen",
+    rightMsg: "Richtig!",
+    wrongMsg: "Leider falsch",
+    yourAnswer: "Deine Antwort",
+    correctAnswer: "Richtige Antwort",
+    closeImage: "Bild schließen",
   },
   en: {
     overview: "Overview",
@@ -758,7 +826,6 @@ const T = {
     discardBody: "What you just typed will be lost.",
     discardYes: "Discard",
     keepEditing: "Keep editing",
-    toAnswer: "To the answer",
     deleteYes: "Delete",
     deleteCardTitle: "Delete card?",
     deleteCardBody: "The card is removed for everyone who sees this set. This cannot be undone.",
@@ -786,6 +853,16 @@ const T = {
     lineBreak: "Line break",
     enterHintQ: "Enter jumps to the answer",
     enterHintA: "Enter saves the card",
+    enterHintQTouch: "\"next\" jumps to the answer",
+    openQuestions: "Open questions",
+    typeAnswer: "Type the answer",
+    answerPlaceholder: "Your answer …",
+    check: "Check",
+    rightMsg: "Correct!",
+    wrongMsg: "Not quite",
+    yourAnswer: "Your answer",
+    correctAnswer: "Correct answer",
+    closeImage: "Close image",
   }
 };
 
@@ -886,6 +963,112 @@ const safeColor = c => (typeof c === "string" && /^#[0-9a-fA-F]{3,8}$/.test(c.tr
 // Profilbilder werden als eingebettete Daten gespeichert; alles andere waere
 // eine fremde URL, die beim Anzeigen die IP des Betrachters preisgibt.
 const safeImgSrc = u => (typeof u === "string" && /^data:image\/(png|jpe?g|gif|webp);base64,/i.test(u)) ? u : null;
+
+// --- Farblose Schrift an das Farbschema binden ----------------------------
+// Karten tragen oft eine feste Schriftfarbe mit: Schwarz aus der Farbpalette,
+// aus Word kopiert, beim Einfuegen aus Safari mitgeschleppt. Im dunklen
+// Schema stand das schwarz auf fast schwarz. Deshalb werden FARBLOSE Toene
+// (Schwarz, dunkles Grau, Weiss) an das Schema gebunden: dunkle Schrift wird
+// im Dunkelmodus weiss, weisse Schrift im hellen Modus dunkel. Echte Farben
+// (Rot, Blau, ...) bleiben, wie sie sind.
+// Der Originalwert steht als Rueckfall im var() -- ohne die Variable (helles
+// Schema, PDF-Export) sieht alles aus wie vorher. Gespeichert wird immer der
+// Originalwert, siehe unInk.
+const _colorCtx = (() => { try { return document.createElement("canvas").getContext("2d"); } catch { return null; } })();
+function parseCssColor(s){
+  if (!_colorCtx || !s) return null;
+  s = String(s).trim();
+  if (!s || /var\(/i.test(s)) return null;
+  // Der Canvas normalisiert jede CSS-Farbe (auch "black", "rgb(...)") auf
+  // #rrggbb bzw. rgba(). Ungueltiges laesst den vorigen Wert stehen -- daher
+  // zwei verschiedene Vorwerte: bleibt jeweils der Vorwert, war s ungueltig.
+  _colorCtx.fillStyle = "#000"; _colorCtx.fillStyle = s; const a = _colorCtx.fillStyle;
+  _colorCtx.fillStyle = "#fff"; _colorCtx.fillStyle = s; const b = _colorCtx.fillStyle;
+  if (a !== b) return null;
+  let m = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(a);
+  if (m) return {r:parseInt(m[1],16), g:parseInt(m[2],16), b:parseInt(m[3],16), a:1};
+  m = /^rgba?\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)\s*(?:,\s*([\d.]+)\s*)?\)$/i.exec(a);
+  if (m) return {r:+m[1], g:+m[2], b:+m[3], a:m[4]==null ? 1 : +m[4]};
+  return null;
+}
+const colorHex = c => "#" + [c.r,c.g,c.b].map(v=>Math.round(v).toString(16).padStart(2,"0")).join("") + (c.a<1 ? Math.round(c.a*255).toString(16).padStart(2,"0") : "");
+const colorLum = ({r,g,b}) => { const f=v=>{v/=255;return v<=.03928?v/12.92:Math.pow((v+.055)/1.055,2.4);}; return .2126*f(r)+.7152*f(g)+.0722*f(b); };
+// "dark" = schwarz oder dunkles Grau (auch fast schwarze Farbtoene),
+// "light" = weiss oder helles Grau, null = echte Farbe oder durchsichtig.
+const inkKind = c => {
+  if (!c || c.a < .5) return null;
+  const L = colorLum(c), C = Math.max(c.r,c.g,c.b) - Math.min(c.r,c.g,c.b);
+  if (L < .012 || (C <= 60 && L < .10)) return "dark";
+  if (C <= 40 && L > .75) return "light";
+  return null;
+};
+// Arbeitet direkt am DOM (Editor) oder an einem geparsten Dokument (Anzeige).
+// Aendert nur Attribute, nie die Knoten selbst -- die Schreibmarke im Editor
+// bleibt deshalb stehen.
+function inkTree(root){
+  const walk = (el, grund) => {           // grund: fester Hintergrund darueber
+    for (const n of Array.from(el.children)) {
+      let hier = grund;
+      const bg = parseCssColor(n.style && n.style.backgroundColor);
+      if (bg && bg.a >= .5) {
+        const k = inkKind(bg);
+        // Weisse bzw. schwarze Flaechen kommen fast immer ungewollt beim
+        // Einfuegen mit. Im jeweils anderen Schema werden sie durchsichtig.
+        if (k === "light")     { n.style.backgroundColor = `var(--hb-paper, ${colorHex(bg)})`; hier = null; }
+        else if (k === "dark") { n.style.backgroundColor = `var(--hb-night, ${colorHex(bg)})`; hier = null; }
+        else hier = colorLum(bg) > .4 ? "light" : "dark";
+      }
+      const fontCol = n.nodeName === "FONT" ? n.getAttribute("color") : null;
+      const raw = (n.style && n.style.color) || fontCol;
+      const c = parseCssColor(raw);
+      const k = inkKind(c);
+      // Dunkle Schrift auf farbig hellem Grund (Markierung) bleibt dunkel.
+      if (k && !(hier === "light" && k === "dark") && !(hier === "dark" && k === "light")) {
+        n.style.color = `var(${k === "dark" ? "--hb-ink-d" : "--hb-ink-l"}, ${colorHex(c)})`;
+        if (fontCol) n.removeAttribute("color");
+      } else if (!raw && hier && hier !== grund) {
+        // Eigener farbiger Hintergrund ohne eigene Schriftfarbe: passend setzen,
+        // sonst stuende im Dunkelmodus weisse Schrift auf Gelb.
+        n.style.color = hier === "light" ? "#1C1810" : "#FFFFFF";
+      }
+      walk(n, hier);
+    }
+  };
+  walk(root, null);
+  return root;
+}
+const _inkCache = new Map();
+function inkHtml(h){
+  if (!h || !/color/i.test(h)) return h || "";
+  const hit = _inkCache.get(h);
+  if (hit !== undefined) return hit;
+  const body = new DOMParser().parseFromString(h, "text/html").body;
+  const out = inkTree(body).innerHTML;
+  if (_inkCache.size > 300) _inkCache.clear();
+  _inkCache.set(h, out);
+  return out;
+}
+// Vor dem Speichern: die Schema-Bindung wieder auspacken, damit in der
+// Datenbank der Originalwert steht.
+const unInk = h => String(h || "").replace(/var\(\s*--hb-(?:ink-d|ink-l|paper|night)\s*,\s*(#[0-9a-fA-F]{3,8})\s*\)/g, "$1");
+// Karteninhalt zum Anzeigen: gesaeubert und an das Farbschema gebunden.
+const cardHtml = h => inkHtml(safeHtml(h));
+
+// Reiner Text einer Karte (Entities aufgeloest, ohne Bild-Platzhalter).
+const htmlText = h => new DOMParser().parseFromString(String(h || ""), "text/html").body.textContent || "";
+// Vergleich fuer "Offene Fragen": Gross/klein, Bindestriche, Satzzeichen und
+// Leerraum zaehlen nicht. "ß" wird zu "ss" -- sonst waere STRASSE (gross
+// geschrieben) etwas anderes als Straße, obwohl sich nur die Schreibung
+// unterscheidet. NFKC macht aus "²" eine 2 und aus Ligaturen Einzelbuchstaben.
+const normAnswer = s => String(s || "")
+  .normalize("NFKC")
+  .toLocaleLowerCase("de")
+  .replace(/ß/g, "ss")
+  .replace(/\p{P}/gu, "")
+  .replace(/\s+/g, "");
+
+// Bild bildschirmfuellend zeigen (ImageZoom haengt einmal ganz oben in App).
+const zoomImage = src => window.dispatchEvent(new CustomEvent("heribert:zoom", {detail:src}));
 
 // \u2500\u2500\u2500 FARBSCHEMA \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 // "auto" folgt dem Geraet, "light"/"dark" sind feste Entscheidungen. Wird beim
@@ -1307,6 +1490,39 @@ const ISpin = ({c,s=22}) => {
   return <span style={style} aria-label="Lädt…">✦</span>;
 };
 
+// Karteninhalt anzeigen. Ein Tipp auf ein Bild vergroessert es; das Ereignis
+// endet hier, damit die Karte darunter nicht gleichzeitig umdreht bzw. die
+// Zeile in der Liste nicht auf- oder zuklappt.
+function CardHtml({html,empty="",className="",style}){
+  const onClick = e => {
+    const img = e.target.closest?.("img");
+    if (!img || !img.getAttribute("src")) return;
+    e.stopPropagation();
+    zoomImage(img.getAttribute("src"));
+  };
+  return <div className={"card-html "+className} style={style} onClick={onClick} dangerouslySetInnerHTML={{__html:cardHtml(html)||empty}}/>;
+}
+function ImageZoom({t}){
+  const [src,setSrc]=useState(null);
+  useEffect(()=>{
+    // Dieselben Formate, die safeHtml in Karten durchlaesst.
+    const on=e=>{ const s=String(e.detail||""); if(/^data:image\/(png|jpe?g|gif|webp|bmp);base64,/i.test(s)) setSrc(s); };
+    window.addEventListener("heribert:zoom",on);
+    return()=>window.removeEventListener("heribert:zoom",on);
+  },[]);
+  useEffect(()=>{
+    if(!src) return;
+    const k=e=>{ if(e.key==="Escape") setSrc(null); };
+    window.addEventListener("keydown",k);
+    return()=>window.removeEventListener("keydown",k);
+  },[src]);
+  if(!src) return null;
+  return <div className="hb-zoom" onClick={()=>setSrc(null)} role="dialog" aria-label={t.closeImage}>
+    <img src={src} alt=""/>
+    <button className="hb-zoom-x" onClick={e=>{e.stopPropagation();setSrc(null);}} aria-label={t.closeImage}><IClose2/></button>
+  </div>;
+}
+
 // \u2500\u2500\u2500 APP ROOT \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 function useMobile(){
   const [m,setM]=useState(window.innerWidth<768);
@@ -1441,7 +1657,9 @@ const NATIVE_CSS = `
 // Das oberste offene Fenster schliessen, indem der Klick auf den Hintergrund
 // nachgestellt wird. Genau den wertet jedes Fenster ohnehin schon aus.
 function closeTopSheet(){
-  const overlays = document.querySelectorAll(".overlay");
+  // .hb-zoom (vergroessertes Bild) haengt ganz am Ende von App und ist damit,
+  // wenn offen, immer das oberste.
+  const overlays = document.querySelectorAll(".overlay, .hb-zoom");
   const top = overlays[overlays.length - 1];
   if (!top) return false;
   top.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
@@ -1702,7 +1920,7 @@ function App() {
   const splashLang = session.user.user_metadata?.lang || (()=>{try{return localStorage.getItem("heribert.lang")}catch{return null}})() || "de";
   // Steht die Sperre, hat das Begruessungsbild nichts mehr zu suchen -- es
   // liegt auf zIndex 9999 und wuerde sich sonst davorschieben.
-  return(<>{gate}{splash&&!mustUpdate&&<SplashScreen name={uname} lang={splashLang} onDone={()=>setSplash(false)}/>}<Dashboard key={session.user.id} session={session} onLogout={()=>sb.auth.signOut()}/></>);
+  return(<>{gate}{splash&&!mustUpdate&&<SplashScreen name={uname} lang={splashLang} onDone={()=>setSplash(false)}/>}<Dashboard key={session.user.id} session={session} onLogout={()=>sb.auth.signOut()}/><ImageZoom t={T[splashLang]||T.de}/></>);
 }
 
 // \u2500\u2500\u2500 AUTH \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
@@ -2463,7 +2681,7 @@ function Dashboard({session, onLogout}) {
     const markProgress=()=>{studyHasProgress.current=true;};
     return <>
       {confirmGoHome && <ConfirmOverlay title={t.abortStudy} sub={t.abortStudySub} confirmLabel={t.abortStudyYes} cancelLabel={t.continueStudy} onConfirm={()=>{studyHasProgress.current=false;confirmGoHomeYes();}} onCancel={()=>setConfirmGoHome(false)}/>}
-      {studyMode.mode==="flash" ? <FlashMode set={sessionInfo} cards={studyMode.cards} onExit={Exit} onGoHome={goHome} onRate={updateCardRating} onProgress={markProgress} onEditCard={async(card,q,a)=>{const sq=safeHtml(q),sa=safeHtml(a);const {error}=await sb.from("cards").update({question_html:sq,answer_html:sa,mcq_options:null}).eq("id",card.id);if(fail(error,"Aenderung konnte nicht gespeichert werden"))return;setData(d=>({...d,cards:d.cards.map(c=>c.id===card.id?{...c,questionHtml:sq,answerHtml:sa,mcqOptions:null}:c)}));const ci=studyMode.cards.findIndex(c=>c.id===card.id);if(ci>=0){studyMode.cards[ci].questionHtml=sq;studyMode.cards[ci].answerHtml=sa;}}} t={t}/> : <MCQMode set={sessionInfo} cards={studyMode.cards} onExit={Exit} onGoHome={goHome} onRate={updateCardRating} onCacheMCQ={cacheCardMCQ} onProgress={markProgress} t={t}/>}
+      {studyMode.mode==="flash" ? <FlashMode set={sessionInfo} cards={studyMode.cards} onExit={Exit} onGoHome={goHome} onRate={updateCardRating} onProgress={markProgress} onEditCard={async(card,q,a)=>{const sq=safeHtml(q),sa=safeHtml(a);const {error}=await sb.from("cards").update({question_html:sq,answer_html:sa,mcq_options:null}).eq("id",card.id);if(fail(error,"Aenderung konnte nicht gespeichert werden"))return;setData(d=>({...d,cards:d.cards.map(c=>c.id===card.id?{...c,questionHtml:sq,answerHtml:sa,mcqOptions:null}:c)}));const ci=studyMode.cards.findIndex(c=>c.id===card.id);if(ci>=0){studyMode.cards[ci].questionHtml=sq;studyMode.cards[ci].answerHtml=sa;}}} t={t}/> : studyMode.mode==="open" ? <OpenMode set={sessionInfo} cards={studyMode.cards} onExit={Exit} onGoHome={goHome} onRate={updateCardRating} onProgress={markProgress} t={t}/> : <MCQMode set={sessionInfo} cards={studyMode.cards} onExit={Exit} onGoHome={goHome} onRate={updateCardRating} onCacheMCQ={cacheCardMCQ} onProgress={markProgress} t={t}/>}
     </>;
   }
 
@@ -2862,7 +3080,7 @@ function CardRow({card,onEdit,onDelete,onCopy,onMove,readOnly,t}) {
   );
   return (<div style={{background:"var(--glass)",backdropFilter:"blur(18px) saturate(140%)",WebkitBackdropFilter:"blur(18px) saturate(140%)",border:"1px solid rgba(245,99,26,.12)",borderRadius:"var(--r-md)",boxShadow:"0 2px 10px rgba(245,99,26,.06),var(--glass-inset)",position:"relative",zIndex:menuOpen?100:0}}>    <div style={{display:"flex",alignItems:open?"flex-start":"center",gap:10,padding:"14px 16px",cursor:"pointer"}} onClick={()=>setOpen(p=>!p)}>
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--muted2)" strokeWidth="2.5" style={{transform:open?"rotate(90deg)":"rotate(0deg)",transition:"transform .2s",flexShrink:0,marginTop:open?4:0}}><path d="M9 18l6-6-6-6"/></svg>
-      <div style={{flex:1,overflow:"hidden",fontSize:14,fontWeight:500,...(open?{whiteSpace:"normal",wordBreak:"break-word",lineHeight:1.6}:{whiteSpace:"nowrap",maskImage:"linear-gradient(to right, #000 82%, transparent 98%)",WebkitMaskImage:"linear-gradient(to right, #000 82%, transparent 98%)"})}} dangerouslySetInnerHTML={{__html:safeHtml(card.questionHtml)||"<em style='color:var(--muted2)'>—</em>"}}/>
+      <CardHtml html={card.questionHtml} empty="<em style='color:var(--muted2)'>—</em>" className={open?"":"card-line"} style={{flex:1,overflow:"hidden",fontSize:14,fontWeight:500,...(open?{whiteSpace:"normal",wordBreak:"break-word",lineHeight:1.6}:{whiteSpace:"nowrap",maskImage:"linear-gradient(to right, #000 82%, transparent 98%)",WebkitMaskImage:"linear-gradient(to right, #000 82%, transparent 98%)"})}}/>
       {ri && <span style={{fontSize:16,flexShrink:0}}>{ri.emoji}</span>}
       {(!readOnly || onCopy) && <div ref={menuRef} style={{position:"relative",flexShrink:0}}>
         <button onClick={e=>{e.stopPropagation();setMenuOpen(p=>!p);}} style={{width:28,height:28,borderRadius:8,border:"none",background:menuOpen?"var(--glass-hover)":"none",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",color:"var(--muted2)",transition:"all .12s"}} onMouseEnter={e=>e.currentTarget.style.color="var(--orange)"} onMouseLeave={e=>e.currentTarget.style.color="var(--muted2)"}>
@@ -2878,7 +3096,7 @@ function CardRow({card,onEdit,onDelete,onCopy,onMove,readOnly,t}) {
     </div>
     {open && <div style={{borderTop:"1px solid rgba(245,99,26,.15)",padding:"14px 16px",background:"var(--glass-hover)",backdropFilter:"blur(10px)",WebkitBackdropFilter:"blur(10px)",borderRadius:"0 0 var(--r-md) var(--r-md)"}}>
       <div style={{fontSize:12,fontWeight:600,color:"var(--orange)",marginBottom:8,textTransform:"uppercase",letterSpacing:".06em"}}>{t?.answer||"Antwort"}</div>
-      <div style={{fontSize:14,lineHeight:1.7,wordBreak:"break-word",whiteSpace:"normal"}} dangerouslySetInnerHTML={{__html:safeHtml(card.answerHtml)||"<em style='color:var(--muted2)'>—</em>"}}/>
+      <CardHtml html={card.answerHtml} empty="<em style='color:var(--muted2)'>—</em>" style={{fontSize:14,lineHeight:1.7,wordBreak:"break-word",whiteSpace:"normal"}}/>
     </div>}
   </div>);
 }
@@ -3097,7 +3315,7 @@ function HomeView({userName,data,rootFolders,onSelectFolder,t,lang}){
           ?"0 14px 40px rgba(0,0,0,.35),0 4px 14px rgba(0,0,0,.2),var(--glass-inset)"
           :"0 14px 40px rgba(244,63,94,.16),0 4px 14px rgba(0,0,0,.04),var(--glass-inset)",
         display:"flex",alignItems:"center",gap:14,
-        position:"relative",overflow:"hidden",color:dark?"#F5ECE3":"var(--text)",isolation:"isolate"
+        position:"relative",overflow:"hidden",color:dark?"#FFFFFF":"var(--text)",isolation:"isolate"
       }}>
         <div style={{position:"relative",zIndex:1,display:"flex",alignItems:"center",gap:14,width:"100%"}}>
           {(() => {
@@ -3125,7 +3343,7 @@ function HomeView({userName,data,rootFolders,onSelectFolder,t,lang}){
             );
           })()}
           <div style={{flex:1,minWidth:0}}>
-            <div style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:18,color:dark?"#F5ECE3":"var(--text)",letterSpacing:"-.2px"}}>{t.totalProgress}</div>
+            <div style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:18,color:dark?"#FFFFFF":"var(--text)",letterSpacing:"-.2px"}}>{t.totalProgress}</div>
             <div style={{fontSize:12,color:dark?"rgba(255,230,210,.7)":"var(--muted)",marginTop:3,fontWeight:500}}>{data.cards.length} {t.cardsCount} · {superCards} {t.masteredCount}</div>
           </div>
           <div style={{fontSize:30,opacity:.95,filter:"drop-shadow(0 2px 4px rgba(244,63,94,.25))"}}>🎯</div>
@@ -3236,12 +3454,14 @@ function StudyConfigModal({config,onStart,onClose,t}) {
       </div>
     )}
     <div style={{fontSize:13,fontWeight:600,color:"var(--muted)",marginBottom:10,textTransform:"uppercase",letterSpacing:".06em"}}>{t.mode}</div>
-    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:22}}>
-      {[{id:"flash",icon:"\ud83c\udccf",label:t.flashcards,sub:t.selfRate},{id:"mcq",icon:"\ud83d\udcdd",label:t.multipleChoice,sub:t.aiOptions}].map(m=>(
-        <button key={m.id} onClick={()=>setMode(m.id)} style={{padding:"14px",border:`2px solid ${mode===m.id?"var(--orange)":"var(--glass-bdr)"}`,borderRadius:14,background:mode===m.id?"var(--glass-hover)":"var(--glass)",backdropFilter:"blur(18px) saturate(140%)",WebkitBackdropFilter:"blur(18px) saturate(140%)",cursor:"pointer",textAlign:"left",fontFamily:"inherit",transition:"all .15s",boxShadow:mode===m.id?"0 6px 18px rgba(245,99,26,.2),var(--glass-inset)":"0 2px 8px rgba(245,99,26,.05),var(--glass-inset)"}}>
-          <div style={{fontSize:22,marginBottom:6}}>{m.icon}</div>
-          <div style={{fontWeight:600,fontSize:14,color:mode===m.id?"var(--orange)":"var(--text)",marginBottom:2}}>{m.label}</div>
-          <div style={{fontSize:12,color:"var(--muted)"}}>{m.sub}</div>
+    <div className="hb-modes">
+      {[{id:"flash",icon:"\ud83c\udccf",label:t.flashcards,sub:t.selfRate},{id:"mcq",icon:"\ud83d\udcdd",label:t.multipleChoice,sub:t.aiOptions},{id:"open",icon:"\u2328\ufe0f",label:t.openQuestions,sub:t.typeAnswer}].map(m=>(
+        <button key={m.id} className="hb-mode" onClick={()=>setMode(m.id)} style={{padding:"14px",border:`2px solid ${mode===m.id?"var(--orange)":"var(--glass-bdr)"}`,borderRadius:14,background:mode===m.id?"var(--glass-hover)":"var(--glass)",backdropFilter:"blur(18px) saturate(140%)",WebkitBackdropFilter:"blur(18px) saturate(140%)",cursor:"pointer",textAlign:"left",fontFamily:"inherit",transition:"all .15s",boxShadow:mode===m.id?"0 6px 18px rgba(245,99,26,.2),var(--glass-inset)":"0 2px 8px rgba(245,99,26,.05),var(--glass-inset)"}}>
+          <div className="hb-mode-icon">{m.icon}</div>
+          <div style={{minWidth:0}}>
+            <div style={{fontWeight:600,fontSize:14,color:mode===m.id?"var(--orange)":"var(--text)",marginBottom:2}}>{m.label}</div>
+            <div style={{fontSize:12,color:"var(--muted)"}}>{m.sub}</div>
+          </div>
         </button>
       ))}
     </div>
@@ -3312,8 +3532,8 @@ function FlashMode({set,cards,onExit,onGoHome,onRate,onProgress,onEditCard,readO
   const startRef=useRef(Date.now());
   const [elapsed,setElapsed]=useState(0);
   const card=cards[idx];
-  const openEdit=()=>{setEditQ(safeHtml(card?.questionHtml));setEditA(safeHtml(card?.answerHtml));setEditingCard(true);};
-  const saveEdit=()=>{if(onEditCard&&card){onEditCard(card,editQ,editA);card.questionHtml=editQ;card.answerHtml=editA;}setEditingCard(false);setShowFormatBar(false);};
+  const openEdit=()=>{setEditQ(cardHtml(card?.questionHtml));setEditA(cardHtml(card?.answerHtml));setEditingCard(true);};
+  const saveEdit=()=>{if(onEditCard&&card){const q=unInk(editQ),a=unInk(editA);onEditCard(card,q,a);card.questionHtml=q;card.answerHtml=a;}setEditingCard(false);setShowFormatBar(false);};
   const touchRef=useRef({y:0,moved:false});
   const onFlipTap=()=>{if(!touchRef.current.moved)setFlipped(p=>!p);};
   const rate=r=>{if(onProgress)onProgress();if(!readOnly&&onRate)onRate(card.id,r);const nr=[...ratings,r];setRatings(nr);if(idx+1>=cards.length){setElapsed(Date.now()-startRef.current);setDone(true);return;}setTimeout(()=>{setFlipped(false);setIdx(p=>p+1);},200);};
@@ -3345,11 +3565,11 @@ function FlashMode({set,cards,onExit,onGoHome,onRate,onProgress,onEditCard,readO
       <div className={`flip-inner${flipped?" flipped":""}`} style={{minHeight:320}}>
         <div className="flip-f" onClick={onFlipTap} onTouchStart={e=>{touchRef.current={y:e.touches[0].clientY,moved:false};}} onTouchMove={e=>{if(Math.abs(e.touches[0].clientY-touchRef.current.y)>10)touchRef.current.moved=true;}} style={{minHeight:320,maxHeight:"60vh",background:"var(--glass-s)",backdropFilter:"blur(26px) saturate(150%)",WebkitBackdropFilter:"blur(26px) saturate(150%)",border:"2px solid var(--glass-bdr)",display:"flex",flexDirection:"column",alignItems:"center",padding:"28px 32px",boxShadow:"var(--sh-md),var(--glass-inset)",cursor:"pointer"}}>
           <div style={{fontSize:11,fontWeight:600,color:"var(--muted)",textTransform:"uppercase",letterSpacing:".08em",marginBottom:16,flexShrink:0}}>{t.question}</div>
-          <div style={{fontSize:18,lineHeight:1.6,textAlign:"center",overflowY:"auto",WebkitOverflowScrolling:"touch",flex:1,width:"100%"}} dangerouslySetInnerHTML={{__html:safeHtml(card?.questionHtml)||""}}/>
+          <CardHtml html={card?.questionHtml} style={{fontSize:18,lineHeight:1.6,textAlign:"center",overflowY:"auto",WebkitOverflowScrolling:"touch",flex:1,width:"100%"}}/>
         </div>
         <div className="flip-b" onClick={onFlipTap} onTouchStart={e=>{touchRef.current={y:e.touches[0].clientY,moved:false};}} onTouchMove={e=>{if(Math.abs(e.touches[0].clientY-touchRef.current.y)>10)touchRef.current.moved=true;}} style={{minHeight:320,maxHeight:"60vh",background:"var(--tint-orange)",border:"2px solid var(--ob)",display:"flex",flexDirection:"column",alignItems:"center",padding:"28px 32px",cursor:"pointer"}}>
           <div style={{fontSize:11,fontWeight:600,color:"var(--rose)",textTransform:"uppercase",letterSpacing:".08em",marginBottom:16,flexShrink:0}}>{t.answer}</div>
-          <div style={{fontSize:17,lineHeight:1.7,textAlign:"center",color:"var(--text)",overflowY:"auto",WebkitOverflowScrolling:"touch",flex:1,width:"100%"}} dangerouslySetInnerHTML={{__html:safeHtml(card?.answerHtml)||""}}/>
+          <CardHtml html={card?.answerHtml} style={{fontSize:17,lineHeight:1.7,textAlign:"center",color:"var(--text)",overflowY:"auto",WebkitOverflowScrolling:"touch",flex:1,width:"100%"}}/>
         </div>
       </div>
     </div></>}
@@ -3417,7 +3637,7 @@ function MCQMode({set,cards,onExit,onGoHome,onRate,onCacheMCQ,onProgress,readOnl
   const tryExit=()=>{if(!done&&(idx>0||picked!==null||score>0)){setConfirmExit(true);}else{onExit();}};
   const restart=()=>{setIdx(0);setScore(0);setDone(false);setPicked(null);setShuffledOpts(null);startRef.current=Date.now();setElapsed(0);};
   if(loadingMCQ)return(<div style={{minHeight:"100vh",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",background:"var(--grad-bg)",gap:16,padding:20}}><ISpin/><div style={{color:"var(--muted)",fontSize:14,textAlign:"center"}}>KI generiert Antwortoptionen…{loadProgress.total>0&&<div style={{fontSize:12,marginTop:4}}>{loadProgress.done} / {loadProgress.total}</div>}</div></div>);
-  if(done){const pct=Math.round((score/cards.length)*100);const resEmoji=pct>=90?"🏆":pct>=70?"🎉":pct>=50?"📈":pct>=30?"💡":pct>0?"😤":"😵";return(<div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:"var(--grad-bg)",padding:20}}><div className="au" style={{textAlign:"center",maxWidth:440}}><div style={{fontSize:56,marginBottom:16}}>{resEmoji}</div><h2 style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:28,marginBottom:8}}>{t.result}</h2><div style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:52,background:pct>=80?"linear-gradient(135deg,#22C55E,#16A34A)":"var(--grad)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",marginBottom:6}}>{pct}%</div><div style={{color:"var(--muted)",marginBottom:14}}>{score} {t.ofTotal} {cards.length} {t.correct}</div><div style={{display:"inline-flex",alignItems:"center",gap:8,padding:"6px 14px",background:"var(--glass)",border:"1px solid var(--glass-bdr)",borderRadius:99,fontSize:13,color:"var(--muted)",marginBottom:28}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>{t.studyTime} · <span style={{fontWeight:600,color:"var(--orange)"}}>{fmtDur(elapsed)}</span></div><div style={{display:"flex",gap:10,justifyContent:"center"}}><button className="btn-g" onClick={restart}>{t.again}</button><button className="btn-o" onClick={onExit}>{t.backBtn}</button></div></div></div>);}
+  if(done)return <ScoreScreen score={score} total={cards.length} elapsed={elapsed} onRestart={restart} onExit={onExit} t={t}/>;
   return(<div style={{minHeight:"100vh",background:"var(--grad-bg)",padding:"max(40px, calc(var(--safe-t) + 2px)) 20px max(40px, calc(var(--safe-b) + 12px))",display:"flex",flexDirection:"column",alignItems:"center"}}>
     {confirmExit && <ConfirmOverlay title={t.abortStudy} sub={t.abortStudySub} confirmLabel={t.abortStudyYes} cancelLabel={t.continueStudy} onConfirm={()=>{setConfirmExit(false);onExit();}} onCancel={()=>setConfirmExit(false)}/>}
     {onGoHome && <div style={{width:"100%",maxWidth:640,marginBottom:18,display:"flex",justifyContent:"center"}}><button onClick={onGoHome} title="Zur Übersicht" style={{border:"none",background:"none",padding:"4px 10px",cursor:"pointer",fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:18,letterSpacing:"-.3px",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",backgroundImage:"var(--grad)"}}>Heribert <Star spin/></button></div>}
@@ -3432,7 +3652,7 @@ function MCQMode({set,cards,onExit,onGoHome,onRate,onCacheMCQ,onProgress,readOnl
       </button>
     </div>}
     <div style={{width:"100%",maxWidth:640,marginBottom:28}}><div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}><button className="btn-back" onClick={tryExit}><IBack/> <span>{set?.name}</span></button><span style={{fontSize:14,fontWeight:600,color:"var(--muted)",flexShrink:0,whiteSpace:"nowrap"}}>{idx+1} / {cards.length} · {score} ✓</span></div><div className="prog-track"><div className="prog-fill" style={{width:`${(idx/cards.length)*100}%`}}/></div></div>
-    <div style={{width:"100%",maxWidth:640,background:"var(--glass-s)",backdropFilter:"blur(26px) saturate(150%)",WebkitBackdropFilter:"blur(26px) saturate(150%)",border:"1.5px solid var(--glass-bdr)",borderRadius:"var(--r-lg)",padding:28,marginBottom:16,boxShadow:"var(--sh-md),var(--glass-inset)"}}><div style={{fontSize:11,fontWeight:600,color:"var(--muted)",textTransform:"uppercase",letterSpacing:".08em",marginBottom:12}}>{t.question} {idx+1}</div><div style={{fontSize:18,lineHeight:1.6}} dangerouslySetInnerHTML={{__html:safeHtml(card?.questionHtml)||""}}/></div>
+    <div style={{width:"100%",maxWidth:640,background:"var(--glass-s)",backdropFilter:"blur(26px) saturate(150%)",WebkitBackdropFilter:"blur(26px) saturate(150%)",border:"1.5px solid var(--glass-bdr)",borderRadius:"var(--r-lg)",padding:28,marginBottom:16,boxShadow:"var(--sh-md),var(--glass-inset)"}}><div style={{fontSize:11,fontWeight:600,color:"var(--muted)",textTransform:"uppercase",letterSpacing:".08em",marginBottom:12}}>{t.question} {idx+1}</div><CardHtml html={card?.questionHtml} style={{fontSize:18,lineHeight:1.6}}/></div>
     <div key={idx} style={{width:"100%",maxWidth:640,display:"flex",flexDirection:"column",gap:10}}>
       {(shuffledOpts||[]).map((opt,i)=>{
         const isCorrect = picked!==null && opt.ok;
@@ -3455,6 +3675,78 @@ function MCQMode({set,cards,onExit,onGoHome,onRate,onCacheMCQ,onProgress,readOnl
       </button>);})}
     </div>
     {picked!==null&&<div className="au" style={{marginTop:20}}><button className="btn-o" onClick={next}>{idx+1>=cards.length?t.results:t.nextQuestion}</button></div>}
+  </div>);
+}
+
+// Ergebnis einer Runde mit richtig/falsch (Multiple Choice, Offene Fragen).
+function ScoreScreen({score,total,elapsed,onRestart,onExit,t}){
+  const pct=Math.round((score/total)*100);
+  const resEmoji=pct>=90?"🏆":pct>=70?"🎉":pct>=50?"📈":pct>=30?"💡":pct>0?"😤":"😵";
+  return(<div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:"var(--grad-bg)",padding:20}}><div className="au" style={{textAlign:"center",maxWidth:440}}><div style={{fontSize:56,marginBottom:16}}>{resEmoji}</div><h2 style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:28,marginBottom:8}}>{t.result}</h2><div style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:52,background:pct>=80?"linear-gradient(135deg,#22C55E,#16A34A)":"var(--grad)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",marginBottom:6}}>{pct}%</div><div style={{color:"var(--muted)",marginBottom:14}}>{score} {t.ofTotal} {total} {t.correct}</div><div style={{display:"inline-flex",alignItems:"center",gap:8,padding:"6px 14px",background:"var(--glass)",border:"1px solid var(--glass-bdr)",borderRadius:99,fontSize:13,color:"var(--muted)",marginBottom:28}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>{t.studyTime} · <span style={{fontWeight:600,color:"var(--orange)"}}>{fmtDur(elapsed)}</span></div><div style={{display:"flex",gap:10,justifyContent:"center"}}><button className="btn-g" onClick={onRestart}>{t.again}</button><button className="btn-o" onClick={onExit}>{t.backBtn}</button></div></div></div>);
+}
+
+// ─── OFFENE FRAGEN ─────────────────────────────────────────────────────
+// Frage lesen, Antwort eintippen, pruefen (Vergleich siehe normAnswer).
+// Bewertet wird wie bei Multiple Choice: richtig hebt die Karte eine Stufe
+// an, falsch setzt sie auf Schwer.
+function OpenMode({set,cards,onExit,onGoHome,onRate,onProgress,readOnly,t}) {
+  if (!t) t = T.de;
+  const [idx,setIdx]=useState(0);
+  const [eingabe,setEingabe]=useState("");
+  const [richtig,setRichtig]=useState(null);   // null = noch nicht geprueft
+  const [score,setScore]=useState(0);
+  const [done,setDone]=useState(false);
+  const [confirmExit,setConfirmExit]=useState(false);
+  const startRef=useRef(Date.now());
+  const [elapsed,setElapsed]=useState(0);
+  const inputRef=useRef(); const weiterRef=useRef();
+  const card=cards[idx];
+  const geprueft=richtig!==null;
+  const pruefen=()=>{
+    if(geprueft||!eingabe.trim())return;
+    // Eine Antwort ganz ohne Text (nur Bild) kann man nicht eintippen -- die
+    // zaehlt als falsch und zeigt das Bild.
+    const soll=normAnswer(htmlText(card.answerHtml));
+    const ok=!!soll&&normAnswer(eingabe)===soll;
+    if(onProgress)onProgress();
+    if(!readOnly&&onRate)onRate(card.id,mcqProgressRating(ok,card.lastRating));
+    if(ok)setScore(p=>p+1);
+    setRichtig(ok);
+  };
+  // Nach dem Pruefen geht der Fokus auf "Weiter": am Rechner geht es mit Enter
+  // weiter, am Telefon klappt die Tastatur weg und gibt die Antwort frei.
+  useEffect(()=>{ if(geprueft) weiterRef.current?.focus(); },[geprueft]);
+  const weiter=()=>{
+    if(idx+1>=cards.length){setElapsed(Date.now()-startRef.current);setDone(true);return;}
+    setIdx(p=>p+1);setEingabe("");setRichtig(null);
+    // Noch im Tipp-Ereignis fokussieren: nur dann holt iOS die Tastatur hoch.
+    const el=inputRef.current; if(el){el.readOnly=false;el.focus();}
+  };
+  const tryExit=()=>{if(!done&&(idx>0||geprueft||score>0)){setConfirmExit(true);}else{onExit();}};
+  const restart=()=>{setIdx(0);setScore(0);setDone(false);setEingabe("");setRichtig(null);startRef.current=Date.now();setElapsed(0);};
+  if(done)return <ScoreScreen score={score} total={cards.length} elapsed={elapsed} onRestart={restart} onExit={onExit} t={t}/>;
+  const tint=richtig?"22,163,74":"220,38,38";
+  return(<div style={{minHeight:"100vh",background:"var(--grad-bg)",padding:"max(40px, calc(var(--safe-t) + 2px)) 20px max(40px, calc(var(--safe-b) + 12px))",display:"flex",flexDirection:"column",alignItems:"center"}}>
+    {confirmExit && <ConfirmOverlay title={t.abortStudy} sub={t.abortStudySub} confirmLabel={t.abortStudyYes} cancelLabel={t.continueStudy} onConfirm={()=>{setConfirmExit(false);onExit();}} onCancel={()=>setConfirmExit(false)}/>}
+    {onGoHome && <div style={{width:"100%",maxWidth:640,marginBottom:18,display:"flex",justifyContent:"center"}}><button onClick={onGoHome} title="Zur Übersicht" style={{border:"none",background:"none",padding:"4px 10px",cursor:"pointer",fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:18,letterSpacing:"-.3px",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",backgroundImage:"var(--grad)"}}>Heribert <Star spin/></button></div>}
+    <div style={{width:"100%",maxWidth:640,marginBottom:28}}><div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}><button className="btn-back" onClick={tryExit}><IBack/> <span>{set?.name}</span></button><span style={{fontSize:14,fontWeight:600,color:"var(--muted)",flexShrink:0,whiteSpace:"nowrap"}}>{idx+1} / {cards.length} · {score} ✓</span></div><div className="prog-track"><div className="prog-fill" style={{width:`${(idx/cards.length)*100}%`}}/></div></div>
+    <div style={{width:"100%",maxWidth:640,background:"var(--glass-s)",backdropFilter:"blur(26px) saturate(150%)",WebkitBackdropFilter:"blur(26px) saturate(150%)",border:"1.5px solid var(--glass-bdr)",borderRadius:"var(--r-lg)",padding:28,marginBottom:16,boxShadow:"var(--sh-md),var(--glass-inset)"}}><div style={{fontSize:11,fontWeight:600,color:"var(--muted)",textTransform:"uppercase",letterSpacing:".08em",marginBottom:12}}>{t.question} {idx+1}</div><CardHtml html={card?.questionHtml} style={{fontSize:18,lineHeight:1.6}}/></div>
+    <div style={{width:"100%",maxWidth:640,display:"flex",gap:10}}>
+      <input ref={inputRef} autoFocus value={eingabe} readOnly={geprueft} onChange={e=>setEingabe(e.target.value)}
+        onKeyDown={e=>{if(e.key!=="Enter"||e.nativeEvent.isComposing)return;e.preventDefault();geprueft?weiter():pruefen();}}
+        placeholder={t.answerPlaceholder} aria-label={t.yourAnswer}
+        enterKeyHint="done" autoComplete="off" autoCorrect="off" autoCapitalize="off" spellCheck={false}
+        style={{flex:1,minWidth:0,padding:"14px 16px",border:`1.5px solid ${geprueft?`rgba(${tint},.55)`:"var(--glass-bdr)"}`,borderRadius:14,background:"var(--input-bg)",color:"var(--text)",fontSize:16,fontFamily:"inherit",outline:"none",boxShadow:"var(--sh-sm)",transition:"border-color .15s"}}
+        onFocus={e=>{if(!geprueft)e.currentTarget.style.borderColor="var(--orange)";}} onBlur={e=>{if(!geprueft)e.currentTarget.style.borderColor="var(--glass-bdr)";}}/>
+      {!geprueft && <button className="btn-o" onClick={pruefen} disabled={!eingabe.trim()} style={{flexShrink:0}}>{t.check}</button>}
+    </div>
+    {geprueft && <div className="au" style={{width:"100%",maxWidth:640,marginTop:14,padding:"16px 18px",border:`1.5px solid rgba(${tint},.45)`,borderRadius:14,background:`rgba(${tint},.10)`}}>
+      <div style={{fontWeight:700,fontSize:15,color:richtig?"var(--green)":"var(--red)",marginBottom:richtig?10:6}}>{richtig?"✓ "+t.rightMsg:"✗ "+t.wrongMsg}</div>
+      {!richtig && <div style={{fontSize:13,color:"var(--muted)",marginBottom:10,wordBreak:"break-word"}}>{t.yourAnswer}: <span style={{textDecoration:"line-through"}}>{eingabe}</span></div>}
+      <div style={{fontSize:11,fontWeight:600,color:"var(--muted)",textTransform:"uppercase",letterSpacing:".08em",marginBottom:6}}>{richtig?t.answer:t.correctAnswer}</div>
+      <CardHtml html={card?.answerHtml} style={{fontSize:16,lineHeight:1.6,wordBreak:"break-word"}}/>
+    </div>}
+    {geprueft && <div className="au" style={{marginTop:20}}><button ref={weiterRef} className="btn-o" onClick={weiter}>{idx+1>=cards.length?t.results:t.nextQuestion}</button></div>}
   </div>);
 }
 
@@ -3668,31 +3960,62 @@ function SetModal({onSave,onClose,t}) {
 
 const richFmt=(cmd,val=null)=>document.execCommand(cmd,false,val);
 // Enter bestaetigt die Karte (siehe CardModal) -- der Zeilenumbruch braucht
-// deshalb einen eigenen Weg. Am Rechner Shift+Enter, auf dem Telefon dieser
-// Knopf: Shift gibt es auf der iOS-Tastatur in Verbindung mit Enter nicht.
-const richLineBreak=(ref)=>{
-  ref?.current?.focus();
+// deshalb einen eigenen Weg. Am Rechner Shift+Enter, in der Frage auf dem
+// Telefon dieser Knopf: dort ist Enter die Taste "Weiter".
+// Beide erwarten, dass die Auswahl schon im richtigen Feld steht (zumFeld).
+const richLineBreak=()=>{
   let done=false;
   try { done = document.execCommand("insertLineBreak"); } catch {}
   if (!done) { try { document.execCommand("insertHTML",false,"<br>"); } catch {} }
 };
-const richInsImg=async(file,ref)=>{const reader=new FileReader();reader.onload=e=>{ref.current?.focus();document.execCommand("insertImage",false,e.target.result);};reader.readAsDataURL(file);};
+const richInsImg=async(file,vorher)=>{const reader=new FileReader();reader.onload=e=>{vorher();document.execCommand("insertImage",false,e.target.result);};reader.readAsDataURL(file);};
 function RichToolBar({targetRef,compact}){
-    const fmt=richFmt;
+    // Jede Leiste gehoert zu GENAU einem Feld. execCommand wirkt aber auf die
+    // aktuelle Auswahl, wo immer sie steht -- die Knoepfe ueber der Frage
+    // haben deshalb die Antwort formatiert, wenn dort zuletzt der Cursor
+    // stand. Jetzt merkt sich jede Leiste die letzte Auswahl in ihrem Feld und
+    // holt sie vor jedem Befehl dorthin zurueck. Das hilft auch bei Farbfeld
+    // und Auswahllisten, die den Fokus kurz an sich ziehen.
+    const merk=useRef(null);
+    useEffect(()=>{
+      if(!targetRef) return;
+      const h=()=>{
+        const el=targetRef.current, sel=window.getSelection();
+        if(!el||!sel||!sel.rangeCount) return;
+        const r=sel.getRangeAt(0);
+        if(el.contains(r.commonAncestorContainer)) merk.current=r.cloneRange();
+      };
+      document.addEventListener("selectionchange",h);
+      return()=>document.removeEventListener("selectionchange",h);
+    },[targetRef]);
+    const zumFeld=()=>{
+      const el=targetRef?.current;
+      if(!el) return;   // Leiste ohne festes Feld (Lernmodus): wie bisher
+      const sel=window.getSelection();
+      if(document.activeElement===el && sel && sel.rangeCount && el.contains(sel.getRangeAt(0).commonAncestorContainer)) return;
+      el.focus({preventScroll:true});
+      try{
+        const r=merk.current && el.contains(merk.current.commonAncestorContainer) ? merk.current : (()=>{const n=document.createRange();n.selectNodeContents(el);n.collapse(false);return n;})();
+        sel.removeAllRanges(); sel.addRange(r);
+      }catch{}
+    };
+    const fmt=(cmd,val=null)=>{zumFeld();richFmt(cmd,val);};
     const [showColors,setShowColors]=useState(false);
     const [hexInput,setHexInput]=useState("#F5631A");
     const [activeColor,setActiveColor]=useState("#F5631A");
     const [fontSize,setFontSize]=useState("15");
     const [fontFamily,setFontFamily]=useState("DM Sans");
-    const applyColor=(c)=>{fmt("foreColor",c);setActiveColor(c);setShowColors(false);};
+    // Schwarz aus der Palette gleich an das Farbschema binden -- sonst steht es
+    // im Dunkelmodus schon waehrend des Tippens schwarz auf schwarz.
+    const applyColor=(c)=>{fmt("foreColor",c);if(targetRef?.current)inkTree(targetRef.current);setActiveColor(c);setShowColors(false);};
     const applyFontSize=(px)=>{
       setFontSize(px);
       // execCommand fontSize uses 1-7 scale. We use 7 (largest) then replace
       // the generated <font size="7"> with inline style for exact px.
       fmt("fontSize","7");
-      const el = window.getSelection()?.anchorNode?.parentElement;
+      const el = targetRef?.current || window.getSelection()?.anchorNode?.parentElement;
       if (el) {
-        const fonts = (el.closest?.("[contenteditable]") || el).querySelectorAll('font[size="7"]');
+        const fonts = (targetRef?.current || el.closest?.("[contenteditable]") || el).querySelectorAll('font[size="7"]');
         fonts.forEach(f => { f.removeAttribute("size"); f.style.fontSize = px + "px"; });
       }
     };
@@ -3702,12 +4025,12 @@ function RichToolBar({targetRef,compact}){
     };
     const TB=({cmd,lbl,style:s})=><button onMouseDown={e=>{e.preventDefault();fmt(cmd);}} style={{width:26,height:26,border:"1px solid var(--border)",borderRadius:5,background:"var(--btn-sm-bg)",fontFamily:cmd==="bold"?"serif":"inherit",fontWeight:cmd==="bold"?700:400,fontStyle:cmd==="italic"?"italic":"normal",textDecoration:cmd==="underline"?"underline":"none",fontSize:12,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",color:"var(--text)",...s}}>{lbl}</button>;
     const colors=["#18170F","#6B7280","#374151","#1E40AF","#2563EB","#0891B2","#059669","#16A34A","#CA8A04","#F59E0B","#F5631A","#EA580C","#DC2626","#E11D48","#F43F5E","#9333EA","#7C3AED","#A855F7"];
-    return(<div style={{display:"flex",flexWrap:"wrap",gap:4,padding:"8px 10px",borderBottom:"1px solid var(--border)",background:"var(--glass)",alignItems:"center"}}>
+    return(<div className="hb-rtb" style={{display:"flex",flexWrap:"wrap",gap:4,padding:"8px 10px",borderBottom:"1px solid var(--border)",background:"var(--glass)",alignItems:"center"}}>
       {[["bold","B"],["italic","I"],["underline","U"]].map(([cmd,lbl])=><TB key={cmd} cmd={cmd} lbl={lbl}/>)}
       <div style={{width:1,height:18,background:"var(--border)",margin:"0 2px"}}/>
       <TB cmd="insertUnorderedList" lbl={<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="9" y1="6" x2="20" y2="6"/><line x1="9" y1="12" x2="20" y2="12"/><line x1="9" y1="18" x2="20" y2="18"/><circle cx="4" cy="6" r="1.5" fill="currentColor" stroke="none"/><circle cx="4" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="4" cy="18" r="1.5" fill="currentColor" stroke="none"/></svg>}/>
       <TB cmd="insertOrderedList" lbl={<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="10" y1="6" x2="20" y2="6"/><line x1="10" y1="12" x2="20" y2="12"/><line x1="10" y1="18" x2="20" y2="18"/><text x="2" y="8" fontSize="8" fill="currentColor" stroke="none" fontFamily="sans-serif">1</text><text x="2" y="14" fontSize="8" fill="currentColor" stroke="none" fontFamily="sans-serif">2</text><text x="2" y="20" fontSize="8" fill="currentColor" stroke="none" fontFamily="sans-serif">3</text></svg>}/>
-      <button onMouseDown={e=>{e.preventDefault();richLineBreak(targetRef);}} onTouchStart={e=>{e.preventDefault();richLineBreak(targetRef);}} title="Zeilenumbruch (Shift+Enter)" style={{width:26,height:26,border:"1px solid var(--border)",borderRadius:5,background:"var(--btn-sm-bg)",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",color:"var(--text)"}}>
+      <button onMouseDown={e=>{e.preventDefault();zumFeld();richLineBreak();}} onTouchStart={e=>{e.preventDefault();zumFeld();richLineBreak();}} title="Zeilenumbruch (Shift+Enter)" style={{width:26,height:26,border:"1px solid var(--border)",borderRadius:5,background:"var(--btn-sm-bg)",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",color:"var(--text)"}}>
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 5v6a3 3 0 01-3 3H4"/><path d="M8 10l-4 4 4 4"/></svg>
       </button>
       <div style={{width:1,height:18,background:"var(--border)",margin:"0 2px"}}/>
@@ -3749,17 +4072,40 @@ function RichToolBar({targetRef,compact}){
           </div>
         </>}
       </div>
-      {!compact && <label style={{width:26,height:26,border:"1px solid var(--border)",borderRadius:5,background:"var(--btn-sm-bg)",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",fontSize:14}}>🖼️<input type="file" accept="image/*" style={{display:"none"}} onChange={e=>e.target.files[0]&&richInsImg(e.target.files[0],targetRef)}/></label>}
+      {!compact && <label style={{width:26,height:26,border:"1px solid var(--border)",borderRadius:5,background:"var(--btn-sm-bg)",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",fontSize:14}}>🖼️<input type="file" accept="image/*" style={{display:"none"}} onChange={e=>{e.target.files[0]&&richInsImg(e.target.files[0],zumFeld);e.target.value="";}}/></label>}
     </div>);
 }
 
-// Hat das Geraet eine echte Tastatur? Nur dort darf Enter etwas anderes tun
-// als einen Zeilenumbruch: nur dort gibt es Shift+Enter als Ausweichweg.
-// Auf dem iPhone ist die Return-Taste die EINZIGE Moeglichkeit, eine Zeile
-// umzubrechen -- sie umzuwidmen kostet mehr, als sie einbringt.
+// Hat das Geraet eine echte Tastatur? Nur dort darf Enter in der Antwort
+// speichern: nur dort gibt es Shift+Enter als Ausweichweg fuer den
+// Zeilenumbruch. Auf dem iPhone bleibt die Return-Taste in der Antwort ein
+// Zeilenumbruch; in der Frage wird sie zur Taste "Weiter".
 const hasRealKeyboard = () => {
   try { return window.matchMedia("(any-pointer: fine)").matches; } catch { return true; }
 };
+
+// Sichtbarer Bereich ueber der Bildschirmtastatur. position:fixed rechnet gegen
+// das ganze Fenster, die Tastatur liegt aber darueber -- und iOS verschiebt
+// beim Tippen zusaetzlich den sichtbaren Ausschnitt (offsetTop).
+function useVisibleBox(active){
+  const [box,setBox]=useState(null);
+  useEffect(()=>{
+    const vv=window.visualViewport;
+    if(!active||!vv) return;
+    let raf=0;
+    const mess=()=>{
+      cancelAnimationFrame(raf);
+      raf=requestAnimationFrame(()=>{
+        const n={top:Math.max(0,Math.round(vv.offsetTop)),height:Math.round(vv.height)};
+        setBox(b=>b&&b.top===n.top&&b.height===n.height?b:n);
+      });
+    };
+    vv.addEventListener("resize",mess); vv.addEventListener("scroll",mess);
+    mess();
+    return()=>{cancelAnimationFrame(raf);vv.removeEventListener("resize",mess);vv.removeEventListener("scroll",mess);};
+  },[active]);
+  return box;
+}
 
 // --- Entwuerfe -------------------------------------------------------------
 // Ein halb getippter Kartentext ist mit einem Fehlklick neben das Fenster weg.
@@ -3788,32 +4134,39 @@ const caretInList = () => {
 };
 
 function CardModal({card,setId,saving,onSave,onClose,t}) {
-  const qRef=useRef(); const aRef=useRef();
+  const qRef=useRef(); const aRef=useRef(); const bodyRef=useRef();
   const saveRef=useRef(()=>{});
   const key = DRAFT_KEY(setId, card?.id);
   const dirtyRef = useRef(false);
   const timerRef = useRef(null);
   const [status,setStatus] = useState(null);      // "saved" | "restored"
   const [askDiscard,setAskDiscard] = useState(false);
-  const [kbGap,setKbGap] = useState(0);           // Hoehe der Bildschirmtastatur
-  const [inQuestion,setInQuestion] = useState(false);
   const tippMitTastatur = hasRealKeyboard();
+  // Ohne echte Tastatur (Telefon, iPad ohne Trackpad) wird das Fenster auf die
+  // Flaeche ueber der Bildschirmtastatur zugeschnitten; Speichern steht oben
+  // in der Kopfzeile wie bei iOS-eigenen Fenstern. Frueher lief stattdessen
+  // eine Leiste ueber der Tastatur mit -- die musste jeder Bewegung von
+  // Tastatur und Ausschnitt hinterherrechnen und sass oft daneben.
+  const kbFit = !tippMitTastatur;
+  const vp = useVisibleBox(kbFit);
 
   const snapshot = () => ({q:qRef.current?.innerHTML||"", a:aRef.current?.innerHTML||"", at:Date.now()});
   const hatInhalt = () => !!(strip(qRef.current?.innerHTML||"") || strip(aRef.current?.innerHTML||""));
 
-  // Beim Oeffnen: liegt ein neuerer Entwurf herum, gewinnt der.
+  // Beim Oeffnen: liegt ein neuerer Entwurf herum, gewinnt der. Angezeigt wird
+  // an das Farbschema gebunden (inkHtml), verglichen und gespeichert immer der
+  // Originalwert (unInk).
   useEffect(()=>{
     const q0 = safeHtml(card?.questionHtml), a0 = safeHtml(card?.answerHtml);
     const d = readDraft(key);
-    if (d && (strip(d.q||"")||strip(d.a||"")) && (d.q!==q0 || d.a!==a0)) {
-      if(qRef.current) qRef.current.innerHTML = safeHtml(d.q);
-      if(aRef.current) aRef.current.innerHTML = safeHtml(d.a);
+    if (d && (strip(d.q||"")||strip(d.a||"")) && (unInk(d.q)!==q0 || unInk(d.a)!==a0)) {
+      if(qRef.current) qRef.current.innerHTML = inkHtml(safeHtml(d.q));
+      if(aRef.current) aRef.current.innerHTML = inkHtml(safeHtml(d.a));
       dirtyRef.current = true;
       setStatus("restored");
     } else {
-      if(qRef.current) qRef.current.innerHTML = q0;
-      if(aRef.current) aRef.current.innerHTML = a0;
+      if(qRef.current) qRef.current.innerHTML = inkHtml(q0);
+      if(aRef.current) aRef.current.innerHTML = inkHtml(a0);
     }
   },[]);
 
@@ -3822,8 +4175,11 @@ function CardModal({card,setId,saving,onSave,onClose,t}) {
   // wird sie dort jederzeit abgeraeumt.
   useEffect(()=>{
     const sichern = () => { writeDraft(key, snapshot()); setStatus("saved"); };
-    const beiEingabe = () => {
+    const beiEingabe = e => {
       dirtyRef.current = true;
+      // Eingefuegter Text bringt oft feste Farben mit (Schwarz aus Word,
+      // Weiss aus einer dunklen Webseite) -- sofort an das Schema binden.
+      if (/^insertFrom/.test(e.inputType||"")) inkTree(e.currentTarget);
       clearTimeout(timerRef.current);
       timerRef.current = setTimeout(sichern, 900);
     };
@@ -3842,7 +4198,7 @@ function CardModal({card,setId,saving,onSave,onClose,t}) {
   },[]);
 
   const save=async()=>{
-    const q=qRef.current?.innerHTML||""; const a=aRef.current?.innerHTML||"";
+    const q=unInk(qRef.current?.innerHTML||""); const a=unInk(aRef.current?.innerHTML||"");
     if(!strip(q)&&!strip(a))return;
     const ok = await onSave({...(card||{}),questionHtml:q,answerHtml:a,mcqOptions:null});
     // Nur wegwerfen, wenn es wirklich in der Datenbank steht. Sonst waere der
@@ -3857,13 +4213,15 @@ function CardModal({card,setId,saving,onSave,onClose,t}) {
   };
   const verwerfen = () => { dropDraft(key); dirtyRef.current=false; setAskDiscard(false); onClose(); };
 
-  // Enter bestaetigt NUR an einer echten Tastatur, wo Shift+Enter den
-  // Zeilenumbruch uebernimmt. Auf dem Telefon bleibt Enter ein Enter --
-  // bestaetigt wird dort ueber die Leiste, die mit der Tastatur mitwandert.
+  // Enter in der FRAGE springt ueberall zur Antwort; auf dem iPhone traegt die
+  // Taste dafuer die Aufschrift "Weiter". Enter in der ANTWORT speichert nur
+  // an einer echten Tastatur (dort bricht Shift+Enter um) -- auf dem Telefon
+  // bleibt es ein Zeilenumbruch, gespeichert wird oben rechts.
+  // In Aufzaehlungen legt Enter immer den naechsten Punkt an.
   useEffect(()=>{
-    if (!tippMitTastatur) return;
     const wire = (el, isAnswer) => {
       if (!el) return null;
+      if (isAnswer && !tippMitTastatur) return null;
       el.setAttribute("enterkeyhint", isAnswer ? "done" : "next");
       const h = e => {
         if (e.inputType !== "insertParagraph") return;
@@ -3879,56 +4237,57 @@ function CardModal({card,setId,saving,onSave,onClose,t}) {
     return ()=>{ offQ&&offQ(); offA&&offA(); };
   },[]);
 
-  // Wo endet der sichtbare Bereich, wenn die Bildschirmtastatur offen ist?
-  // position:fixed rechnet gegen das GANZE Fenster, die Tastatur liegt aber
-  // darueber -- ohne visualViewport landet die Leiste dahinter.
+  // Schrumpft das Fenster, weil die Tastatur aufgeht, kann die Schreibmarke
+  // unter den neuen unteren Rand rutschen -- dann den Inhalt nachschieben.
   useEffect(()=>{
-    if (tippMitTastatur) return;
-    const vv = window.visualViewport;
-    if (!vv) return;
-    const mess = () => {
-      const verdeckt = Math.max(0, window.innerHeight - (vv.height + vv.offsetTop));
-      setKbGap(verdeckt > 90 ? verdeckt : 0);
-    };
-    vv.addEventListener("resize",mess); vv.addEventListener("scroll",mess);
-    mess();
-    return ()=>{ vv.removeEventListener("resize",mess); vv.removeEventListener("scroll",mess); };
-  },[]);
+    const body=bodyRef.current, sel=window.getSelection();
+    if(!kbFit||!vp||!body||!sel||!sel.rangeCount||!body.contains(document.activeElement)) return;
+    const range=sel.getRangeAt(0);
+    let r=range.getClientRects()[0] || range.getBoundingClientRect();
+    if(!r||(!r.top&&!r.bottom)) r=document.activeElement.getBoundingClientRect();
+    const b=body.getBoundingClientRect();
+    if(r.bottom > b.bottom-12) body.scrollTop += r.bottom-b.bottom+28;
+    else if(r.top < b.top+8) body.scrollTop -= b.top-r.top+28;
+  },[vp]);
 
   const felder = [
-    {label:t.question, ref:qRef, ph:t.question+" …", hint:tippMitTastatur?t.enterHintQ:"", istAntwort:false},
-    {label:t.answer,   ref:aRef, ph:t.answer+" …",   hint:tippMitTastatur?t.enterHintA:"", istAntwort:true},
+    {label:t.question, ref:qRef, ph:t.question+" …", hint:tippMitTastatur?t.enterHintQ:t.enterHintQTouch},
+    {label:t.answer,   ref:aRef, ph:t.answer+" …",   hint:tippMitTastatur?t.enterHintA:""},
   ];
-  return(<>
-  <div className="overlay" onClick={schliessen}><div className="modal si" style={{maxWidth:580,padding:0}} onClick={e=>e.stopPropagation()}>
-    <div style={{padding:"24px 28px 16px",borderBottom:"1px solid var(--border)",background:"var(--glass-hover)",position:"relative"}}><ModalX onClose={schliessen}/><h3 style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:18}}>{card?t.editCard:t.newCard}</h3></div>
-    {felder.map(({label,ref,ph,hint,istAntwort})=>(<div key={label} style={{borderBottom:"1px solid var(--border)"}}>
-      <div style={{display:"flex",alignItems:"baseline",justifyContent:"space-between",gap:10,padding:"10px 14px 0"}}>
-        <span style={{fontSize:12,fontWeight:600,color:"var(--muted)",textTransform:"uppercase",letterSpacing:".06em"}}>{label}</span>
-        {hint && <span style={{fontSize:10.5,color:"var(--muted2)",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{hint}</span>}
-      </div>
-      <RichToolBar targetRef={ref}/>
-      <div className="rich" contentEditable ref={ref} data-ph={ph}
-        onFocus={()=>setInQuestion(!istAntwort)}
-        onDrop={e=>{e.preventDefault();const f=e.dataTransfer?.files?.[0];if(f?.type.startsWith("image/"))richInsImg(f,ref);}} onDragOver={e=>e.preventDefault()} style={{minHeight:90,fontSize:15}}/>
-    </div>))}
-    <div style={{padding:"16px 28px",display:"flex",gap:10,alignItems:"center",background:"var(--glass)"}}>
-      <span style={{flex:1,minWidth:0,fontSize:11.5,color:"var(--muted2)",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>
-        {status==="restored" ? "↺ " + t.draftRestored : status==="saved" ? "✓ " + t.draftSaved : ""}
-      </span>
-      <button className="btn-g" onClick={schliessen}>{t.cancel}</button>
-      <button className="btn-o" onClick={save} disabled={saving}>{saving?<ISpin c="#fff" s={16}/>:(card?t.save:t.create)}</button>
+  const felderJsx = felder.map(({label,ref,ph,hint})=>(<div key={label} style={{borderBottom:"1px solid var(--border)"}}>
+    <div style={{display:"flex",alignItems:"baseline",justifyContent:"space-between",gap:10,padding:"10px 14px 0"}}>
+      <span style={{fontSize:12,fontWeight:600,color:"var(--muted)",textTransform:"uppercase",letterSpacing:".06em"}}>{label}</span>
+      {hint && <span style={{fontSize:10.5,color:"var(--muted2)",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{hint}</span>}
     </div>
+    <RichToolBar targetRef={ref}/>
+    <div className="rich" contentEditable ref={ref} data-ph={ph}
+      onDrop={e=>{e.preventDefault();const f=e.dataTransfer?.files?.[0];if(f?.type.startsWith("image/"))richInsImg(f,()=>ref.current?.focus());}} onDragOver={e=>e.preventDefault()} style={{minHeight:90,fontSize:15}}/>
+  </div>));
+  const statusText = status==="restored" ? "↺ " + t.draftRestored : status==="saved" ? "✓ " + t.draftSaved : "";
+  const speichernLabel = card?t.save:t.create;
+  return(<>
+  <div className={"overlay"+(kbFit?" hb-kb-fit":"")} style={kbFit&&vp?{top:vp.top,height:vp.height}:undefined} onClick={schliessen}>
+  <div className={"modal si"+(kbFit?" hb-card-sheet":"")} style={{maxWidth:580,padding:0}} onClick={e=>e.stopPropagation()}>
+    {kbFit ? <>
+      <div className="hb-sheet-head">
+        <button className="hb-sheet-btn cancel" onClick={schliessen}>{t.cancel}</button>
+        <h3>{card?t.editCard:t.newCard}</h3>
+        <button className="hb-sheet-btn save" onClick={save} disabled={saving}>{saving?<ISpin s={16}/>:speichernLabel}</button>
+      </div>
+      <div className="hb-sheet-body" ref={bodyRef}>
+        {felderJsx}
+        {statusText && <div style={{padding:"10px 14px",fontSize:11.5,color:"var(--muted2)"}}>{statusText}</div>}
+      </div>
+    </> : <>
+      <div style={{padding:"24px 28px 16px",borderBottom:"1px solid var(--border)",background:"var(--glass-hover)",position:"relative"}}><ModalX onClose={schliessen}/><h3 style={{fontFamily:"Outfit,sans-serif",fontWeight:700,fontSize:18}}>{card?t.editCard:t.newCard}</h3></div>
+      {felderJsx}
+      <div style={{padding:"16px 28px",display:"flex",gap:10,alignItems:"center",background:"var(--glass)"}}>
+        <span style={{flex:1,minWidth:0,fontSize:11.5,color:"var(--muted2)",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{statusText}</span>
+        <button className="btn-g" onClick={schliessen}>{t.cancel}</button>
+        <button className="btn-o" onClick={save} disabled={saving}>{saving?<ISpin c="#fff" s={16}/>:speichernLabel}</button>
+      </div>
+    </>}
   </div></div>
-  {/* Die Leiste ueber der Bildschirmtastatur. Sie ersetzt das, was Enter auf
-      dem Telefon frueher getan hat -- ohne die Return-Taste dafuer zu opfern. */}
-  {kbGap>0 && <div style={{position:"fixed",left:0,right:0,bottom:kbGap,zIndex:2100,display:"flex",alignItems:"center",gap:8,padding:"8px 12px",
-      background:"var(--glass-modal)",backdropFilter:"blur(24px) saturate(160%)",WebkitBackdropFilter:"blur(24px) saturate(160%)",
-      borderTop:"1px solid var(--glass-bdr)",boxShadow:"0 -6px 20px rgba(0,0,0,.14)"}}>
-    {inQuestion && <button className="btn-sm" onClick={()=>{aRef.current?.focus();caretToEnd(aRef.current);}}>{t.toAnswer} ↓</button>}
-    <span style={{flex:1,fontSize:11,color:"var(--muted2)",whiteSpace:"nowrap",overflow:"hidden"}}>{status==="saved"?"✓ "+t.draftSaved:""}</span>
-    <button className="btn-o" onClick={save} disabled={saving} style={{padding:"9px 18px"}}>{saving?<ISpin c="#fff" s={16}/>:(card?t.save:t.create)}</button>
-  </div>}
   {askDiscard && <ConfirmOverlay danger title={t.discardTitle} sub={t.discardBody}
     confirmLabel={t.discardYes} cancelLabel={t.keepEditing}
     onConfirm={verwerfen} onCancel={()=>setAskDiscard(false)}/>}
