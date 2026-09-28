@@ -270,8 +270,9 @@ html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;background:var(
 .flip-f .card-html img,.flip-b .card-html img{max-height:40vh;}
 /* Eingeklappte Zeile in der Kartenliste: nur ein Vorschaubild in Zeilenhoehe */
 .card-line img{max-height:1.6em;margin:0 3px;border-radius:4px;}
-.hb-zoom{position:fixed;inset:0;z-index:5000;background:rgba(8,4,3,.94);display:flex;align-items:center;justify-content:center;padding:max(12px,env(safe-area-inset-top)) 12px max(12px,env(safe-area-inset-bottom));cursor:zoom-out;animation:gateIn .15s ease;}
-.hb-zoom img{max-width:100%;max-height:100%;object-fit:contain;border-radius:8px;opacity:1!important;box-shadow:0 20px 60px rgba(0,0,0,.5);}
+.hb-zoom{position:fixed;inset:0;z-index:5000;background:rgba(8,4,3,.94);display:flex;align-items:center;justify-content:center;padding:max(12px,env(safe-area-inset-top)) 12px max(12px,env(safe-area-inset-bottom));cursor:zoom-in;animation:gateIn .15s ease;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none;}
+.hb-zoom[data-zoomed]{cursor:grab;}
+.hb-zoom img{max-width:100%;max-height:100%;object-fit:contain;border-radius:8px;opacity:1!important;box-shadow:0 20px 60px rgba(0,0,0,.5);-webkit-user-drag:none;transform-origin:50% 50%;}
 .hb-zoom-x{position:absolute;top:calc(env(safe-area-inset-top,0px) + 12px);right:12px;width:44px;height:44px;border-radius:99px;border:none;background:rgba(255,255,255,.14);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;}
 
 .flip-wrap{position:relative;perspective:1000px;}
@@ -404,7 +405,7 @@ html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;background:var(
 // \u2500\u2500\u2500 UTILS \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 const CHANGELOG = {
   de: [
-    {version:"3.0", date:"28.09.2026", items:["Neuer Lernmodus „Offene Fragen“: Antwort eintippen, Heribert vergleicht — Groß-/Kleinschreibung, Bindestriche und Satzzeichen spielen keine Rolle. Ist es falsch, siehst du die richtige Antwort","Dunkelmodus: Text ist jetzt reinweiß, und schwarze oder sehr dunkle Schrift in Karten (z. B. aus Word oder Safari kopiert) wird automatisch weiß. Echte Farben bleiben","Bilder in Karten passen sich jedem Bildschirm an und werden nie mehr abgeschnitten — antippen zeigt sie groß","Karte anlegen: die Formatleiste über der Frage wirkt nur noch auf die Frage, die über der Antwort nur auf die Antwort","Am Telefon: die Taste „Weiter“ auf der Tastatur springt von der Frage zur Antwort, Speichern steht oben rechts im Fenster und bleibt über der Tastatur sichtbar. In der Antwort macht die Eingabetaste weiter einen Zeilenumbruch"]},
+    {version:"3.0", date:"28.09.2026", items:["Neuer Lernmodus „Offene Fragen“: Antwort eintippen, Heribert vergleicht — Groß-/Kleinschreibung, Bindestriche und Satzzeichen spielen keine Rolle. Ist es falsch, siehst du die richtige Antwort","Dunkelmodus: Text ist jetzt reinweiß, und schwarze oder sehr dunkle Schrift in Karten (z. B. aus Word oder Safari kopiert) wird automatisch weiß. Echte Farben bleiben","Bilder in Karten passen sich jedem Bildschirm an und werden nie mehr abgeschnitten — antippen zeigt sie bildschirmfüllend, dort mit zwei Fingern zoomen und verschieben (oder doppelt tippen; am Rechner Mausrad/Trackpad)","Karte anlegen: die Formatleiste über der Frage wirkt nur noch auf die Frage, die über der Antwort nur auf die Antwort","Am Telefon: die Taste „Weiter“ auf der Tastatur springt von der Frage zur Antwort, Speichern steht oben rechts im Fenster und bleibt über der Tastatur sichtbar. In der Antwort macht die Eingabetaste weiter einen Zeilenumbruch"]},
     {version:"2.9", date:"23.09.2026", items:["Ordner-Kacheln nehmen am Telefon die volle Breite ein — vorher standen zwei nebeneinander, in die weder Name noch GETEILT-Zeichen noch Fortschrittsring richtig passten","Das GETEILT-Zeichen wird nicht mehr abgeschnitten: bei langen Ordnernamen wird jetzt der Name gekürzt, nicht das Zeichen dahinter"]},
     {version:"2.8", date:"23.09.2026", items:["Reihenfolge ändern: man kann eine Zeile jetzt auch einfach kurz gedrückt halten und verschieben — nicht mehr nur am Griff mit den Punkten links. Ein schneller Wisch scrollt weiterhin ganz normal"]},
     {version:"2.7", date:"23.09.2026", items:["Reihenfolge ändern geht jetzt auch am Telefon: der Ziehgriff war 19 Pixel breit und damit mit dem Finger praktisch nicht zu treffen — er ist jetzt über die volle Zeilenhöhe anfassbar, die Pfeile daneben sind größer","Das GETEILT-Zeichen sitzt jetzt neben dem Ordnernamen statt mittig darüber — geteilte und eigene Kacheln stehen dadurch wieder auf einer Linie"]},
@@ -426,7 +427,7 @@ const CHANGELOG = {
     {version:"1.0", date:"14.04.2026", items:["Ordner & Sets erstellen","Karteikarten mit Rich-Text","Fortschritts-Tracking","Teilen per E-Mail"]},
   ],
   en: [
-    {version:"3.0", date:"28.09.2026", items:["New study mode \"Open questions\": type the answer and Heribert checks it — case, hyphens and punctuation don't matter. If it's wrong, you see the correct answer","Dark mode: text is now pure white, and black or very dark text inside cards (e.g. copied from Word or Safari) turns white automatically. Real colours stay","Images in cards fit every screen and are never cropped — tap one to see it full size","Creating a card: the format bar above the question now only affects the question, the one above the answer only the answer","On phones: the keyboard's \"next\" key jumps from question to answer, and Save sits at the top right of the sheet, always visible above the keyboard. In the answer, return still makes a line break"]},
+    {version:"3.0", date:"28.09.2026", items:["New study mode \"Open questions\": type the answer and Heribert checks it — case, hyphens and punctuation don't matter. If it's wrong, you see the correct answer","Dark mode: text is now pure white, and black or very dark text inside cards (e.g. copied from Word or Safari) turns white automatically. Real colours stay","Images in cards fit every screen and are never cropped — tap one to see it full screen, then pinch to zoom and drag to pan (or double-tap; mouse wheel/trackpad on a computer)","Creating a card: the format bar above the question now only affects the question, the one above the answer only the answer","On phones: the keyboard's \"next\" key jumps from question to answer, and Save sits at the top right of the sheet, always visible above the keyboard. In the answer, return still makes a line break"]},
     {version:"2.9", date:"23.09.2026", items:["Folder tiles take the full width on phones — two side by side left no room for the name, the SHARED badge or the progress ring","The SHARED badge is no longer clipped: with long folder names the name is now truncated instead of the badge behind it"]},
     {version:"2.8", date:"23.09.2026", items:["Reordering: you can now press and hold any row to move it — not just the dotted handle on the left. A quick swipe still scrolls as usual"]},
     {version:"2.7", date:"23.09.2026", items:["Reordering now works on phones too: the drag handle was 19 pixels wide and almost impossible to hit with a finger — it now spans the full row height, and the arrows next to it are bigger","The SHARED badge now sits next to the folder name instead of centred above it — shared and own tiles line up again"]},
@@ -1502,24 +1503,136 @@ function CardHtml({html,empty="",className="",style}){
   };
   return <div className={"card-html "+className} style={style} onClick={onClick} dangerouslySetInnerHTML={{__html:cardHtml(html)||empty}}/>;
 }
+// Vollbild mit Zoom. Zwei Finger zoomen, ein Finger verschiebt, Doppeltipp
+// schaltet zwischen ganz und 2,5-fach; am Rechner Mausrad bzw. Trackpad und
+// Doppelklick. Ein einfacher Tipp schliesst -- aber nur ungezoomt, und erst
+// wenn klar ist, dass kein Doppeltipp folgt.
+// touch-action:none haelt den Browser heraus: sonst zoomt er die ganze Seite,
+// und die bleibt nach dem Schliessen vergroessert stehen.
+const ZOOM_MAX = 6;
 function ImageZoom({t}){
   const [src,setSrc]=useState(null);
+  const boxRef=useRef(); const imgRef=useRef();
+  const st=useRef({s:1,x:0,y:0});                 // aktuelle Verschiebung und Groesse
   useEffect(()=>{
     // Dieselben Formate, die safeHtml in Karten durchlaesst.
-    const on=e=>{ const s=String(e.detail||""); if(/^data:image\/(png|jpe?g|gif|webp|bmp);base64,/i.test(s)) setSrc(s); };
+    const on=e=>{ const s=String(e.detail||""); if(/^data:image\/(png|jpe?g|gif|webp|bmp);base64,/i.test(s)){ st.current={s:1,x:0,y:0}; setSrc(s); } };
     window.addEventListener("heribert:zoom",on);
     return()=>window.removeEventListener("heribert:zoom",on);
   },[]);
+
+  // Transform direkt am Element setzen: ein React-Render pro Fingerbewegung
+  // waere zu traege.
+  const apply=(weich)=>{
+    const img=imgRef.current, box=boxRef.current; if(!img||!box) return;
+    const {s,x,y}=st.current;
+    img.style.transition=weich?"transform .22s ease":"none";
+    img.style.transform=`translate(${x}px,${y}px) scale(${s})`;
+    box.toggleAttribute("data-zoomed", s>1.01);
+  };
+  // Nicht weiter schieben, als das Bild reicht: eine Kante darf hoechstens bis
+  // an den Bildschirmrand, ungezoomt bleibt es in der Mitte.
+  const begrenzen=()=>{
+    const img=imgRef.current, box=boxRef.current; if(!img||!box) return;
+    const c=st.current;
+    const mx=Math.max(0,(img.offsetWidth*c.s-box.clientWidth)/2), my=Math.max(0,(img.offsetHeight*c.s-box.clientHeight)/2);
+    c.x=Math.min(mx,Math.max(-mx,c.x)); c.y=Math.min(my,Math.max(-my,c.y));
+  };
+  // Bildmitte ohne Verschiebung (das Bild skaliert um seine Mitte).
+  const mitte=()=>{ const r=imgRef.current.getBoundingClientRect(); return {x:r.left+r.width/2-st.current.x, y:r.top+r.height/2-st.current.y}; };
+  // Auf Groesse s1 gehen, so dass der Bildpunkt unter p stehen bleibt.
+  const zoomUm=(p,s1,von=st.current,m=mitte())=>{
+    s1=Math.min(ZOOM_MAX,Math.max(1,s1));
+    st.current={s:s1, x:p.x-m.x-(p.x-m.x-von.x)*(s1/von.s), y:p.y-m.y-(p.y-m.y-von.y)*(s1/von.s)};
+  };
+  const setzen=()=>{ if(st.current.s<1.01) st.current={s:1,x:0,y:0}; begrenzen(); apply(true); };
+
+  const g=useRef(null), pts=useRef(new Map()), letzterTipp=useRef(null), zuTimer=useRef(null);
+  const schliessen=()=>{ clearTimeout(zuTimer.current); setSrc(null); };
+  const tipp=p=>{
+    const l=letzterTipp.current;
+    if(l && Date.now()-l.t<300 && Math.hypot(p.x-l.x,p.y-l.y)<40){
+      clearTimeout(zuTimer.current); letzterTipp.current=null;
+      if(st.current.s>1.01) st.current={s:1,x:0,y:0}; else zoomUm(p,2.5);
+      setzen(); return;
+    }
+    letzterTipp.current={t:Date.now(),x:p.x,y:p.y};
+    if(st.current.s<=1.01) zuTimer.current=setTimeout(schliessen,300);
+  };
+  const onDown=e=>{
+    if(e.target.closest(".hb-zoom-x")) return;
+    if(e.button>0) return;
+    boxRef.current.setPointerCapture?.(e.pointerId);
+    pts.current.set(e.pointerId,{x:e.clientX,y:e.clientY});
+    const P=[...pts.current.values()];
+    if(P.length===1) g.current={art:"schieben",sx:P[0].x,sy:P[0].y,von:{...st.current},bewegt:false};
+    else if(P.length===2) g.current={art:"zoom",d0:Math.hypot(P[0].x-P[1].x,P[0].y-P[1].y)||1,m0:{x:(P[0].x+P[1].x)/2,y:(P[0].y+P[1].y)/2},von:{...st.current},mitte:mitte()};
+  };
+  const onMove=e=>{
+    if(!pts.current.has(e.pointerId)||!g.current) return;
+    pts.current.set(e.pointerId,{x:e.clientX,y:e.clientY});
+    const P=[...pts.current.values()], G=g.current;
+    if(G.art==="zoom" && P.length>=2){
+      const d=Math.hypot(P[0].x-P[1].x,P[0].y-P[1].y), m={x:(P[0].x+P[1].x)/2,y:(P[0].y+P[1].y)/2};
+      // Um den Startpunkt zwischen den Fingern zoomen, dann mit den Fingern mitwandern.
+      zoomUm(G.m0,G.von.s*d/G.d0,G.von,G.mitte);
+      st.current.x+=m.x-G.m0.x; st.current.y+=m.y-G.m0.y;
+      apply(false);
+    } else if(G.art==="schieben"){
+      const dx=e.clientX-G.sx, dy=e.clientY-G.sy;
+      if(Math.hypot(dx,dy)>8) G.bewegt=true;
+      if(st.current.s>1.01){ st.current.x=G.von.x+dx; st.current.y=G.von.y+dy; begrenzen(); apply(false); }
+    }
+  };
+  const onUp=e=>{
+    if(!pts.current.delete(e.pointerId)||!g.current) return;
+    const G=g.current, rest=[...pts.current.values()];
+    if(G.art==="zoom"){
+      // Ein Finger bleibt liegen: nahtlos weiter verschieben.
+      if(rest.length===1) g.current={art:"schieben",sx:rest[0].x,sy:rest[0].y,von:{...st.current},bewegt:true};
+      else if(!rest.length){ g.current=null; setzen(); }
+      return;
+    }
+    if(!rest.length){ g.current=null; if(!G.bewegt && e.type==="pointerup") tipp({x:e.clientX,y:e.clientY}); else setzen(); }
+  };
+
   useEffect(()=>{
     if(!src) return;
-    const k=e=>{ if(e.key==="Escape") setSrc(null); };
+    const box=boxRef.current;
+    const k=e=>{ if(e.key==="Escape") schliessen(); };
+    // Mausrad/Trackpad. Pinch auf dem Trackpad kommt als Rad mit ctrlKey.
+    let radTimer=0;
+    const rad=e=>{
+      e.preventDefault();
+      zoomUm({x:e.clientX,y:e.clientY}, st.current.s*Math.exp(-e.deltaY*(e.ctrlKey?0.012:0.0025)));
+      begrenzen(); apply(false);
+      clearTimeout(radTimer); radTimer=setTimeout(setzen,160);
+    };
+    // Safari hat eigene Pinch-Ereignisse; ohne das zoomt er trotzdem die Seite.
+    const stopp=e=>e.preventDefault();
+    const neu=()=>{ st.current={s:1,x:0,y:0}; apply(false); };
     window.addEventListener("keydown",k);
-    return()=>window.removeEventListener("keydown",k);
+    window.addEventListener("resize",neu);
+    box.addEventListener("wheel",rad,{passive:false});
+    box.addEventListener("gesturestart",stopp); box.addEventListener("gesturechange",stopp);
+    box.addEventListener("touchmove",stopp,{passive:false});
+    return()=>{
+      clearTimeout(radTimer); clearTimeout(zuTimer.current);
+      window.removeEventListener("keydown",k); window.removeEventListener("resize",neu);
+      box.removeEventListener("wheel",rad); box.removeEventListener("gesturestart",stopp); box.removeEventListener("gesturechange",stopp);
+      box.removeEventListener("touchmove",stopp);
+      pts.current.clear(); g.current=null; letzterTipp.current=null;
+    };
   },[src]);
+
   if(!src) return null;
-  return <div className="hb-zoom" onClick={()=>setSrc(null)} role="dialog" aria-label={t.closeImage}>
-    <img src={src} alt=""/>
-    <button className="hb-zoom-x" onClick={e=>{e.stopPropagation();setSrc(null);}} aria-label={t.closeImage}><IClose2/></button>
+  // onClick nur fuer closeTopSheet (Wisch vom linken Rand): der schickt einen
+  // kuenstlichen Klick. Echte Tipps laufen ueber tipp().
+  return <div className="hb-zoom" ref={boxRef} role="dialog" aria-label={t.closeImage}
+      onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp}
+      onClick={e=>{ if(!e.nativeEvent.isTrusted) schliessen(); }}>
+    <img ref={imgRef} src={src} alt="" draggable={false}/>
+    <button className="hb-zoom-x" onClick={e=>{e.stopPropagation();schliessen();}} aria-label={t.closeImage}><IClose2/></button>
   </div>;
 }
 
@@ -1782,7 +1895,8 @@ function useEdgeSwipeBack(){
     const onStart = e => {
       if (e.touches.length !== 1) { armed=false; return; }
       const t = e.touches[0];
-      armed = t.clientX <= 28;
+      // Im gezoomten Bild ist das ein Verschieben, kein Zurueck.
+      armed = t.clientX <= 28 && !e.target.closest?.(".hb-zoom[data-zoomed]");
       x0 = t.clientX; y0 = t.clientY; t0 = Date.now();
     };
     const onEnd = e => {
